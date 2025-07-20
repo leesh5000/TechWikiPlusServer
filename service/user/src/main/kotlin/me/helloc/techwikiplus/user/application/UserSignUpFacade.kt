@@ -1,16 +1,20 @@
 package me.helloc.techwikiplus.user.application
 
+import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.service.MailSender
 import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
 import me.helloc.techwikiplus.user.domain.service.UserPasswordService
+import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 @Component
 class UserSignUpFacade(
     private val userDuplicateChecker: UserDuplicateChecker,
     private val userPasswordService: UserPasswordService,
     private val mailSender: MailSender,
+    private val verificationCodeStore: VerificationCodeStore
 ) {
     /**
      * 회원가입을 위한 메서드
@@ -29,7 +33,25 @@ class UserSignUpFacade(
         userPasswordService.validate(password)
         userDuplicateChecker.validateUserEmailDuplicate(email)
         userDuplicateChecker.validateUserNicknameDuplicate(nickname)
+
+        val user = User(
+        )
+
         val verificationCode: VerificationCode = mailSender.sendVerificationEmail(email)
+        verificationCodeStore.storeUserWithExpiry(
+            email,
+            verificationCode,
+            Duration.ofMinutes(5)
+        )
+    }
+
+    fun verifyEmail(
+        email: String,
+        code: String
+    ) {
+        val verificationCode = VerificationCode(code)
+        verificationCodeStore.retrieveUserOrThrows(email, verificationCode)
+
     }
 
 }

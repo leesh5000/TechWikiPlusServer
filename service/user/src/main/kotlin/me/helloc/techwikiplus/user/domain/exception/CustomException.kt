@@ -21,4 +21,11 @@ sealed class CustomException(val errorCode: String, override val message: String
         data class DuplicateEmail(val email: String) : ConflictException("Email already exists. Your input: $email")
         data class DuplicateNickname(val nickname: String) : ConflictException("Nickname already exists. Your input: $nickname")
     }
+
+    // 인증 관련 예외
+    sealed class AuthenticationException(override val message: String) : CustomException(errorCode = "AUTHENTICATION_FAILED", message) {
+        data class InvalidVerificationCode(val email: String, val code: String) : AuthenticationException("Invalid verification code for email: $email. Your input: $code")
+        data class InvalidCredentials(val email: String) : AuthenticationException("Invalid credentials for email: $email")
+        data class UnauthorizedAccess(val resource: String) : AuthenticationException("Unauthorized access to resource: $resource")
+    }
 }
