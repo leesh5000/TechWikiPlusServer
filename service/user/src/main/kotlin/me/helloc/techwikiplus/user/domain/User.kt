@@ -4,12 +4,12 @@ import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationEx
 import me.helloc.techwikiplus.user.domain.service.Clock
 import java.time.LocalDateTime
 
-class User private constructor(
+class User(
     val id: Long,
     val email: UserEmail,
     val password: String,
     val nickname: String,
-    val status: UserStatus,
+    val status: UserStatus = UserStatus.ACTIVE,
     val role: UserRole = UserRole.USER,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -23,30 +23,30 @@ class User private constructor(
                 throw InvalidNickname(nickname)
             }
         }
+
+        fun withPendingUser(
+            id: Long,
+            email: UserEmail,
+            nickname: String,
+            password: String,
+            clock: Clock = Clock.system
+        ): User {
+            validateNickname(nickname)
+            return User(
+                id = id,
+                email = email,
+                password = password,
+                nickname = nickname,
+                status = UserStatus.PENDING,
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
+        }
     }
 
     init {
         validateNickname(nickname)
     }
-
-    constructor(
-        id: Long,
-        nickname: String,
-        email: String,
-        password: String,
-        clock: Clock = Clock.system,
-        status: UserStatus = UserStatus.PENDING,
-        role: UserRole = UserRole.USER,
-    ) : this(
-        id = id,
-        email = UserEmail(email),
-        password = password,
-        nickname = nickname,
-        status = status,
-        role = role,
-        createdAt = clock.localDateTime(),
-        updatedAt = clock.localDateTime(),
-    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -73,6 +73,7 @@ class User private constructor(
             email = email,
             password = password,
             status = status,
+            role = role,
             createdAt = createdAt,
             updatedAt = clock.localDateTime(),
         )
@@ -103,5 +104,9 @@ class User private constructor(
             status = UserStatus.ACTIVE,
             clock = clock,
         )
+    }
+
+    fun email(): String {
+        return email.value
     }
 }
