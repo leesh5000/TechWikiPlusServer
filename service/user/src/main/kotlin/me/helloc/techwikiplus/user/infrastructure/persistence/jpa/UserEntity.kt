@@ -6,6 +6,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
+import me.helloc.techwikiplus.user.domain.UserRole
+import me.helloc.techwikiplus.user.domain.UserStatus
 import java.time.LocalDateTime
 
 @Entity
@@ -27,6 +29,12 @@ class UserEntity(
     @Column(name = "nickname", length = 20, unique = true, nullable = false)
     val nickname: String,
 
+    @Column(name = "status", length = 20, nullable = false)
+    val status: String,
+
+    @Column(name = "role", length = 20, nullable = false)
+    val role: String,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime,
 
@@ -34,22 +42,15 @@ class UserEntity(
     val updatedAt: LocalDateTime
 ) {
     fun toDomain(): User {
-        return User::class.java.getDeclaredConstructor(
-            String::class.java,
-            UserEmail::class.java,
-            String::class.java,
-            String::class.java,
-            LocalDateTime::class.java,
-            LocalDateTime::class.java
-        ).apply {
-            isAccessible = true
-        }.newInstance(
-            id,
-            UserEmail(email, emailVerified),
-            password,
-            nickname,
-            createdAt,
-            updatedAt
+        return User(
+            id = id,
+            email = UserEmail(email, emailVerified),
+            password = password,
+            nickname = nickname,
+            status = UserStatus.valueOf(status),
+            role = UserRole.valueOf(role),
+            createdAt = createdAt,
+            updatedAt = updatedAt
         )
     }
 
@@ -61,6 +62,8 @@ class UserEntity(
                 emailVerified = user.email.verified,
                 password = user.password,
                 nickname = user.nickname,
+                status = user.status.name,
+                role = user.role.name,
                 createdAt = user.createdAt,
                 updatedAt = user.updatedAt
             )
