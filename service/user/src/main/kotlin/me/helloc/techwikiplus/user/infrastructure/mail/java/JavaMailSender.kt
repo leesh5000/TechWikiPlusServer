@@ -1,17 +1,48 @@
 package me.helloc.techwikiplus.user.infrastructure.mail.java
 
+import me.helloc.techwikiplus.user.domain.VerificationCode
+import me.helloc.techwikiplus.user.domain.service.EmailTemplate
+import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator
 import me.helloc.techwikiplus.user.domain.service.MailSender
-import me.helloc.techwikiplus.user.domain.service.VerificationCode
-import org.springframework.stereotype.Component
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.mail.javamail.MimeMessageHelper
 
-@Component
-class JavaMailSender: MailSender {
+class JavaMailSender(
+    private val mailSender: JavaMailSender,
+    private val emailTemplateGenerator: EmailTemplateGenerator,
+) : MailSender {
+
+    @Value("\${spring.mail.username}")
+    private lateinit var from: String
+    private val log = LoggerFactory.getLogger(JavaMailSender::class.java)
 
     override fun sendVerificationEmail(email: String): VerificationCode {
-        TODO("Not yet implemented")
+        val code = VerificationCode.generate()
+        val emailTemplate = emailTemplateGenerator.generateVerificationEmail(code.value)
+        sendEmail(email, emailTemplate)
+        return code
     }
 
     override fun sendPasswordResetEmail(email: String, code: String) {
-        TODO("Not yet implemented")
+        val emailTemplate = emailTemplateGenerator.generatePasswordResetEmail(code)
+        sendEmail(email, emailTemplate)
     }
+
+    private fun sendEmail(email: String, emailTemplate: EmailTemplate) {
+        try {
+            val message = mailSender.createMimeMessage()
+            val helper = MimeMessageHelper(message, true, "UTF-8")
+            helper.setFrom(from)
+            helper.setTo(email)
+            helper.setSubject(emailTemplate.subject)
+            helper.setText(emailTemplate.body, true) // true for HTML
+            mailSender.send(message)
+        } catch (e: Exception) {
+            log.error("Failed to send verification email to $email", e)
+            throw RuntimeException("Failed to send verification email", e)
+        }
+    }
+
 }

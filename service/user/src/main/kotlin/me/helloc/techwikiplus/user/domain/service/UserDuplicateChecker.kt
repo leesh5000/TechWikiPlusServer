@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateEmail
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateNickname
-import me.helloc.techwikiplus.user.domain.repository.UserRepository
+import me.helloc.techwikiplus.user.domain.service.UserRepository
 import org.springframework.stereotype.Service
 
 @Service

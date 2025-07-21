@@ -22,11 +22,12 @@ class GlobalExceptionHandler {
         request: HttpServletRequest
     ): ResponseEntity<ErrorResponse> {
 
-        val responseEntity = when (ex) {
-            is CustomException.ValidationException -> ResponseEntity.status(400) // Bad Request
-            is CustomException.NotFoundException -> ResponseEntity.status(404) // Not Found
-            is CustomException.ConflictException -> ResponseEntity.status(409) // Conflict
-            // Internal Server Error for any other CustomException
+        val status = when (ex) {
+            is CustomException.ValidationException -> 400 // Bad Request
+            is CustomException.AuthenticationException -> 401 // Unauthorized
+            is CustomException.NotFoundException -> 404 // Not Found
+            is CustomException.ConflictException -> 409 // Conflict
+            is CustomException.ResendRateLimitExceeded -> 429 // Too Many Requests
         }
 
         val now: Instant = Instant.now()
@@ -36,7 +37,7 @@ class GlobalExceptionHandler {
             timestamp = formatter.format(now),
             path = request.requestURI
         )
-        return responseEntity.body(errorResponse)
+        return ResponseEntity.status(status).body(errorResponse)
     }
 }
 
