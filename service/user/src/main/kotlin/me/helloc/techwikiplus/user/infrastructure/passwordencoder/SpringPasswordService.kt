@@ -8,8 +8,7 @@ import org.springframework.stereotype.Component
 @Component
 class SpringPasswordService(
     val passwordEncoder: PasswordEncoder = BCryptPasswordEncoder()
-)
-: UserPasswordService {
+) : UserPasswordService {
 
     override fun encode(password: String): String {
         return passwordEncoder.encode(password)

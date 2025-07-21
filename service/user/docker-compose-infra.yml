@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0.32
+    container_name: techwikiplus-user-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: techwikiplus
+      MYSQL_USER: techwikiplus
+      MYSQL_PASSWORD: techwikipassword
+    ports:
+      - "13306:3306"
+    volumes:
+      - techwikiplus-user-mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    networks:
+      - techwikiplus-user-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: techwikiplus-user-redis
+    restart: always
+    ports:
+      - "16379:6379"
+    volumes:
+      - techwikiplus-user-redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - techwikiplus-user-network
+
+volumes:
+  techwikiplus-user-mysql-data:
+    driver: local
+  techwikiplus-user-redis_data:
+    driver: local
+
+networks:
+  techwikiplus-user-network:
+    driver: bridge

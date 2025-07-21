@@ -46,7 +46,7 @@ class EnvironmentNodeIdProvider(
 class RandomNodeIdProvider(
     private val seed: Long? = null,
 ) : NodeIdProvider {
-    
+
     private val _nodeId: Long by lazy {
         val random = seed?.let { kotlin.random.Random(it) } ?: kotlin.random.Random
         random.nextLong(NodeIdValidator.MAX_NODE_ID + 1)

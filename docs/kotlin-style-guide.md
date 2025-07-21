@@ -33,26 +33,7 @@ class ClassName {
         // 생성자 로직
     }
     
-    // 5. 공개 메서드
-    fun publicMethod() {
-        // 메서드 구현
-    }
-    
-    // 6. 내부/보호 메서드
-    internal fun internalMethod() {
-        // 메서드 구현
-    }
-    
-    protected fun protectedMethod() {
-        // 메서드 구현
-    }
-    
-    // 7. 비공개 메서드
-    private fun privateMethod() {
-        // 메서드 구현
-    }
-    
-    // 8. 오버라이드 메서드
+    // 5. 오버라이드 메서드
     override fun equals(other: Any?): Boolean {
         // 구현
     }
@@ -64,13 +45,32 @@ class ClassName {
     override fun toString(): String {
         // 구현
     }
+    
+    // 6. 공개 메서드
+    fun publicMethod() {
+        // 메서드 구현
+    }
+    
+    // 7. 내부/보호 메서드
+    internal fun internalMethod() {
+        // 메서드 구현
+    }
+    
+    protected fun protectedMethod() {
+        // 메서드 구현
+    }
+    
+    // 8. 비공개 메서드
+    private fun privateMethod() {
+        // 메서드 구현
+    }
 }
 ```
 
 ## 정렬 원칙
 
 1. **가시성 순서**: public → internal → protected → private
-2. **종류별 그룹화**: 프로퍼티 → 함수 → 오버라이드
+2. **종류별 그룹화**: 프로퍼티 → 생성자 → 오버라이드 → 일반 메서드
 3. **논리적 그룹화**: 관련된 기능은 함께 배치
 
 ## IntelliJ IDEA 설정

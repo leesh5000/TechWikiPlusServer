@@ -9,7 +9,7 @@ import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
 import org.springframework.stereotype.Component
 
 @Component
-class VerifyEmailFacade(
+class VerifyEmailUseCase(
     private val verificationCodeStore: VerificationCodeStore,
     private val userReader: UserReader,
     private val clock: Clock,

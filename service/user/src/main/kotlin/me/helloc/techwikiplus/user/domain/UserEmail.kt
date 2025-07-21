@@ -15,12 +15,12 @@ data class UserEmail(val value: String, val verified: Boolean = false) {
         }
     }
 
+    override fun toString(): String = value
+
     fun verify(): UserEmail {
         return UserEmail(
             value,
             true,
         )
     }
-
-    override fun toString(): String = value
 }
