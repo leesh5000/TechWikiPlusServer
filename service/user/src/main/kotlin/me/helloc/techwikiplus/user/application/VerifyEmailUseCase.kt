@@ -1,0 +1,26 @@
+package me.helloc.techwikiplus.user.application
+
+import me.helloc.techwikiplus.user.domain.User
+import me.helloc.techwikiplus.user.domain.VerificationCode
+import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.service.UserReader
+import me.helloc.techwikiplus.user.domain.service.UserWriter
+import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
+import org.springframework.stereotype.Component
+
+@Component
+class VerifyEmailFacade(
+    private val verificationCodeStore: VerificationCodeStore,
+    private val userReader: UserReader,
+    private val clock: Clock,
+    private val userWriter: UserWriter,
+) {
+
+    fun verifyEmail(email: String, code: String) {
+        val verificationCode: VerificationCode = verificationCodeStore.retrieveOrThrows(email)
+        verificationCode.equalsOrThrows(code)
+        val user: User = userReader.readByEmailOrThrows(email)
+        val verifiedUser = user.completeSignUp(clock)
+        userWriter.insertOrUpdate(verifiedUser)
+    }
+}
