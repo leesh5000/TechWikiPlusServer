@@ -3,6 +3,7 @@ package me.helloc.techwikiplus.user.infrastructure.security
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import me.helloc.techwikiplus.user.domain.service.TokenProvider
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -12,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtTokenProvider: JwtTokenProvider,
+    private val tokenProvider: TokenProvider,
     private val userDetailsService: UserDetailsService
 ) : OncePerRequestFilter() {
 
@@ -23,8 +24,8 @@ class JwtAuthenticationFilter(
     ) {
         val token = extractTokenFromRequest(request)
         
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            val email = jwtTokenProvider.getEmailFromToken(token)
+        if (token != null && tokenProvider.validateToken(token)) {
+            val email = tokenProvider.getEmailFromToken(token)
             val userDetails = userDetailsService.loadUserByUsername(email)
             
             if (userDetails != null) {

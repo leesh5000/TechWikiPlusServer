@@ -25,4 +25,20 @@ dependencies {
 
     // mysql
     implementation("com.mysql:mysql-connector-j")
+    
+    // TestContainers - 통합 테스트를 위한 도커 기반 테스트 환경
+    // BOM(Bill of Materials): TestContainers 모듈들의 버전을 일관되게 관리
+    testImplementation(platform("org.testcontainers:testcontainers-bom:1.19.3"))
+    
+    // TestContainers 핵심 라이브러리
+    testImplementation("org.testcontainers:testcontainers")
+    
+    // JUnit5 통합을 위한 TestContainers 확장
+    testImplementation("org.testcontainers:junit-jupiter")
+    
+    // MySQL 컨테이너 - JPA Repository 통합 테스트용
+    testImplementation("org.testcontainers:mysql")
+    
+    // Redis 컨테이너 - VerificationCodeStore 통합 테스트용  
+    testImplementation("com.redis.testcontainers:testcontainers-redis:1.6.4")
 }

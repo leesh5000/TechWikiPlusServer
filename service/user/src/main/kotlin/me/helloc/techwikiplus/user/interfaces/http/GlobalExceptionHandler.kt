@@ -39,5 +39,20 @@ class GlobalExceptionHandler {
         )
         return ResponseEntity.status(status).body(errorResponse)
     }
+
+    @ExceptionHandler(Exception::class)
+    fun handleGenericException(
+        ex: Exception,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val now: Instant = Instant.now()
+        val errorResponse = ErrorResponse(
+            errorCode = "INTERNAL_SERVER_ERROR",
+            message = "An unexpected error occurred.",
+            timestamp = formatter.format(now),
+            path = request.requestURI
+        )
+        return ResponseEntity.status(500).body(errorResponse)
+    }
 }
 

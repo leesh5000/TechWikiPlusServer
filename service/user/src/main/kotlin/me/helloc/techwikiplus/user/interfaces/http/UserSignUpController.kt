@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class UserSignUpController(val facade: UserSignUpUseCase) {
 
-    @PostMapping("/api/v1/users/signup")
+    @PostMapping("/api/v1/users/signup", consumes = ["application/json"])
     fun signUp(@RequestBody request: UserSignUpRequest): ResponseEntity<Void> {
         facade.signUp(
             email = request.email,

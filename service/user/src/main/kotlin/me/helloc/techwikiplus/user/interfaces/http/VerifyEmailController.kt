@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
 import me.helloc.techwikiplus.user.application.VerifyEmailUseCase
-import org.springframework.http.HttpStatus.ACCEPTED
+import org.springframework.http.HttpStatus.OK
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -18,7 +18,7 @@ class VerifyEmailController(
             email = request.email,
             code = request.code,
         )
-        return ResponseEntity.status(ACCEPTED).build()
+        return ResponseEntity.status(OK).build()
     }
 
     data class UserSignUpVerifyRequest(

@@ -25,11 +25,14 @@ services:
     image: redis:7-alpine
     container_name: techwikiplus-user-redis
     restart: always
+    environment:
+      REDIS_PASSWORD: techwikipassword
     ports:
       - "16379:6379"
     volumes:
       - techwikiplus-user-redis_data:/data
-    command: redis-server --appendonly yes
+    command: >
+      sh -c 'redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
     networks:
       - techwikiplus-user-network
 

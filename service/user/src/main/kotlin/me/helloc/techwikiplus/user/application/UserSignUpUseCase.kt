@@ -1,7 +1,9 @@
 package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.User
+import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.VerificationCode
+import me.helloc.techwikiplus.user.domain.service.Clock
 import me.helloc.techwikiplus.user.domain.service.IdGenerator
 import me.helloc.techwikiplus.user.domain.service.MailSender
 import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
@@ -23,14 +25,15 @@ open class UserSignUpUseCase(
     private val idGenerator: IdGenerator,
 ) {
 
-    fun signUp(email: String, nickname: String, password: String, ) {
+    fun signUp(email: String, nickname: String, password: String) {
         userDuplicateChecker.validateUserEmailDuplicate(email)
         userDuplicateChecker.validateUserNicknameDuplicate(nickname)
-        val user = User(
+        val user = User.withPendingUser(
             id = idGenerator.next(),
+            email = UserEmail(email, false),
             nickname = nickname,
-            email = email,
-            password = userPasswordService.validateAndEncode(password)
+            password = userPasswordService.validateAndEncode(password),
+            clock = Clock.system
         )
         userWriter.insertOrUpdate(user)
         val verificationCode: VerificationCode = mailSender.sendVerificationEmail(email)

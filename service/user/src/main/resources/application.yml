@@ -14,10 +14,13 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+  jpa:
+    open-in-view: false
   data:
     redis:
       host: localhost
       port: 16379
+      password: ${REDIS_PASSWORD:techwikipassword}
   mail:
     host: smtp.gmail.com
     port: 587
@@ -34,5 +37,5 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:techwikiplus-jwt-secret-key-for-authentication-2024}
-  access-token-expiration: 3600000   # 1 hour
-  refresh-token-expiration: 604800000 # 7 days
+  access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:3600000} # 1 hour
+  refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:604800000} # 7 days
