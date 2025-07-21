@@ -14,7 +14,7 @@ class CustomExceptionTest : FunSpec({
             val exception = InvalidEmail(email)
 
             exception.email shouldBe email
-            exception.message shouldBe "Invalid email format. Current value: $email"
+            exception.message shouldBe "Invalid email format. Your input: $email"
             exception.shouldBeInstanceOf<CustomException.ValidationException>()
             exception.shouldBeInstanceOf<CustomException>()
             exception.shouldBeInstanceOf<RuntimeException>()
@@ -25,7 +25,7 @@ class CustomExceptionTest : FunSpec({
             val exception = InvalidNickname(nickname)
 
             exception.nickname shouldBe nickname
-            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Current value: $nickname"
+            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Your input: $nickname"
             exception.shouldBeInstanceOf<CustomException.ValidationException>()
             exception.shouldBeInstanceOf<CustomException>()
             exception.shouldBeInstanceOf<RuntimeException>()
@@ -44,7 +44,7 @@ class CustomExceptionTest : FunSpec({
             invalidNicknames.forEach { nickname ->
                 val exception = InvalidNickname(nickname)
                 exception.nickname shouldBe nickname
-                exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Current value: $nickname"
+                exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Your input: $nickname"
             }
         }
 
@@ -63,7 +63,7 @@ class CustomExceptionTest : FunSpec({
             invalidEmails.forEach { email ->
                 val exception = InvalidEmail(email)
                 exception.email shouldBe email
-                exception.message shouldBe "Invalid email format. Current value: $email"
+                exception.message shouldBe "Invalid email format. Your input: $email"
             }
         }
     }
@@ -87,7 +87,6 @@ class CustomExceptionTest : FunSpec({
 
         test("sealed class로 타입 안전성 보장") {
             val exception: CustomException = InvalidEmail("test")
-
             when (exception) {
                 is CustomException.ValidationException -> {
                     // ValidationException 처리
@@ -98,6 +97,9 @@ class CustomExceptionTest : FunSpec({
                         is InvalidNickname -> {
                             // 이 케이스는 실행되지 않음
                         }
+                        is CustomException.ValidationException.InvalidPassword -> {
+                            // 이 케이스는 실행되지 않음
+                        }
                     }
                 }
                 is CustomException.NotFoundException -> {
@@ -105,6 +107,12 @@ class CustomExceptionTest : FunSpec({
                 }
                 is CustomException.ConflictException -> {
                     // ConflictException 처리 (현재는 비어있음)
+                }
+                is CustomException.AuthenticationException -> {
+                    // AuthenticationException 처리 (현재는 비어있음)
+                }
+                is CustomException.ResendRateLimitExceeded -> {
+                    // ResendRateLimitExceeded 처리 (현재는 비어있음)
                 }
             }
         }
@@ -114,15 +122,15 @@ class CustomExceptionTest : FunSpec({
         test("InvalidEmail 메시지 형식") {
             val email = "test@invalid"
             val exception = InvalidEmail(email)
-            
-            exception.message shouldBe "Invalid email format. Current value: $email"
+
+            exception.message shouldBe "Invalid email format. Your input: $email"
         }
 
         test("InvalidNickname 메시지 형식") {
             val nickname = "ab@cd"
             val exception = InvalidNickname(nickname)
-            
-            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Current value: $nickname"
+
+            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Your input: $nickname"
         }
 
         test("예외 메시지에 실제 입력값 포함") {
@@ -139,7 +147,7 @@ class CustomExceptionTest : FunSpec({
                     InvalidNickname::class -> InvalidNickname(input)
                     else -> throw IllegalArgumentException("Unknown exception class")
                 }
-                
+
                 exception.message.contains(input) shouldBe true
             }
         }
@@ -149,14 +157,14 @@ class CustomExceptionTest : FunSpec({
         test("InvalidEmail에서 잘못된 이메일 값 접근 가능") {
             val wrongEmail = "wrong@email"
             val exception = InvalidEmail(wrongEmail)
-            
+
             exception.email shouldBe wrongEmail
         }
 
         test("InvalidNickname에서 잘못된 닉네임 값 접근 가능") {
             val wrongNickname = "wrong!"
             val exception = InvalidNickname(wrongNickname)
-            
+
             exception.nickname shouldBe wrongNickname
         }
     }
