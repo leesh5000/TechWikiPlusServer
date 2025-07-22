@@ -6,14 +6,14 @@ import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.springframework.stereotype.Service
 
 @Service
-class UserAuthenticationService(
-    private val userPasswordService: UserPasswordService,
+class UserAuthenticator(
+    private val passwordEncoder: PasswordEncoder,
 ) {
     fun authenticate(
         user: User,
         password: String,
     ): User {
-        if (!userPasswordService.matches(password, user.password)) {
+        if (!passwordEncoder.matches(password, user.password)) {
             throw CustomException.AuthenticationException.InvalidCredentials()
         }
 

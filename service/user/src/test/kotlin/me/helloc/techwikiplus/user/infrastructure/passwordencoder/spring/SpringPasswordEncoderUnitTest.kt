@@ -5,13 +5,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.string.shouldStartWith
-import me.helloc.techwikiplus.user.infrastructure.passwordencoder.SpringPasswordService
+import me.helloc.techwikiplus.user.infrastructure.passwordencoder.SpringPasswordEncoder
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
-class SpringPasswordServiceUnitTest : FunSpec({
+class SpringPasswordEncoderUnitTest : FunSpec({
 
     val passwordEncoder = BCryptPasswordEncoder()
-    val passwordService = SpringPasswordService(passwordEncoder)
+    val passwordService = SpringPasswordEncoder(passwordEncoder)
 
     context("패스워드 암호화") {
         test("평문 패스워드를 BCrypt로 암호화한다") {
@@ -49,7 +49,7 @@ class SpringPasswordServiceUnitTest : FunSpec({
 
         test("매우 긴 패스워드도 암호화 가능하다") {
             // BCrypt는 72바이트까지만 처리 가능
-            val longPassword = "a".repeat(50) + "1234567890!@#$%^&*()"  // 총 70바이트
+            val longPassword = "a".repeat(50) + "1234567890!@#$%^&*()" // 총 70바이트
 
             val encodedPassword = passwordService.encode(longPassword)
 

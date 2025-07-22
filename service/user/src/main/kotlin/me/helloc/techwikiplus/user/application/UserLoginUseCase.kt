@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
-import me.helloc.techwikiplus.user.domain.service.UserAuthenticationService
+import me.helloc.techwikiplus.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.user.domain.service.UserReader
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 open class UserLoginUseCase(
     private val userReader: UserReader,
-    private val userAuthenticationService: UserAuthenticationService,
+    private val userAuthenticator: UserAuthenticator,
     private val tokenProvider: TokenProvider,
 ) {
     fun login(
@@ -18,7 +18,7 @@ open class UserLoginUseCase(
         password: String,
     ): LoginResult {
         val user = userReader.readByEmailOrThrows(email)
-        val authenticatedUser = userAuthenticationService.authenticate(user, password)
+        val authenticatedUser = userAuthenticator.authenticate(user, password)
 
         val accessToken = tokenProvider.createAccessToken(authenticatedUser.email(), authenticatedUser.id)
         val refreshToken = tokenProvider.createRefreshToken(authenticatedUser.email(), authenticatedUser.id)

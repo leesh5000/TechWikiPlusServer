@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Transactional
 @Service
-open class SignUpPendingUserService(private val repository: UserRepository) {
+open class PendingUserValidator(private val repository: UserRepository) {
     fun existsOrThrows(email: String) {
         repository.findByEmail(email)
             ?.takeIf { it.isPending() }

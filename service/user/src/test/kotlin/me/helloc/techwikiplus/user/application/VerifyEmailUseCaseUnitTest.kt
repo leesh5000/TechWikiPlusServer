@@ -2,10 +2,10 @@ package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
-import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.Clock
 import me.helloc.techwikiplus.user.domain.UserStatus
+import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.service.Clock
 import me.helloc.techwikiplus.user.domain.service.UserReader
 import me.helloc.techwikiplus.user.domain.service.UserWriter
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
@@ -29,11 +29,12 @@ class VerifyEmailUseCaseUnitTest {
         userRepository = FakeUserRepository()
         userReader = UserReader(userRepository)
         userWriter = UserWriter(userRepository)
-        verifyEmailUseCase = VerifyEmailUseCase(
-            verificationCodeStore = verificationCodeStore,
-            userReader = userReader,
-            userWriter = userWriter
-        )
+        verifyEmailUseCase =
+            VerifyEmailUseCase(
+                verificationCodeStore = verificationCodeStore,
+                userReader = userReader,
+                userWriter = userWriter,
+            )
     }
 
     @Test
@@ -42,17 +43,18 @@ class VerifyEmailUseCaseUnitTest {
         val email = "test@example.com"
         val code = "123456"
         val userId = 1L
-        
+
         // Pending 상태의 사용자 생성
-        val pendingUser = User.withPendingUser(
-            id = userId,
-            email = UserEmail(email, false),
-            nickname = "testuser",
-            password = "encodedPassword",
-            clock = Clock.system
-        )
+        val pendingUser =
+            User.withPendingUser(
+                id = userId,
+                email = UserEmail(email, false),
+                nickname = "testuser",
+                password = "encodedPassword",
+                clock = Clock.system,
+            )
         userRepository.insertOrUpdate(pendingUser)
-        
+
         // 인증 코드 저장
         val verificationCode = VerificationCode(code)
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
@@ -73,7 +75,7 @@ class VerifyEmailUseCaseUnitTest {
         // given
         val email = "test@example.com"
         val code = "123456"
-        
+
         // 인증 코드를 저장하지 않음
 
         // when & then
@@ -89,7 +91,7 @@ class VerifyEmailUseCaseUnitTest {
         val email = "test@example.com"
         val correctCode = "123456"
         val wrongCode = "654321"
-        
+
         // 인증 코드 저장
         val verificationCode = VerificationCode(correctCode)
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
@@ -106,7 +108,7 @@ class VerifyEmailUseCaseUnitTest {
         // given
         val email = "nonexistent@example.com"
         val code = "123456"
-        
+
         // 인증 코드만 저장하고 사용자는 생성하지 않음
         val verificationCode = VerificationCode(code)
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
@@ -124,19 +126,20 @@ class VerifyEmailUseCaseUnitTest {
         val email = "test@example.com"
         val code = "123456"
         val userId = 1L
-        
+
         // 이미 인증된 사용자 생성
-        val verifiedUser = User(
-            id = userId,
-            email = UserEmail(email, true),
-            nickname = "testuser",
-            password = "encodedPassword",
-            status = UserStatus.ACTIVE,
-            createdAt = Clock.system.localDateTime(),
-            updatedAt = Clock.system.localDateTime()
-        )
+        val verifiedUser =
+            User(
+                id = userId,
+                email = UserEmail(email, true),
+                nickname = "testuser",
+                password = "encodedPassword",
+                status = UserStatus.ACTIVE,
+                createdAt = Clock.system.localDateTime(),
+                updatedAt = Clock.system.localDateTime(),
+            )
         userRepository.insertOrUpdate(verifiedUser)
-        
+
         // 인증 코드 저장
         val verificationCode = VerificationCode(code)
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
@@ -160,17 +163,18 @@ class VerifyEmailUseCaseUnitTest {
         val userId = 1L
         val nickname = "testuser"
         val password = "encodedPassword"
-        
+
         // Pending 상태의 사용자 생성
-        val pendingUser = User.withPendingUser(
-            id = userId,
-            email = UserEmail(email, false),
-            nickname = nickname,
-            password = password,
-            clock = Clock.system
-        )
+        val pendingUser =
+            User.withPendingUser(
+                id = userId,
+                email = UserEmail(email, false),
+                nickname = nickname,
+                password = password,
+                clock = Clock.system,
+            )
         userRepository.insertOrUpdate(pendingUser)
-        
+
         // 인증 코드 저장
         val verificationCode = VerificationCode(code)
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
