@@ -13,7 +13,6 @@ class ResendVerificationCodeUseCase(
     private val verificationCodeStore: VerificationCodeStore,
     private val signUpPendingUserService: SignUpPendingUserService,
 ) {
-
     fun resendVerificationCode(email: String) {
         // 현재 "PENDING" 상태의 사용자만 재전송 가능
         signUpPendingUserService.existsOrThrows(email)

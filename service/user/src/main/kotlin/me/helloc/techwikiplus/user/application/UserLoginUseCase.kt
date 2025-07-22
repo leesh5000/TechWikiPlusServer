@@ -11,10 +11,12 @@ import org.springframework.transaction.annotation.Transactional
 open class UserLoginUseCase(
     private val userReader: UserReader,
     private val userAuthenticationService: UserAuthenticationService,
-    private val tokenProvider: TokenProvider
+    private val tokenProvider: TokenProvider,
 ) {
-
-    fun login(email: String, password: String): LoginResult {
+    fun login(
+        email: String,
+        password: String,
+    ): LoginResult {
         val user = userReader.readByEmailOrThrows(email)
         val authenticatedUser = userAuthenticationService.authenticate(user, password)
 

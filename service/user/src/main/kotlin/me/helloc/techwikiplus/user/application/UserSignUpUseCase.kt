@@ -24,21 +24,24 @@ open class UserSignUpUseCase(
     private val verificationCodeStore: VerificationCodeStore,
     private val idGenerator: IdGenerator,
 ) {
-
-    fun signUp(email: String, nickname: String, password: String) {
+    fun signUp(
+        email: String,
+        nickname: String,
+        password: String,
+    ) {
         userDuplicateChecker.validateUserEmailDuplicate(email)
         userDuplicateChecker.validateUserNicknameDuplicate(nickname)
-        val user = User.withPendingUser(
-            id = idGenerator.next(),
-            email = UserEmail(email, false),
-            nickname = nickname,
-            password = userPasswordService.validateAndEncode(password),
-            clock = Clock.system
-        )
+        val user =
+            User.withPendingUser(
+                id = idGenerator.next(),
+                email = UserEmail(email, false),
+                nickname = nickname,
+                password = userPasswordService.validateAndEncode(password),
+                clock = Clock.system,
+            )
         userWriter.insertOrUpdate(user)
         val verificationCode: VerificationCode = mailSender.sendVerificationEmail(email)
         val ttl: Duration = Duration.ofMinutes(5)
         verificationCodeStore.storeWithExpiry(email, verificationCode, ttl)
     }
-
 }

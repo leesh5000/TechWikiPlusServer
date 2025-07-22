@@ -13,8 +13,10 @@ class VerifyEmailUseCase(
     private val userReader: UserReader,
     private val userWriter: UserWriter,
 ) {
-
-    fun verifyEmail(email: String, code: String) {
+    fun verifyEmail(
+        email: String,
+        code: String,
+    ) {
         val verificationCode: VerificationCode = verificationCodeStore.retrieveOrThrows(email)
         verificationCode.equalsOrThrows(code)
         val user: User = userReader.readByEmailOrThrows(email)
