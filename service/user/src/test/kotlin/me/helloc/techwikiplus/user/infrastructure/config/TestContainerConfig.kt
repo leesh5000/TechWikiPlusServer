@@ -49,8 +49,4 @@ class TestContainerConfig {
             registry.add("spring.data.redis.port") { redisContainer.getMappedPort(6379) }
         }
     }
-
-    // RedisTemplate을 위한 Redis 연결 팩토리 빈
-    @Bean
-    fun testRedisConnectionFactory() = redisContainer
 }
