@@ -9,11 +9,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class VerifyEmailController(
-    private val facade: VerifyEmailUseCase
+    private val facade: VerifyEmailUseCase,
 ) {
-
     @GetMapping("/api/v1/users/signup/verify")
-    fun verifyEmail(@RequestBody request: UserSignUpVerifyRequest): ResponseEntity<Void> {
+    fun verifyEmail(
+        @RequestBody request: UserSignUpVerifyRequest,
+    ): ResponseEntity<Void> {
         facade.verifyEmail(
             email = request.email,
             code = request.code,

@@ -8,28 +8,30 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class UserLoginController(
-    private val useCase: UserLoginUseCase
+    private val useCase: UserLoginUseCase,
 ) {
-
     @PostMapping("/api/v1/users/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
-        val result = useCase.login(
-            email = request.email,
-            password = request.password
-        )
+    fun login(
+        @RequestBody request: LoginRequest,
+    ): ResponseEntity<LoginResponse> {
+        val result =
+            useCase.login(
+                email = request.email,
+                password = request.password,
+            )
 
         return ResponseEntity.ok(
             LoginResponse(
                 accessToken = result.accessToken,
                 refreshToken = result.refreshToken,
-                userId = result.userId
-            )
+                userId = result.userId,
+            ),
         )
     }
 
     data class LoginRequest(
         val email: String,
-        val password: String
+        val password: String,
     )
 
     data class LoginResponse(
