@@ -13,7 +13,6 @@ class JavaMailSender(
     private val mailSender: JavaMailSender,
     private val emailTemplateGenerator: EmailTemplateGenerator,
 ) : MailSender {
-
     @Value("\${spring.mail.username}")
     private lateinit var from: String
     private val log = LoggerFactory.getLogger(JavaMailSender::class.java)
@@ -25,12 +24,18 @@ class JavaMailSender(
         return code
     }
 
-    override fun sendPasswordResetEmail(email: String, code: String) {
+    override fun sendPasswordResetEmail(
+        email: String,
+        code: String,
+    ) {
         val emailTemplate = emailTemplateGenerator.generatePasswordResetEmail(code)
         sendEmail(email, emailTemplate)
     }
 
-    private fun sendEmail(email: String, emailTemplate: EmailTemplate) {
+    private fun sendEmail(
+        email: String,
+        emailTemplate: EmailTemplate,
+    ) {
         try {
             val message = mailSender.createMimeMessage()
             val helper = MimeMessageHelper(message, true, "UTF-8")
@@ -44,5 +49,4 @@ class JavaMailSender(
             throw RuntimeException("Failed to send verification email", e)
         }
     }
-
 }

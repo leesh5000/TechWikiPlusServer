@@ -17,9 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 open class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
-    private val jwtAccessDeniedHandler: JwtAccessDeniedHandler
+    private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
 ) {
-
     @Bean
     open fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
@@ -31,7 +30,7 @@ open class SecurityConfig(
                         "/api/v1/users/signup",
                         "/api/v1/users/signup/verify",
                         "/api/v1/users/signup/verify/resend",
-                        "/api/v1/users/login"
+                        "/api/v1/users/login",
                     ).permitAll()
                     .anyRequest().authenticated()
             }

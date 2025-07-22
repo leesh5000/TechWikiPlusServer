@@ -7,9 +7,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
 class CustomUserDetails(
-    private val user: User
+    private val user: User,
 ) : UserDetails {
-    
     override fun getAuthorities(): Collection<GrantedAuthority> {
         return listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
     }
@@ -27,6 +26,6 @@ class CustomUserDetails(
     override fun isEnabled(): Boolean = user.status == UserStatus.ACTIVE
 
     fun getUserId(): Long = user.id
-    
+
     fun getNickname(): String = user.nickname
 }

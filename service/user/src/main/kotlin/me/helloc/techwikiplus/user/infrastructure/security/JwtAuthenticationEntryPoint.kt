@@ -10,22 +10,22 @@ import org.springframework.stereotype.Component
 
 @Component
 class JwtAuthenticationEntryPoint(
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) : AuthenticationEntryPoint {
-
     override fun commence(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        authException: AuthenticationException
+        authException: AuthenticationException,
     ) {
         response.contentType = MediaType.APPLICATION_JSON_VALUE
         response.status = HttpServletResponse.SC_UNAUTHORIZED
-        
-        val errorResponse = mapOf(
-            "errorCode" to "AUTHENTICATION_FAILED",
-            "message" to "Authentication required. Please provide a valid token."
-        )
-        
+
+        val errorResponse =
+            mapOf(
+                "errorCode" to "AUTHENTICATION_FAILED",
+                "message" to "Authentication required. Please provide a valid token.",
+            )
+
         response.writer.write(objectMapper.writeValueAsString(errorResponse))
     }
 }

@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 
 class ConsoleMailSender : MailSender {
-
     @Value("\${spring.mail.username}")
     private lateinit var from: String
     private val logger = LoggerFactory.getLogger(ConsoleMailSender::class.java)
@@ -16,48 +15,55 @@ class ConsoleMailSender : MailSender {
         val to: String,
         val subject: String,
         val body: String,
-        val timestamp: Long = System.currentTimeMillis()
+        val timestamp: Long = System.currentTimeMillis(),
     )
 
     override fun sendVerificationEmail(email: String): VerificationCode {
         val code = VerificationCode.generate()
 
-        logger.info("""
+        logger.info(
+            """
             ===== FAKE EMAIL SENT =====
             From: $from
             To: $email
             Subject: TechWiki+ 이메일 인증
             Verification Code: ${code.value}
             ===========================
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         sentEmails.add(
             SentEmail(
                 to = email,
                 subject = "TechWiki+ 이메일 인증",
-                body = "Verification Code: ${code.value}"
-            )
+                body = "Verification Code: ${code.value}",
+            ),
         )
 
         return code
     }
 
-    override fun sendPasswordResetEmail(email: String, code: String) {
-        logger.info("""
+    override fun sendPasswordResetEmail(
+        email: String,
+        code: String,
+    ) {
+        logger.info(
+            """
             ===== FAKE EMAIL SENT =====
             From: $from
             To: $email
             Subject: TechWiki+ 비밀번호 재설정
             Reset Code: $code
             ===========================
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         sentEmails.add(
             SentEmail(
                 to = email,
                 subject = "TechWiki+ 비밀번호 재설정",
-                body = "Reset Code: $code"
-            )
+                body = "Reset Code: $code",
+            ),
         )
     }
 
@@ -68,6 +74,5 @@ class ConsoleMailSender : MailSender {
 
     fun clearSentEmails() = sentEmails.clear()
 
-    fun getEmailsSentTo(email: String): List<SentEmail> =
-        sentEmails.filter { it.to == email }
+    fun getEmailsSentTo(email: String): List<SentEmail> = sentEmails.filter { it.to == email }
 }

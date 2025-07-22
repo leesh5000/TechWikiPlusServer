@@ -16,30 +16,22 @@ class UserEntity(
     @Id
     @Column(name = "id", length = 20, nullable = false)
     val id: Long,
-
     @Column(name = "email", length = 255, unique = true, nullable = false)
     val email: String,
-
     @Column(name = "email_verified", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     val emailVerified: Boolean,
-
     @Column(name = "password", length = 255, nullable = false)
     val password: String,
-
     @Column(name = "nickname", length = 20, unique = true, nullable = false)
     val nickname: String,
-
     @Column(name = "status", length = 20, nullable = false)
     val status: String,
-
     @Column(name = "role", length = 20, nullable = false)
     val role: String,
-
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime,
-
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: LocalDateTime
+    val updatedAt: LocalDateTime,
 ) {
     fun toDomain(): User {
         return User(
@@ -50,7 +42,7 @@ class UserEntity(
             status = UserStatus.valueOf(status),
             role = UserRole.valueOf(role),
             createdAt = createdAt,
-            updatedAt = updatedAt
+            updatedAt = updatedAt,
         )
     }
 
@@ -65,7 +57,7 @@ class UserEntity(
                 status = user.status.name,
                 role = user.role.name,
                 createdAt = user.createdAt,
-                updatedAt = user.updatedAt
+                updatedAt = user.updatedAt,
             )
         }
     }

@@ -9,9 +9,8 @@ import java.time.Duration
 
 @Component
 class VerificationCodeRedisStore(
-    private val redisTemplate: StringRedisTemplate
-): VerificationCodeStore {
-
+    private val redisTemplate: StringRedisTemplate,
+) : VerificationCodeStore {
     companion object {
         private const val KEY_FORMAT = "user:verification:email:%s"
         private const val ATTEMPT_FORMAT = "user:verification:attempt:email:%s"

@@ -10,13 +10,16 @@ import javax.crypto.SecretKey
 
 @Component
 class JwtTokenProvider(
-    private val jwtProperties: JwtProperties
+    private val jwtProperties: JwtProperties,
 ) : TokenProvider {
     private val key: SecretKey by lazy {
         Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray())
     }
 
-    override fun createAccessToken(email: String, userId: Long): String {
+    override fun createAccessToken(
+        email: String,
+        userId: Long,
+    ): String {
         val now = Date()
         val expiryDate = Date(now.time + jwtProperties.accessTokenExpiration)
 
@@ -30,7 +33,10 @@ class JwtTokenProvider(
             .compact()
     }
 
-    override fun createRefreshToken(email: String, userId: Long): String {
+    override fun createRefreshToken(
+        email: String,
+        userId: Long,
+    ): String {
         val now = Date()
         val expiryDate = Date(now.time + jwtProperties.refreshTokenExpiration)
 

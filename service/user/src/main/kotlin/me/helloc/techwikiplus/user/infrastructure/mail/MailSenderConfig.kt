@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 open class MailSenderConfig {
-
     @Bean
     open fun customMailSender(): MailSender {
         return ConsoleMailSender()

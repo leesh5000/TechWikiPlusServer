@@ -6,14 +6,16 @@ import org.springframework.stereotype.Component
 
 @Component
 class SpringPasswordService(
-    val passwordEncoder: PasswordEncoder
+    val passwordEncoder: PasswordEncoder,
 ) : UserPasswordService {
-
     override fun encode(password: String): String {
         return passwordEncoder.encode(password)
     }
 
-    override fun matches(rawPassword: String, encodedPassword: String): Boolean {
+    override fun matches(
+        rawPassword: String,
+        encodedPassword: String,
+    ): Boolean {
         return passwordEncoder.matches(rawPassword, encodedPassword)
     }
 }

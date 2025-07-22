@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepositoryImpl(
-    private val jpaRepository: UserJpaRepository
-): UserRepository {
+    private val jpaRepository: UserJpaRepository,
+) : UserRepository {
     override fun existsByEmail(email: String): Boolean {
         return jpaRepository.existsByEmail(email)
     }

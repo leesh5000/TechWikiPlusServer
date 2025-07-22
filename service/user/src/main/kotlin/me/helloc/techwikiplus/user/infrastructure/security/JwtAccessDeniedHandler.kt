@@ -10,22 +10,22 @@ import org.springframework.stereotype.Component
 
 @Component
 class JwtAccessDeniedHandler(
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) : AccessDeniedHandler {
-
     override fun handle(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        accessDeniedException: AccessDeniedException
+        accessDeniedException: AccessDeniedException,
     ) {
         response.contentType = MediaType.APPLICATION_JSON_VALUE
         response.status = HttpServletResponse.SC_FORBIDDEN
-        
-        val errorResponse = mapOf(
-            "errorCode" to "ACCESS_DENIED",
-            "message" to "Access denied. You don't have permission to access this resource."
-        )
-        
+
+        val errorResponse =
+            mapOf(
+                "errorCode" to "ACCESS_DENIED",
+                "message" to "Access denied. You don't have permission to access this resource.",
+            )
+
         response.writer.write(objectMapper.writeValueAsString(errorResponse))
     }
 }

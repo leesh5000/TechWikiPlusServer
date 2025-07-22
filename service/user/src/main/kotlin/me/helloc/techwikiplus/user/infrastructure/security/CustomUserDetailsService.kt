@@ -7,9 +7,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class CustomUserDetailsService(
-    private val userReader: UserReader
+    private val userReader: UserReader,
 ) : UserDetailsService {
-
     override fun loadUserByUsername(email: String): UserDetails {
         val user = userReader.readByEmailOrThrows(email)
         return CustomUserDetails(user)
