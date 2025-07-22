@@ -6,7 +6,7 @@ package me.helloc.common.snowflake
 interface ClockBackwardStrategy {
     /**
      * 시계 역행 상황을 처리하고 사용할 시간을 반환한다.
-     * 
+     *
      * @param lastTimeMillis 마지막으로 사용된 시간
      * @param currentTimeMillis 현재 시스템 시간 (역행된 시간)
      * @param timeProvider 시간 제공자
@@ -26,7 +26,6 @@ interface ClockBackwardStrategy {
 class WaitStrategy(
     private val maxWaitTimeMillis: Long = 5000L,
 ) : ClockBackwardStrategy {
-
     override fun handleClockBackward(
         lastTimeMillis: Long,
         currentTimeMillis: Long,
@@ -41,7 +40,7 @@ class WaitStrategy(
                 throw ClockBackwardException(
                     lastTimeMillis = lastTimeMillis,
                     currentTimeMillis = currentTime,
-                    message = "Clock backward wait timeout after ${waitedTime}ms"
+                    message = "Clock backward wait timeout after ${waitedTime}ms",
                 )
             }
 
@@ -59,7 +58,6 @@ class WaitStrategy(
  * 주의: 이 전략은 동일한 시간에 대해 더 많은 시퀀스를 소비하므로 신중히 사용해야 함
  */
 class SequenceStrategy : ClockBackwardStrategy {
-
     override fun handleClockBackward(
         lastTimeMillis: Long,
         currentTimeMillis: Long,
@@ -75,7 +73,6 @@ class SequenceStrategy : ClockBackwardStrategy {
  * 시계 역행 시 즉시 실패하는 전략 (기본 동작)
  */
 class FailStrategy : ClockBackwardStrategy {
-
     override fun handleClockBackward(
         lastTimeMillis: Long,
         currentTimeMillis: Long,
@@ -107,7 +104,7 @@ class ClockBackwardException(
     val currentTimeMillis: Long,
     message: String? = null,
 ) : RuntimeException(
-    message ?: "Clock moved backwards: last=$lastTimeMillis, current=$currentTimeMillis, diff=${lastTimeMillis - currentTimeMillis}ms"
-) {
+        message ?: "Clock moved backwards: last=$lastTimeMillis, current=$currentTimeMillis, diff=${lastTimeMillis - currentTimeMillis}ms",
+    ) {
     val backwardMillis: Long = lastTimeMillis - currentTimeMillis
 }

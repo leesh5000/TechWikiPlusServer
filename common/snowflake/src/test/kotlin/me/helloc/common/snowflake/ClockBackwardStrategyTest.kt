@@ -4,7 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import java.util.concurrent.atomic.AtomicLong
 
 class ClockBackwardStrategyTest : FunSpec({
 
@@ -15,7 +14,7 @@ class ClockBackwardStrategyTest : FunSpec({
             val timeProvider = MockTimeProvider()
             val lastTime = 1000L
             val backwardTime = 900L
-            
+
             // 시간이 역행했다가 정상으로 돌아오는 시나리오
             timeProvider.setTimes(backwardTime, backwardTime, backwardTime, 1001L)
 
@@ -32,7 +31,7 @@ class ClockBackwardStrategyTest : FunSpec({
             val timeProvider = MockTimeProvider()
             val lastTime = 1000L
             val backwardTime = 900L
-            
+
             // 계속 역행된 시간만 반환
             timeProvider.setRepeatingTime(backwardTime)
 

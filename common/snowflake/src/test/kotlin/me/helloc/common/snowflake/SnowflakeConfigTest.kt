@@ -25,11 +25,12 @@ class SnowflakeConfigTest : FunSpec({
             val clockStrategy = FailStrategy()
 
             // When
-            val config = SnowflakeConfig(
-                nodeIdProvider = nodeIdProvider,
-                epochMillis = customEpoch,
-                clockBackwardStrategy = clockStrategy
-            )
+            val config =
+                SnowflakeConfig(
+                    nodeIdProvider = nodeIdProvider,
+                    epochMillis = customEpoch,
+                    clockBackwardStrategy = clockStrategy,
+                )
 
             // Then
             config.nodeIdProvider shouldBe nodeIdProvider
@@ -62,11 +63,12 @@ class SnowflakeConfigTest : FunSpec({
             val clockStrategy = WaitStrategy(3000L)
 
             // When
-            val config = SnowflakeConfig.Builder()
-                .nodeIdProvider(nodeIdProvider)
-                .epochMillis(1609459200000L) // 2021-01-01
-                .clockBackwardStrategy(clockStrategy)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .nodeIdProvider(nodeIdProvider)
+                    .epochMillis(1609459200000L) // 2021-01-01
+                    .clockBackwardStrategy(clockStrategy)
+                    .build()
 
             // Then
             config.nodeIdProvider shouldBe nodeIdProvider
@@ -79,9 +81,10 @@ class SnowflakeConfigTest : FunSpec({
             val environment = mapOf("SNOWFLAKE_NODE_ID" to "789")
 
             // When
-            val config = SnowflakeConfig.Builder()
-                .environmentNodeId(environment)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .environmentNodeId(environment)
+                    .build()
 
             // Then
             config.nodeIdProvider.shouldBeInstanceOf<EnvironmentNodeIdProvider>()
@@ -90,9 +93,10 @@ class SnowflakeConfigTest : FunSpec({
 
         test("정적 nodeId 설정") {
             // When
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(123L)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(123L)
+                    .build()
 
             // Then
             config.nodeIdProvider.shouldBeInstanceOf<StaticNodeIdProvider>()
@@ -101,9 +105,10 @@ class SnowflakeConfigTest : FunSpec({
 
         test("랜덤 nodeId 설정") {
             // When
-            val config = SnowflakeConfig.Builder()
-                .randomNodeId(12345L) // seed
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .randomNodeId(12345L) // seed
+                    .build()
 
             // Then
             config.nodeIdProvider.shouldBeInstanceOf<RandomNodeIdProvider>()
@@ -113,9 +118,10 @@ class SnowflakeConfigTest : FunSpec({
 
         test("대기 전략 설정") {
             // When
-            val config = SnowflakeConfig.Builder()
-                .waitOnClockBackward(2000L)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .waitOnClockBackward(2000L)
+                    .build()
 
             // Then
             config.clockBackwardStrategy.shouldBeInstanceOf<WaitStrategy>()
@@ -123,9 +129,10 @@ class SnowflakeConfigTest : FunSpec({
 
         test("실패 전략 설정") {
             // When
-            val config = SnowflakeConfig.Builder()
-                .failOnClockBackward()
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .failOnClockBackward()
+                    .build()
 
             // Then
             config.clockBackwardStrategy.shouldBeInstanceOf<FailStrategy>()
@@ -133,9 +140,10 @@ class SnowflakeConfigTest : FunSpec({
 
         test("시퀀스 전략 설정") {
             // When
-            val config = SnowflakeConfig.Builder()
-                .useSequenceOnClockBackward()
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .useSequenceOnClockBackward()
+                    .build()
 
             // Then
             config.clockBackwardStrategy.shouldBeInstanceOf<SequenceStrategy>()

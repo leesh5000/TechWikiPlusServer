@@ -20,16 +20,17 @@ class EnvironmentNodeIdProvider(
     private val environment: Map<String, String> = System.getenv(),
     private val envKey: String = "SNOWFLAKE_NODE_ID",
 ) : NodeIdProvider {
-
     override fun getNodeId(): Long {
-        val nodeIdStr = environment[envKey]
-            ?: throw InvalidNodeIdException("Environment variable '$envKey' not found")
+        val nodeIdStr =
+            environment[envKey]
+                ?: throw InvalidNodeIdException("Environment variable '$envKey' not found")
 
-        val nodeId = try {
-            nodeIdStr.toLong()
-        } catch (e: NumberFormatException) {
-            throw InvalidNodeIdException("Invalid nodeId format: $nodeIdStr", e)
-        }
+        val nodeId =
+            try {
+                nodeIdStr.toLong()
+            } catch (e: NumberFormatException) {
+                throw InvalidNodeIdException("Invalid nodeId format: $nodeIdStr", e)
+            }
 
         if (!NodeIdValidator.validate(nodeId)) {
             throw InvalidNodeIdException("NodeId $nodeId is out of range (0-1023)")
@@ -46,7 +47,6 @@ class EnvironmentNodeIdProvider(
 class RandomNodeIdProvider(
     private val seed: Long? = null,
 ) : NodeIdProvider {
-
     private val _nodeId: Long by lazy {
         val random = seed?.let { kotlin.random.Random(it) } ?: kotlin.random.Random
         random.nextLong(NodeIdValidator.MAX_NODE_ID + 1)
@@ -61,7 +61,6 @@ class RandomNodeIdProvider(
 class StaticNodeIdProvider(
     private val nodeId: Long,
 ) : NodeIdProvider {
-
     init {
         if (!NodeIdValidator.validate(nodeId)) {
             throw InvalidNodeIdException("Invalid nodeId: $nodeId (must be 0-1023)")

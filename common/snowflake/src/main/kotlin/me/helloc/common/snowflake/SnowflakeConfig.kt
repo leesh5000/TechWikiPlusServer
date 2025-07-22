@@ -9,11 +9,10 @@ data class SnowflakeConfig(
     val clockBackwardStrategy: ClockBackwardStrategy = WaitStrategy(),
     val timeProvider: TimeProvider = SystemTimeProvider,
 ) {
-
     init {
         require(epochMillis >= 0) { "Epoch must be non-negative: $epochMillis" }
-        require(epochMillis <= System.currentTimeMillis()) { 
-            "Epoch cannot be in the future: $epochMillis > ${System.currentTimeMillis()}" 
+        require(epochMillis <= System.currentTimeMillis()) {
+            "Epoch cannot be in the future: $epochMillis > ${System.currentTimeMillis()}"
         }
     }
 
@@ -135,7 +134,7 @@ data class SnowflakeConfig(
                 nodeIdProvider = nodeIdProvider ?: EnvironmentNodeIdProvider(),
                 epochMillis = epochMillis,
                 clockBackwardStrategy = clockBackwardStrategy,
-                timeProvider = timeProvider
+                timeProvider = timeProvider,
             )
         }
     }

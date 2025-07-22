@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit
 @Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
 @Threads(1)
 open class SnowflakeBenchmarkTest {
-
     private lateinit var snowflakeEnvironment: Snowflake
     private lateinit var snowflakeStatic: Snowflake
     private lateinit var snowflakeRandom: Snowflake
@@ -37,31 +36,34 @@ open class SnowflakeBenchmarkTest {
     @Setup
     fun setup() {
         // 환경변수 기반 Snowflake
-        snowflakeEnvironment = Snowflake(
-            SnowflakeConfig.Builder()
-                .environmentNodeId(mapOf("SNOWFLAKE_NODE_ID" to "100"))
-                .failOnClockBackward()
-                .build()
-        )
+        snowflakeEnvironment =
+            Snowflake(
+                SnowflakeConfig.Builder()
+                    .environmentNodeId(mapOf("SNOWFLAKE_NODE_ID" to "100"))
+                    .failOnClockBackward()
+                    .build(),
+            )
 
         // 고정 NodeId Snowflake
         snowflakeStatic = Snowflake(200L)
 
         // 랜덤 NodeId Snowflake (시드 고정으로 재현 가능)
-        snowflakeRandom = Snowflake(
-            SnowflakeConfig.Builder()
-                .randomNodeId(12345L)
-                .failOnClockBackward()
-                .build()
-        )
+        snowflakeRandom =
+            Snowflake(
+                SnowflakeConfig.Builder()
+                    .randomNodeId(12345L)
+                    .failOnClockBackward()
+                    .build(),
+            )
 
         // 대기 전략 Snowflake
-        snowflakeWaitStrategy = Snowflake(
-            SnowflakeConfig.Builder()
-                .staticNodeId(300L)
-                .waitOnClockBackward(1000L)
-                .build()
-        )
+        snowflakeWaitStrategy =
+            Snowflake(
+                SnowflakeConfig.Builder()
+                    .staticNodeId(300L)
+                    .waitOnClockBackward(1000L)
+                    .build(),
+            )
     }
 
     @Benchmark
@@ -95,7 +97,6 @@ open class SnowflakeBenchmarkTest {
 @Warmup(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
 open class SnowflakeMultiThreadBenchmarkTest {
-
     private lateinit var snowflake: Snowflake
 
     @Setup

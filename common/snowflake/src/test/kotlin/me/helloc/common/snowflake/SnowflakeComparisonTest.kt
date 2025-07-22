@@ -18,27 +18,30 @@ class SnowflakeComparisonTest : FunSpec({
         test("단일 스레드 성능 비교") {
             // Given
             val legacySnowflake = Snowflake(1L)
-            val snowflake = Snowflake(
-                SnowflakeConfig.Builder()
-                    .randomNodeId(12345L) // 동일한 시드로 공정한 비교
-                    .failOnClockBackward() // 기존과 동일한 전략
-                    .build()
-            )
+            val snowflake =
+                Snowflake(
+                    SnowflakeConfig.Builder()
+                        .randomNodeId(12345L) // 동일한 시드로 공정한 비교
+                        .failOnClockBackward() // 기존과 동일한 전략
+                        .build(),
+                )
             val testCount = 500_000
 
             // When - 기존 Snowflake 성능 측정
-            val legacyTime = measureTimeMillis {
-                repeat(testCount) {
-                    legacySnowflake.nextId()
+            val legacyTime =
+                measureTimeMillis {
+                    repeat(testCount) {
+                        legacySnowflake.nextId()
+                    }
                 }
-            }
 
-            // When - 개선된 Snowflake 성능 측정  
-            val improvedTime = measureTimeMillis {
-                repeat(testCount) {
-                    snowflake.nextId()
+            // When - 개선된 Snowflake 성능 측정
+            val improvedTime =
+                measureTimeMillis {
+                    repeat(testCount) {
+                        snowflake.nextId()
+                    }
                 }
-            }
 
             // Then
             val legacyThroughput = (testCount * 1000.0 / legacyTime).toLong()
@@ -46,8 +49,8 @@ class SnowflakeComparisonTest : FunSpec({
             val improvementRatio = improvedThroughput.toDouble() / legacyThroughput.toDouble()
 
             println("=== 단일 스레드 성능 비교 ===")
-            println("기존 Snowflake: ${legacyThroughput} IDs/sec (${legacyTime}ms)")
-            println("개선된 Snowflake: ${improvedThroughput} IDs/sec (${improvedTime}ms)")
+            println("기존 Snowflake: $legacyThroughput IDs/sec (${legacyTime}ms)")
+            println("개선된 Snowflake: $improvedThroughput IDs/sec (${improvedTime}ms)")
             println("성능 개선비: ${String.format("%.2f", improvementRatio)}x")
 
             // 성능이 저하되지 않아야 함 (최소 90% 유지)
@@ -57,63 +60,66 @@ class SnowflakeComparisonTest : FunSpec({
         test("멀티 스레드 성능 비교") {
             // Given
             val legacySnowflake = Snowflake(1L)
-            val snowflake = Snowflake(
-                SnowflakeConfig.Builder()
-                    .randomNodeId(12345L)
-                    .failOnClockBackward()
-                    .build()
-            )
+            val snowflake =
+                Snowflake(
+                    SnowflakeConfig.Builder()
+                        .randomNodeId(12345L)
+                        .failOnClockBackward()
+                        .build(),
+                )
 
             val threadCount = 8
             val testDurationMs = 3000L
 
             // When - 기존 Snowflake 멀티스레드 테스트
             val legacyCounter = AtomicLong(0)
-            val legacyTime = measureTimeMillis {
-                val threadPool = Executors.newFixedThreadPool(threadCount)
-                val latch = CountDownLatch(threadCount)
+            val legacyTime =
+                measureTimeMillis {
+                    val threadPool = Executors.newFixedThreadPool(threadCount)
+                    val latch = CountDownLatch(threadCount)
 
-                repeat(threadCount) {
-                    threadPool.submit {
-                        try {
-                            val endTime = System.currentTimeMillis() + testDurationMs
-                            while (System.currentTimeMillis() < endTime) {
-                                legacySnowflake.nextId()
-                                legacyCounter.incrementAndGet()
+                    repeat(threadCount) {
+                        threadPool.submit {
+                            try {
+                                val endTime = System.currentTimeMillis() + testDurationMs
+                                while (System.currentTimeMillis() < endTime) {
+                                    legacySnowflake.nextId()
+                                    legacyCounter.incrementAndGet()
+                                }
+                            } finally {
+                                latch.countDown()
                             }
-                        } finally {
-                            latch.countDown()
                         }
                     }
-                }
 
-                latch.await()
-                threadPool.shutdown()
-            }
+                    latch.await()
+                    threadPool.shutdown()
+                }
 
             // When - 개선된 Snowflake 멀티스레드 테스트
             val improvedCounter = AtomicLong(0)
-            val improvedTime = measureTimeMillis {
-                val threadPool = Executors.newFixedThreadPool(threadCount)
-                val latch = CountDownLatch(threadCount)
+            val improvedTime =
+                measureTimeMillis {
+                    val threadPool = Executors.newFixedThreadPool(threadCount)
+                    val latch = CountDownLatch(threadCount)
 
-                repeat(threadCount) {
-                    threadPool.submit {
-                        try {
-                            val endTime = System.currentTimeMillis() + testDurationMs
-                            while (System.currentTimeMillis() < endTime) {
-                                snowflake.nextId()
-                                improvedCounter.incrementAndGet()
+                    repeat(threadCount) {
+                        threadPool.submit {
+                            try {
+                                val endTime = System.currentTimeMillis() + testDurationMs
+                                while (System.currentTimeMillis() < endTime) {
+                                    snowflake.nextId()
+                                    improvedCounter.incrementAndGet()
+                                }
+                            } finally {
+                                latch.countDown()
                             }
-                        } finally {
-                            latch.countDown()
                         }
                     }
-                }
 
-                latch.await()
-                threadPool.shutdown()
-            }
+                    latch.await()
+                    threadPool.shutdown()
+                }
 
             // Then
             val legacyThroughput = (legacyCounter.get() * 1000.0 / legacyTime).toLong()
@@ -121,8 +127,8 @@ class SnowflakeComparisonTest : FunSpec({
             val improvementRatio = improvedThroughput.toDouble() / legacyThroughput.toDouble()
 
             println("=== 멀티 스레드 성능 비교 (${threadCount}스레드) ===")
-            println("기존 Snowflake: ${legacyThroughput} IDs/sec (${legacyCounter.get()}개)")
-            println("개선된 Snowflake: ${improvedThroughput} IDs/sec (${improvedCounter.get()}개)")
+            println("기존 Snowflake: $legacyThroughput IDs/sec (${legacyCounter.get()}개)")
+            println("개선된 Snowflake: $improvedThroughput IDs/sec (${improvedCounter.get()}개)")
             println("성능 개선비: ${String.format("%.2f", improvementRatio)}x")
 
             // 멀티스레드에서도 성능이 저하되지 않아야 함
@@ -140,7 +146,7 @@ class SnowflakeComparisonTest : FunSpec({
             val beforeLegacy = runtime.totalMemory() - runtime.freeMemory()
 
             val legacyInstances = (1..instanceCount).map { Snowflake(it.toLong()) }
-            
+
             System.gc()
             Thread.sleep(100)
             val afterLegacy = runtime.totalMemory() - runtime.freeMemory()
@@ -151,13 +157,14 @@ class SnowflakeComparisonTest : FunSpec({
             Thread.sleep(100)
             val beforeImproved = runtime.totalMemory() - runtime.freeMemory()
 
-            val improvedInstances = (1..instanceCount).map { 
-                Snowflake(
-                    SnowflakeConfig.Builder()
-                        .staticNodeId(it.toLong())
-                        .build()
-                )
-            }
+            val improvedInstances =
+                (1..instanceCount).map {
+                    Snowflake(
+                        SnowflakeConfig.Builder()
+                            .staticNodeId(it.toLong())
+                            .build(),
+                    )
+                }
 
             System.gc()
             Thread.sleep(100)
@@ -181,28 +188,31 @@ class SnowflakeComparisonTest : FunSpec({
         test("ID 유니크성 검증 - 대용량 테스트") {
             // Given
             val legacySnowflake = Snowflake(1L)
-            val snowflake = Snowflake(
-                SnowflakeConfig.Builder()
-                    .staticNodeId(1L)
-                    .build()
-            )
+            val snowflake =
+                Snowflake(
+                    SnowflakeConfig.Builder()
+                        .staticNodeId(1L)
+                        .build(),
+                )
             val testCount = 1_000_000
 
             // When - 기존 Snowflake ID 생성
             val legacyIds = mutableSetOf<Long>()
-            val legacyTime = measureTimeMillis {
-                repeat(testCount) {
-                    legacyIds.add(legacySnowflake.nextId())
+            val legacyTime =
+                measureTimeMillis {
+                    repeat(testCount) {
+                        legacyIds.add(legacySnowflake.nextId())
+                    }
                 }
-            }
 
             // When - 개선된 Snowflake ID 생성
             val improvedIds = mutableSetOf<Long>()
-            val improvedTime = measureTimeMillis {
-                repeat(testCount) {
-                    improvedIds.add(snowflake.nextId())
+            val improvedTime =
+                measureTimeMillis {
+                    repeat(testCount) {
+                        improvedIds.add(snowflake.nextId())
+                    }
                 }
-            }
 
             // Then
             println("=== ID 유니크성 검증 (${testCount}개) ===")
@@ -216,7 +226,7 @@ class SnowflakeComparisonTest : FunSpec({
             // 두 구현체가 다른 NodeId를 사용하므로 교집합이 없어야 함
             val intersection = legacyIds.intersect(improvedIds)
             println("ID 교집합: ${intersection.size}개")
-            
+
             // 다른 NodeId를 사용하므로 교집합이 있을 수 있지만, 매우 적어야 함
             // (시간 차이로 인해 일부 겹칠 수 있음)
         }
@@ -225,13 +235,14 @@ class SnowflakeComparisonTest : FunSpec({
     context("스트레스 테스트") {
         test("장시간 연속 생성 테스트") {
             // Given
-            val snowflake = Snowflake(
-                SnowflakeConfig.Builder()
-                    .staticNodeId(999L)
-                    .waitOnClockBackward(5000L)
-                    .build()
-            )
-            
+            val snowflake =
+                Snowflake(
+                    SnowflakeConfig.Builder()
+                        .staticNodeId(999L)
+                        .waitOnClockBackward(5000L)
+                        .build(),
+                )
+
             val testDurationMs = 30_000L // 30초
             val counter = AtomicLong(0)
             val threadCount = 4
@@ -249,7 +260,7 @@ class SnowflakeComparisonTest : FunSpec({
                             try {
                                 val id = snowflake.nextId()
                                 counter.incrementAndGet()
-                                
+
                                 // ID 유효성 간단 검증
                                 if (id <= 0) {
                                     errors.incrementAndGet()
@@ -284,7 +295,7 @@ class SnowflakeComparisonTest : FunSpec({
 
             // 에러율이 0.1% 미만이어야 함
             errorRate shouldBeLessThan 0.1
-            
+
             // 최소 처리량 보장
             throughput shouldBeGreaterThan 100_000L
         }

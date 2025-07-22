@@ -4,7 +4,7 @@ package me.helloc.common.snowflake
  * 분산 환경에서 고유한 64비트 ID를 안전하고 효율적으로 생성하는 Snowflake 구현체
  *
  * 구조: [41비트 타임스탬프][10비트 노드ID][12비트 시퀀스]
- * 
+ *
  * 주요 특징:
  * - 설정 가능한 NodeId 관리 (환경변수, 고정값, 랜덤)
  * - 시계 역행 복구 전략 선택 가능 (대기, 실패, 시퀀스)
@@ -12,9 +12,7 @@ package me.helloc.common.snowflake
  * - 높은 성능 (100만+ IDs/sec)
  */
 class Snowflake {
-    
     private val config: SnowflakeConfig
-    
 
     /**
      * 현재 노드의 ID
@@ -37,7 +35,7 @@ class Snowflake {
     constructor(config: SnowflakeConfig) {
         this.config = config
         this.nodeId = config.nodeIdProvider.getNodeId()
-        
+
         // NodeId 유효성 검증
         NodeIdValidator.validateOrThrow(nodeId)
     }
@@ -49,12 +47,12 @@ class Snowflake {
     constructor(nodeId: Long) : this(
         SnowflakeConfig.Builder()
             .staticNodeId(nodeId)
-            .build()
+            .build(),
     )
 
     /**
      * 고유한 ID를 생성한다.
-     * 
+     *
      * @return 64비트 고유 ID
      * @throws ClockBackwardException 시계 역행을 복구할 수 없는 경우
      */
@@ -64,17 +62,18 @@ class Snowflake {
 
         // 시계 역행 검사 및 처리
         if (currentTime < lastTimeMillis) {
-            currentTime = config.clockBackwardStrategy.handleClockBackward(
-                lastTimeMillis = lastTimeMillis,
-                currentTimeMillis = currentTime,
-                timeProvider = config.timeProvider
-            )
+            currentTime =
+                config.clockBackwardStrategy.handleClockBackward(
+                    lastTimeMillis = lastTimeMillis,
+                    currentTimeMillis = currentTime,
+                    timeProvider = config.timeProvider,
+                )
         }
 
         // 동일한 밀리초 내에서 시퀀스 증가
         if (currentTime == lastTimeMillis) {
             sequence = (sequence + 1) and SnowflakeConfig.MAX_SEQUENCE
-            
+
             // 시퀀스 오버플로우 시 다음 밀리초까지 대기
             if (sequence == 0L) {
                 currentTime = waitNextMillis(currentTime)
@@ -119,7 +118,7 @@ class Snowflake {
             nodeId = nodeId,
             epochMillis = config.epochMillis,
             lastGeneratedTimeMillis = lastTimeMillis,
-            currentSequence = sequence
+            currentSequence = sequence,
         )
     }
 
@@ -128,7 +127,7 @@ class Snowflake {
         private const val SEQUENCE_BITS = 12
         private const val TIMESTAMP_LEFT_SHIFT = NODE_ID_BITS + SEQUENCE_BITS // 22
         private const val NODE_ID_LEFT_SHIFT = SEQUENCE_BITS // 12
-        
+
         /**
          * 환경변수 기반 Snowflake 인스턴스를 생성한다.
          */

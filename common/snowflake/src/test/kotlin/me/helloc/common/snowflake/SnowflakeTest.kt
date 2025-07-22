@@ -4,19 +4,18 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicLong
 
 class SnowflakeTest : FunSpec({
 
     context("Snowflake 기본 기능") {
         test("설정을 사용해 Snowflake 생성") {
             // Given
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(123L)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(123L)
+                    .build()
 
             // When
             val snowflake = Snowflake(config)
@@ -28,9 +27,10 @@ class SnowflakeTest : FunSpec({
         test("기본 생성자로 Snowflake 생성") {
             // Given
             val environment = mapOf("SNOWFLAKE_NODE_ID" to "456")
-            val config = SnowflakeConfig.Builder()
-                .environmentNodeId(environment)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .environmentNodeId(environment)
+                    .build()
 
             // When
             val snowflake = Snowflake(config)
@@ -59,9 +59,10 @@ class SnowflakeTest : FunSpec({
 
         test("연속된 ID는 오름차순이다") {
             // Given
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When
@@ -78,11 +79,12 @@ class SnowflakeTest : FunSpec({
             // Given
             val mockTimeProvider = MockTimeProvider()
             mockTimeProvider.setRepeatingTime(1000L)
-            
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .timeProvider(mockTimeProvider)
-                .build()
+
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .timeProvider(mockTimeProvider)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When
@@ -99,11 +101,12 @@ class SnowflakeTest : FunSpec({
             // Given
             val mockTimeProvider = MockTimeProvider()
             mockTimeProvider.setTimes(1000L, 1001L)
-            
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .timeProvider(mockTimeProvider)
-                .build()
+
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .timeProvider(mockTimeProvider)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When
@@ -124,12 +127,13 @@ class SnowflakeTest : FunSpec({
             val mockTimeProvider = MockTimeProvider()
             // 정상 시간 → 역행 → 정상 복구
             mockTimeProvider.setTimes(1000L, 900L, 900L, 1001L)
-            
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .timeProvider(mockTimeProvider)
-                .waitOnClockBackward(1000L)
-                .build()
+
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .timeProvider(mockTimeProvider)
+                    .waitOnClockBackward(1000L)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When - 첫 번째 호출 후 시계가 역행하지만 복구됨
@@ -144,12 +148,13 @@ class SnowflakeTest : FunSpec({
             // Given
             val mockTimeProvider = MockTimeProvider()
             mockTimeProvider.setTimes(1000L, 900L)
-            
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .timeProvider(mockTimeProvider)
-                .failOnClockBackward()
-                .build()
+
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .timeProvider(mockTimeProvider)
+                    .failOnClockBackward()
+                    .build()
             val snowflake = Snowflake(config)
 
             // When
@@ -165,11 +170,12 @@ class SnowflakeTest : FunSpec({
     context("동시성 테스트") {
         test("멀티스레드 환경에서 고유 ID 생성") {
             // Given
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .build()
             val snowflake = Snowflake(config)
-            
+
             val threadCount = 10
             val idsPerThread = 1000
             val threadPool = Executors.newFixedThreadPool(threadCount)
@@ -185,7 +191,7 @@ class SnowflakeTest : FunSpec({
                         repeat(idsPerThread) {
                             threadIds.add(snowflake.nextId())
                         }
-                        
+
                         synchronized(lock) {
                             allIds.addAll(threadIds)
                         }
@@ -194,7 +200,7 @@ class SnowflakeTest : FunSpec({
                     }
                 }
             }
-            
+
             latch.await()
             threadPool.shutdown()
 
@@ -210,12 +216,13 @@ class SnowflakeTest : FunSpec({
             val fixedTime = 1000000L
             val mockTimeProvider = MockTimeProvider()
             mockTimeProvider.setRepeatingTime(fixedTime)
-            
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(123L)
-                .epochMillis(0L)
-                .timeProvider(mockTimeProvider)
-                .build()
+
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(123L)
+                    .epochMillis(0L)
+                    .timeProvider(mockTimeProvider)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When
@@ -229,9 +236,10 @@ class SnowflakeTest : FunSpec({
         test("생성된 ID에서 노드ID 추출") {
             // Given
             val expectedNodeId = 123L
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(expectedNodeId)
-                .build()
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(expectedNodeId)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When
@@ -246,11 +254,12 @@ class SnowflakeTest : FunSpec({
             // Given
             val mockTimeProvider = MockTimeProvider()
             mockTimeProvider.setRepeatingTime(1000L)
-            
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .timeProvider(mockTimeProvider)
-                .build()
+
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .timeProvider(mockTimeProvider)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When
@@ -262,7 +271,7 @@ class SnowflakeTest : FunSpec({
             val sequence1 = id1 and SnowflakeConfig.MAX_SEQUENCE
             val sequence2 = id2 and SnowflakeConfig.MAX_SEQUENCE
             val sequence3 = id3 and SnowflakeConfig.MAX_SEQUENCE
-            
+
             sequence1 shouldBe 0L
             sequence2 shouldBe 1L
             sequence3 shouldBe 2L
@@ -277,18 +286,19 @@ class SnowflakeTest : FunSpec({
             val sameTimes = LongArray(SnowflakeConfig.MAX_SEQUENCE.toInt() + 2) { 1000L }
             sameTimes[sameTimes.size - 1] = 1001L
             mockTimeProvider.setTimes(*sameTimes)
-            
-            val config = SnowflakeConfig.Builder()
-                .staticNodeId(1L)
-                .timeProvider(mockTimeProvider)
-                .build()
+
+            val config =
+                SnowflakeConfig.Builder()
+                    .staticNodeId(1L)
+                    .timeProvider(mockTimeProvider)
+                    .build()
             val snowflake = Snowflake(config)
 
             // When - 시퀀스를 최대값까지 채움
             repeat(SnowflakeConfig.MAX_SEQUENCE.toInt() + 1) {
                 snowflake.nextId()
             }
-            
+
             // 마지막 ID는 다음 밀리초에서 생성되어야 함
             val lastId = snowflake.nextId()
 
