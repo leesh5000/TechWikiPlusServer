@@ -4,8 +4,10 @@ import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
 import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
 import me.helloc.techwikiplus.user.domain.service.UserRepository
+import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import me.helloc.techwikiplus.user.interfaces.http.RefreshTokenController
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import java.time.Duration
 
 class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport() {
     @Autowired
@@ -21,20 +24,30 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     @Autowired
     private lateinit var tokenProvider: TokenProvider
 
-    private val testEmail = "test@example.com"
-    private val testUserId = System.currentTimeMillis()
+    @Autowired
+    private lateinit var refreshTokenStore: RefreshTokenStore
+
+    @Autowired
+    private lateinit var jwtProperties: JwtProperties
+
+    private lateinit var testEmail: String
+    private var testUserId: Long = 0L
     private lateinit var testUser: User
     private lateinit var validRefreshToken: String
     private lateinit var validAccessToken: String
 
     @BeforeEach
     fun setUp() {
+        // 각 테스트마다 고유한 ID 생성
+        testUserId = System.currentTimeMillis()
+        testEmail = "test${testUserId}@example.com"
+        
         // 테스트용 사용자 생성
         testUser =
             User(
                 id = testUserId,
                 email = UserEmail(testEmail, true),
-                nickname = "testuser",
+                nickname = "user${testUserId % 100000}",  // 닉네임 길이 제한으로 인해 숫자를 줄임
                 password = "encoded_password",
                 status = UserStatus.ACTIVE,
                 createdAt = Clock.system.localDateTime(),
@@ -45,6 +58,10 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         // 유효한 토큰 생성
         validAccessToken = tokenProvider.createAccessToken(testEmail, testUserId)
         validRefreshToken = tokenProvider.createRefreshToken(testEmail, testUserId)
+
+        // Refresh token을 Redis에 저장
+        val ttl = Duration.ofMillis(jwtProperties.refreshTokenExpiration)
+        refreshTokenStore.store(testUserId, validRefreshToken, ttl)
     }
 
     @Test
@@ -198,6 +215,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
             )
 
         assertThat(response1.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response1.body).isNotNull
         val newRefreshToken = response1.body!!.refreshToken
 
         // when - 두 번째 갱신 (새로 받은 refresh token 사용)
@@ -221,5 +239,39 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         // 두 번째 응답의 토큰들도 유효한지 확인
         assertThat(tokenProvider.validateToken(response2.body!!.accessToken)).isTrue
         assertThat(tokenProvider.validateToken(response2.body!!.refreshToken)).isTrue
+    }
+
+    @Test
+    fun `refresh token rotation으로 이전 토큰은 사용할 수 없다`() {
+        // given
+        val request1 =
+            RefreshTokenController.RefreshTokenRequest(
+                refreshToken = validRefreshToken,
+            )
+
+        // when - 첫 번째 갱신
+        val response1: ResponseEntity<RefreshTokenController.RefreshTokenResponse> =
+            restTemplate.postForEntity(
+                "/api/v1/users/refresh",
+                createJsonHttpEntity(request1),
+                RefreshTokenController.RefreshTokenResponse::class.java,
+            )
+
+        assertThat(response1.statusCode).isEqualTo(HttpStatus.OK)
+
+        // when - 이전 refresh token을 다시 사용
+        val response2: ResponseEntity<String> =
+            restTemplate.postForEntity(
+                "/api/v1/users/refresh",
+                createJsonHttpEntity(request1),
+                String::class.java,
+            )
+
+        // then
+        assertThat(response2.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
+
+        val errorResponse = parseErrorResponse(response2.body!!)
+        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.message).contains("Invalid refresh token")
     }
 }

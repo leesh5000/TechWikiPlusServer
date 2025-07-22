@@ -5,6 +5,7 @@ import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
 import me.helloc.techwikiplus.user.domain.service.Clock
 import me.helloc.techwikiplus.user.domain.service.PasswordEncoder
+import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
 import me.helloc.techwikiplus.user.domain.service.UserRepository
 import me.helloc.techwikiplus.user.interfaces.http.UserLoginController
@@ -24,6 +25,9 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
 
     @Autowired
     private lateinit var tokenProvider: TokenProvider
+
+    @Autowired
+    private lateinit var refreshTokenStore: RefreshTokenStore
 
     private val testEmail = "test@example.com"
     private val testPassword = "ValidPass123!"
@@ -78,6 +82,9 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(tokenProvider.getTokenType(loginResponse.accessToken)).isEqualTo("access")
         assertThat(tokenProvider.getTokenType(loginResponse.refreshToken)).isEqualTo("refresh")
         assertThat(tokenProvider.getEmailFromToken(loginResponse.accessToken)).isEqualTo(testEmail)
+
+        // Refresh token이 Redis에 저장되었는지 확인
+        assertThat(refreshTokenStore.exists(loginResponse.refreshToken)).isTrue
     }
 
     @Test
