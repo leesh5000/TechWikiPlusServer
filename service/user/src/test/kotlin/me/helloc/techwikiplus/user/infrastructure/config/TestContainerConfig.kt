@@ -2,7 +2,6 @@ package me.helloc.techwikiplus.user.infrastructure.config
 
 import com.redis.testcontainers.RedisContainer
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.MySQLContainer
