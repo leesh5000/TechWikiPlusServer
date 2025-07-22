@@ -1,0 +1,200 @@
+package me.helloc.techwikiplus.user.application
+
+import me.helloc.techwikiplus.user.domain.User
+import me.helloc.techwikiplus.user.domain.UserEmail
+import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.UserStatus
+import me.helloc.techwikiplus.user.domain.service.UserAuthenticationService
+import me.helloc.techwikiplus.user.domain.service.UserReader
+import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
+import me.helloc.techwikiplus.user.infrastructure.security.fake.FakeTokenProvider
+import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakeUserPasswordService
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
+class UserLoginUseCaseUnitTest {
+    private lateinit var userRepository: FakeUserRepository
+    private lateinit var userReader: UserReader
+    private lateinit var userAuthenticationService: UserAuthenticationService
+    private lateinit var tokenProvider: FakeTokenProvider
+    private lateinit var userPasswordService: FakeUserPasswordService
+    private lateinit var userLoginUseCase: UserLoginUseCase
+
+    @BeforeEach
+    fun setUp() {
+        userRepository = FakeUserRepository()
+        userReader = UserReader(userRepository)
+        userPasswordService = FakeUserPasswordService()
+        userAuthenticationService = UserAuthenticationService(userPasswordService)
+        tokenProvider = FakeTokenProvider()
+        userLoginUseCase = UserLoginUseCase(
+            userReader = userReader,
+            userAuthenticationService = userAuthenticationService,
+            tokenProvider = tokenProvider
+        )
+    }
+
+    @Test
+    fun shouldLoginSuccessfullyWithValidCredentials() {
+        // given
+        val email = "test@example.com"
+        val password = "password123"
+        val userId = 1L
+        val encodedPassword = userPasswordService.validateAndEncode(password)
+        
+        val user = User(
+            id = userId,
+            email = UserEmail(email, true),
+            nickname = "testuser",
+            password = encodedPassword,
+            status = UserStatus.ACTIVE,
+            createdAt = Clock.system.localDateTime(),
+            updatedAt = Clock.system.localDateTime()
+        )
+        userRepository.insertOrUpdate(user)
+
+        // when
+        val result = userLoginUseCase.login(email, password)
+
+        // then
+        assertThat(result.userId).isEqualTo(userId)
+        assertThat(result.accessToken).isNotBlank()
+        assertThat(result.refreshToken).isNotBlank()
+        
+        // 토큰에 올바른 정보가 포함되었는지 확인
+        val accessTokenEmail = tokenProvider.getEmailFromToken(result.accessToken)
+        val accessTokenUserId = tokenProvider.getUserIdFromToken(result.accessToken)
+        assertThat(accessTokenEmail).isEqualTo(email)
+        assertThat(accessTokenUserId).isEqualTo(userId)
+        
+        val refreshTokenEmail = tokenProvider.getEmailFromToken(result.refreshToken)
+        val refreshTokenUserId = tokenProvider.getUserIdFromToken(result.refreshToken)
+        assertThat(refreshTokenEmail).isEqualTo(email)
+        assertThat(refreshTokenUserId).isEqualTo(userId)
+    }
+
+    @Test
+    fun shouldThrowExceptionWhenUserNotFound() {
+        // given
+        val email = "nonexistent@example.com"
+        val password = "password123"
+
+        // when & then
+        assertThatThrownBy {
+            userLoginUseCase.login(email, password)
+        }.isInstanceOf(CustomException.NotFoundException.UserEmailNotFoundException::class.java)
+            .hasMessage("User not found with email: $email")
+    }
+
+    @Test
+    fun shouldThrowExceptionWhenPasswordIsIncorrect() {
+        // given
+        val email = "test@example.com"
+        val correctPassword = "password123"
+        val wrongPassword = "wrongpassword"
+        val userId = 1L
+        val encodedPassword = userPasswordService.validateAndEncode(correctPassword)
+        
+        val user = User(
+            id = userId,
+            email = UserEmail(email, true),
+            nickname = "testuser",
+            password = encodedPassword,
+            status = UserStatus.ACTIVE,
+            createdAt = Clock.system.localDateTime(),
+            updatedAt = Clock.system.localDateTime()
+        )
+        userRepository.insertOrUpdate(user)
+
+        // when & then
+        assertThatThrownBy {
+            userLoginUseCase.login(email, wrongPassword)
+        }.isInstanceOf(CustomException.AuthenticationException.InvalidCredentials::class.java)
+            .hasMessage("Invalid email or password")
+    }
+
+    @Test
+    fun shouldThrowExceptionWhenUserIsPending() {
+        // given
+        val email = "pending@example.com"
+        val password = "password123"
+        val userId = 1L
+        val encodedPassword = userPasswordService.validateAndEncode(password)
+        
+        val pendingUser = User.withPendingUser(
+            id = userId,
+            email = UserEmail(email, false),
+            nickname = "pendinguser",
+            password = encodedPassword,
+            clock = Clock.system
+        )
+        userRepository.insertOrUpdate(pendingUser)
+
+        // when & then
+        assertThatThrownBy {
+            userLoginUseCase.login(email, password)
+        }.isInstanceOf(CustomException.AuthenticationException.EmailNotVerified::class.java)
+            .hasMessage("Email not verified. Please verify your email before logging in.")
+    }
+
+    @Test
+    fun shouldGenerateDifferentTokensForEachLogin() {
+        // given
+        val email = "test@example.com"
+        val password = "password123"
+        val userId = 1L
+        val encodedPassword = userPasswordService.validateAndEncode(password)
+        
+        val user = User(
+            id = userId,
+            email = UserEmail(email, true),
+            nickname = "testuser",
+            password = encodedPassword,
+            status = UserStatus.ACTIVE,
+            createdAt = Clock.system.localDateTime(),
+            updatedAt = Clock.system.localDateTime()
+        )
+        userRepository.insertOrUpdate(user)
+
+        // when
+        val result1 = userLoginUseCase.login(email, password)
+        val result2 = userLoginUseCase.login(email, password)
+
+        // then
+        assertThat(result1.accessToken).isNotEqualTo(result2.accessToken)
+        assertThat(result1.refreshToken).isNotEqualTo(result2.refreshToken)
+    }
+
+    @Test
+    fun shouldReturnCorrectUserIdInLoginResult() {
+        // given
+        val users = listOf(
+            Triple(1L, "user1@example.com", "password1"),
+            Triple(2L, "user2@example.com", "password2"),
+            Triple(3L, "user3@example.com", "password3")
+        )
+        
+        users.forEach { (id, email, password) ->
+            val encodedPassword = userPasswordService.validateAndEncode(password)
+            val user = User(
+                id = id,
+                email = UserEmail(email, true),
+                nickname = "user$id",
+                password = encodedPassword,
+                status = UserStatus.ACTIVE,
+                createdAt = Clock.system.localDateTime(),
+                updatedAt = Clock.system.localDateTime()
+            )
+            userRepository.insertOrUpdate(user)
+        }
+
+        // when & then
+        users.forEach { (expectedId, email, password) ->
+            val result = userLoginUseCase.login(email, password)
+            assertThat(result.userId).isEqualTo(expectedId)
+        }
+    }
+}

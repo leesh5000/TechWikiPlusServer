@@ -1,0 +1,189 @@
+package me.helloc.techwikiplus.user.application
+
+import me.helloc.techwikiplus.user.domain.User
+import me.helloc.techwikiplus.user.domain.UserEmail
+import me.helloc.techwikiplus.user.domain.VerificationCode
+import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.UserStatus
+import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.service.UserReader
+import me.helloc.techwikiplus.user.domain.service.UserWriter
+import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
+import me.helloc.techwikiplus.user.infrastructure.verificationcode.fake.FakeVerificationCodeStore
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import java.time.Duration
+
+class VerifyEmailUseCaseUnitTest {
+    private lateinit var verificationCodeStore: FakeVerificationCodeStore
+    private lateinit var userRepository: FakeUserRepository
+    private lateinit var userReader: UserReader
+    private lateinit var userWriter: UserWriter
+    private lateinit var verifyEmailUseCase: VerifyEmailUseCase
+
+    @BeforeEach
+    fun setUp() {
+        verificationCodeStore = FakeVerificationCodeStore()
+        userRepository = FakeUserRepository()
+        userReader = UserReader(userRepository)
+        userWriter = UserWriter(userRepository)
+        verifyEmailUseCase = VerifyEmailUseCase(
+            verificationCodeStore = verificationCodeStore,
+            userReader = userReader,
+            userWriter = userWriter
+        )
+    }
+
+    @Test
+    fun shouldVerifyEmailSuccessfully() {
+        // given
+        val email = "test@example.com"
+        val code = "123456"
+        val userId = 1L
+        
+        // Pending 상태의 사용자 생성
+        val pendingUser = User.withPendingUser(
+            id = userId,
+            email = UserEmail(email, false),
+            nickname = "testuser",
+            password = "encodedPassword",
+            clock = Clock.system
+        )
+        userRepository.insertOrUpdate(pendingUser)
+        
+        // 인증 코드 저장
+        val verificationCode = VerificationCode(code)
+        verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
+
+        // when
+        verifyEmailUseCase.verifyEmail(email, code)
+
+        // then
+        val verifiedUser = userRepository.findByEmail(email)
+        assertThat(verifiedUser).isNotNull
+        assertThat(verifiedUser!!.isPending()).isFalse()
+        assertThat(verifiedUser.status).isEqualTo(UserStatus.ACTIVE)
+        assertThat(verifiedUser.email.verified).isTrue()
+    }
+
+    @Test
+    fun shouldThrowExceptionWhenVerificationCodeNotFound() {
+        // given
+        val email = "test@example.com"
+        val code = "123456"
+        
+        // 인증 코드를 저장하지 않음
+
+        // when & then
+        assertThatThrownBy {
+            verifyEmailUseCase.verifyEmail(email, code)
+        }.isInstanceOf(CustomException.AuthenticationException.ExpiredEmailVerification::class.java)
+            .hasMessage("Email verification expired for email: $email. Please request a new verification code.")
+    }
+
+    @Test
+    fun shouldThrowExceptionWhenVerificationCodeIsIncorrect() {
+        // given
+        val email = "test@example.com"
+        val correctCode = "123456"
+        val wrongCode = "654321"
+        
+        // 인증 코드 저장
+        val verificationCode = VerificationCode(correctCode)
+        verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
+
+        // when & then
+        assertThatThrownBy {
+            verifyEmailUseCase.verifyEmail(email, wrongCode)
+        }.isInstanceOf(CustomException.AuthenticationException.InvalidVerificationCode::class.java)
+            .hasMessage("Invalid verification code: $wrongCode. Please check the code and try again.")
+    }
+
+    @Test
+    fun shouldThrowExceptionWhenUserNotFound() {
+        // given
+        val email = "nonexistent@example.com"
+        val code = "123456"
+        
+        // 인증 코드만 저장하고 사용자는 생성하지 않음
+        val verificationCode = VerificationCode(code)
+        verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
+
+        // when & then
+        assertThatThrownBy {
+            verifyEmailUseCase.verifyEmail(email, code)
+        }.isInstanceOf(CustomException.NotFoundException.UserEmailNotFoundException::class.java)
+            .hasMessage("User not found with email: $email")
+    }
+
+    @Test
+    fun shouldNotThrowExceptionWhenUserAlreadyVerified() {
+        // given
+        val email = "test@example.com"
+        val code = "123456"
+        val userId = 1L
+        
+        // 이미 인증된 사용자 생성
+        val verifiedUser = User(
+            id = userId,
+            email = UserEmail(email, true),
+            nickname = "testuser",
+            password = "encodedPassword",
+            status = UserStatus.ACTIVE,
+            createdAt = Clock.system.localDateTime(),
+            updatedAt = Clock.system.localDateTime()
+        )
+        userRepository.insertOrUpdate(verifiedUser)
+        
+        // 인증 코드 저장
+        val verificationCode = VerificationCode(code)
+        verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
+
+        // when
+        verifyEmailUseCase.verifyEmail(email, code)
+
+        // then
+        // 이미 인증된 사용자도 completeSignUp이 호출되어 상태가 유지됨
+        val updatedUser = userRepository.findByEmail(email)
+        assertThat(updatedUser).isNotNull
+        assertThat(updatedUser!!.status).isEqualTo(UserStatus.ACTIVE)
+        assertThat(updatedUser.email.verified).isTrue()
+    }
+
+    @Test
+    fun shouldMaintainUserInformationAfterVerification() {
+        // given
+        val email = "test@example.com"
+        val code = "123456"
+        val userId = 1L
+        val nickname = "testuser"
+        val password = "encodedPassword"
+        
+        // Pending 상태의 사용자 생성
+        val pendingUser = User.withPendingUser(
+            id = userId,
+            email = UserEmail(email, false),
+            nickname = nickname,
+            password = password,
+            clock = Clock.system
+        )
+        userRepository.insertOrUpdate(pendingUser)
+        
+        // 인증 코드 저장
+        val verificationCode = VerificationCode(code)
+        verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
+
+        // when
+        verifyEmailUseCase.verifyEmail(email, code)
+
+        // then
+        val verifiedUser = userRepository.findByEmail(email)
+        assertThat(verifiedUser).isNotNull
+        assertThat(verifiedUser!!.id).isEqualTo(userId)
+        assertThat(verifiedUser.email()).isEqualTo(email)
+        assertThat(verifiedUser.nickname).isEqualTo(nickname)
+        assertThat(verifiedUser.password).isEqualTo(password)
+    }
+}
