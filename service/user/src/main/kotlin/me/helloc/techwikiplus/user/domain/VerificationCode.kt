@@ -3,9 +3,9 @@ package me.helloc.techwikiplus.user.domain
 import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.InvalidVerificationCode
 
 data class VerificationCode(val value: String) {
-
     companion object {
         const val LENGTH = 6
+
         /**
          * Generates a random verification code of the specified length.
          * The code consists of alphanumeric characters.

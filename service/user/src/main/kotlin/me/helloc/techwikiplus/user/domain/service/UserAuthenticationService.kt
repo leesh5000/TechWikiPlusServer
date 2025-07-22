@@ -7,18 +7,21 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserAuthenticationService(
-    private val userPasswordService: UserPasswordService
+    private val userPasswordService: UserPasswordService,
 ) {
-    fun authenticate(user: User, password: String): User {
+    fun authenticate(
+        user: User,
+        password: String,
+    ): User {
         if (!userPasswordService.matches(password, user.password)) {
             throw CustomException.AuthenticationException.InvalidCredentials()
         }
-        
+
         validateUserStatus(user)
-        
+
         return user
     }
-    
+
     private fun validateUserStatus(user: User) {
         if (user.status != UserStatus.ACTIVE) {
             when (user.status) {

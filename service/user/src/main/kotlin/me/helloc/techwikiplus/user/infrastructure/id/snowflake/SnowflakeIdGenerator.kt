@@ -12,9 +12,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class SnowflakeIdGenerator(
-    private val snowflake: Snowflake
+    private val snowflake: Snowflake,
 ) : IdGenerator {
-
     override fun next(): Long {
         return snowflake.nextId()
     }

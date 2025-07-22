@@ -14,7 +14,6 @@ class User(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
-
     companion object {
         private val NICKNAME_REGEX = "^[a-zA-Z0-9가-힣]{2,20}$".toRegex()
 
@@ -29,7 +28,7 @@ class User(
             email: UserEmail,
             nickname: String,
             password: String,
-            clock: Clock = Clock.system
+            clock: Clock = Clock.system,
         ): User {
             validateNickname(nickname)
             return User(
@@ -79,7 +78,10 @@ class User(
         )
     }
 
-    fun changeNickname(newNickname: String, clock: Clock = Clock.system): User {
+    fun changeNickname(
+        newNickname: String,
+        clock: Clock = Clock.system,
+    ): User {
         validateNickname(newNickname)
         return copy(
             nickname = newNickname,
