@@ -4,6 +4,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
+import me.helloc.techwikiplus.user.domain.exception.CustomException
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidNickname
 import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import java.time.LocalDateTime
@@ -15,16 +17,17 @@ class UserUnitTest : FunSpec({
             val now = LocalDateTime.of(2024, 1, 1, 10, 0, 0)
             val fakeClock = FakeClock(now)
 
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "hashedPassword",
-                nickname = "테스터123",
-                status = UserStatus.ACTIVE,
-                role = UserRole.USER,
-                createdAt = fakeClock.localDateTime(),
-                updatedAt = fakeClock.localDateTime()
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "hashedPassword",
+                    nickname = "테스터123",
+                    status = UserStatus.ACTIVE,
+                    role = UserRole.USER,
+                    createdAt = fakeClock.localDateTime(),
+                    updatedAt = fakeClock.localDateTime(),
+                )
 
             user.id shouldBe 123456789L
             user.email.value shouldBe "test@example.com"
@@ -39,14 +42,15 @@ class UserUnitTest : FunSpec({
         test("기본값으로 User 생성") {
             val now = LocalDateTime.of(2024, 1, 1, 10, 0, 0)
 
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "hashedPassword",
-                nickname = "테스터",
-                createdAt = now,
-                updatedAt = now
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "hashedPassword",
+                    nickname = "테스터",
+                    createdAt = now,
+                    updatedAt = now,
+                )
 
             user.status shouldBe UserStatus.ACTIVE
             user.role shouldBe UserRole.USER
@@ -64,7 +68,7 @@ class UserUnitTest : FunSpec({
                     password = "hashedPassword",
                     nickname = "a",
                     createdAt = now,
-                    updatedAt = now
+                    updatedAt = now,
                 )
             }.nickname shouldBe "a"
         }
@@ -80,23 +84,24 @@ class UserUnitTest : FunSpec({
                     password = "hashedPassword",
                     nickname = longNickname,
                     createdAt = now,
-                    updatedAt = now
+                    updatedAt = now,
                 )
             }.nickname shouldBe longNickname
         }
 
         test("닉네임에 특수문자 포함 시 InvalidNickname 예외 발생") {
             val now = LocalDateTime.now()
-            val invalidNicknames = listOf(
-                "test@user",
-                "test user",
-                "test!",
-                "test#123",
-                "test-user",
-                "test.user",
-                "test/user",
-                "test\\user"
-            )
+            val invalidNicknames =
+                listOf(
+                    "test@user",
+                    "test user",
+                    "test!",
+                    "test#123",
+                    "test-user",
+                    "test.user",
+                    "test/user",
+                    "test\\user",
+                )
 
             invalidNicknames.forEach { nickname ->
                 shouldThrow<InvalidNickname> {
@@ -106,7 +111,7 @@ class UserUnitTest : FunSpec({
                         password = "hashedPassword",
                         nickname = nickname,
                         createdAt = now,
-                        updatedAt = now
+                        updatedAt = now,
                     )
                 }.nickname shouldBe nickname
             }
@@ -114,28 +119,31 @@ class UserUnitTest : FunSpec({
 
         test("유효한 닉네임 형식들") {
             val now = LocalDateTime.now()
-            val validNicknames = listOf(
-                "ab",
-                "12",
-                "가나",
-                "test123",
-                "테스트123",
-                "User테스트123",
-                "ABCDEFGHIJKLMNopqrs", // 20자
-                "가나다라마바사아자차카타파하",
-                "1234567890123456789",
-                "한글English123"
-            )
+            val validNicknames =
+                listOf(
+                    "ab",
+                    "12",
+                    "가나",
+                    "test123",
+                    "테스트123",
+                    "User테스트123",
+                    // 20자
+                    "ABCDEFGHIJKLMNopqrs",
+                    "가나다라마바사아자차카타파하",
+                    "1234567890123456789",
+                    "한글English123",
+                )
 
             validNicknames.forEach { nickname ->
-                val user = User(
-                    id = 123456789L,
-                    email = UserEmail("test@example.com"),
-                    password = "hashedPassword",
-                    nickname = nickname,
-                    createdAt = now,
-                    updatedAt = now
-                )
+                val user =
+                    User(
+                        id = 123456789L,
+                        email = UserEmail("test@example.com"),
+                        password = "hashedPassword",
+                        nickname = nickname,
+                        createdAt = now,
+                        updatedAt = now,
+                    )
                 user.nickname shouldBe nickname
             }
         }
@@ -146,13 +154,14 @@ class UserUnitTest : FunSpec({
             val now = LocalDateTime.of(2024, 1, 1, 10, 0, 0)
             val fakeClock = FakeClock(now)
 
-            val pendingUser = User.withPendingUser(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                nickname = "테스터",
-                password = "hashedPassword",
-                clock = fakeClock
-            )
+            val pendingUser =
+                User.withPendingUser(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    nickname = "테스터",
+                    password = "hashedPassword",
+                    clock = fakeClock,
+                )
 
             pendingUser.id shouldBe 123456789L
             pendingUser.email.value shouldBe "test@example.com"
@@ -170,7 +179,7 @@ class UserUnitTest : FunSpec({
                     id = 123456789L,
                     email = UserEmail("test@example.com"),
                     nickname = "a",
-                    password = "hashedPassword"
+                    password = "hashedPassword",
                 )
             }.nickname shouldBe "a"
         }
@@ -182,14 +191,15 @@ class UserUnitTest : FunSpec({
             val updatedAt = LocalDateTime.of(2024, 1, 1, 12, 0, 0)
             val fakeClock = FakeClock(createdAt)
 
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "hashedPassword",
-                nickname = "기존닉네임",
-                createdAt = createdAt,
-                updatedAt = createdAt
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "hashedPassword",
+                    nickname = "기존닉네임",
+                    createdAt = createdAt,
+                    updatedAt = createdAt,
+                )
 
             fakeClock.setTime(updatedAt)
             val updatedUser = user.changeNickname("새로운닉네임", fakeClock)
@@ -204,14 +214,15 @@ class UserUnitTest : FunSpec({
 
         test("잘못된 닉네임으로 변경 시 예외 발생") {
             val now = LocalDateTime.now()
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "hashedPassword",
-                nickname = "테스터",
-                createdAt = now,
-                updatedAt = now
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "hashedPassword",
+                    nickname = "테스터",
+                    createdAt = now,
+                    updatedAt = now,
+                )
 
             shouldThrow<InvalidNickname> {
                 user.changeNickname("@")
@@ -225,14 +236,15 @@ class UserUnitTest : FunSpec({
             val updatedAt = LocalDateTime.of(2024, 1, 1, 12, 0, 0)
             val fakeClock = FakeClock(createdAt)
 
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com", false),
-                password = "hashedPassword",
-                nickname = "테스터",
-                createdAt = createdAt,
-                updatedAt = createdAt
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com", false),
+                    password = "hashedPassword",
+                    nickname = "테스터",
+                    createdAt = createdAt,
+                    updatedAt = createdAt,
+                )
 
             fakeClock.setTime(updatedAt)
             val verifiedUser = user.verifyEmail(fakeClock)
@@ -245,37 +257,40 @@ class UserUnitTest : FunSpec({
 
     context("isPending 메서드") {
         test("PENDING 상태인 경우 true 반환") {
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "hashedPassword",
-                nickname = "테스터",
-                status = UserStatus.PENDING,
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "hashedPassword",
+                    nickname = "테스터",
+                    status = UserStatus.PENDING,
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
             user.isPending() shouldBe true
         }
 
         test("PENDING이 아닌 상태인 경우 false 반환") {
-            val statuses = listOf(
-                UserStatus.ACTIVE,
-                UserStatus.BANNED,
-                UserStatus.DORMANT,
-                UserStatus.DELETED
-            )
+            val statuses =
+                listOf(
+                    UserStatus.ACTIVE,
+                    UserStatus.BANNED,
+                    UserStatus.DORMANT,
+                    UserStatus.DELETED,
+                )
 
             statuses.forEach { status ->
-                val user = User(
-                    id = 123456789L,
-                    email = UserEmail("test@example.com"),
-                    password = "hashedPassword",
-                    nickname = "테스터",
-                    status = status,
-                    createdAt = LocalDateTime.now(),
-                    updatedAt = LocalDateTime.now()
-                )
+                val user =
+                    User(
+                        id = 123456789L,
+                        email = UserEmail("test@example.com"),
+                        password = "hashedPassword",
+                        nickname = "테스터",
+                        status = status,
+                        createdAt = LocalDateTime.now(),
+                        updatedAt = LocalDateTime.now(),
+                    )
 
                 user.isPending() shouldBe false
             }
@@ -288,15 +303,16 @@ class UserUnitTest : FunSpec({
             val updatedAt = LocalDateTime.of(2024, 1, 1, 12, 0, 0)
             val fakeClock = FakeClock(createdAt)
 
-            val pendingUser = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com", false),
-                password = "hashedPassword",
-                nickname = "테스터",
-                status = UserStatus.PENDING,
-                createdAt = createdAt,
-                updatedAt = createdAt
-            )
+            val pendingUser =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com", false),
+                    password = "hashedPassword",
+                    nickname = "테스터",
+                    status = UserStatus.PENDING,
+                    createdAt = createdAt,
+                    updatedAt = createdAt,
+                )
 
             fakeClock.setTime(updatedAt)
             val completedUser = pendingUser.completeSignUp(fakeClock)
@@ -309,6 +325,26 @@ class UserUnitTest : FunSpec({
             pendingUser.email.verified shouldBe false
             pendingUser.status shouldBe UserStatus.PENDING
         }
+
+        test("이미 활성화된 사용자가 completeSignUp 호출 시 AlreadyVerifiedEmail 예외 발생") {
+            val activeUser =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com", true),
+                    password = "hashedPassword",
+                    nickname = "테스터",
+                    status = UserStatus.ACTIVE,
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
+
+            shouldThrow<CustomException.ValidationException.AlreadyVerifiedEmail> {
+                activeUser.completeSignUp()
+            }.apply {
+                email shouldBe "test@example.com"
+                message shouldContain "Email is already verified"
+            }
+        }
     }
 
     context("copy 메서드") {
@@ -317,26 +353,28 @@ class UserUnitTest : FunSpec({
             val updatedTime = LocalDateTime.of(2024, 1, 2, 10, 0, 0)
             val fakeClock = FakeClock(updatedTime)
 
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "password1",
-                nickname = "테스터1",
-                status = UserStatus.ACTIVE,
-                role = UserRole.USER,
-                createdAt = originalTime,
-                updatedAt = originalTime
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "password1",
+                    nickname = "테스터1",
+                    status = UserStatus.ACTIVE,
+                    role = UserRole.USER,
+                    createdAt = originalTime,
+                    updatedAt = originalTime,
+                )
 
-            val copiedUser = user.copy(
-                id = 987654321L,
-                nickname = "테스터2",
-                email = UserEmail("new@example.com"),
-                password = "password2",
-                status = UserStatus.BANNED,
-                role = UserRole.ADMIN,
-                clock = fakeClock
-            )
+            val copiedUser =
+                user.copy(
+                    id = 987654321L,
+                    nickname = "테스터2",
+                    email = UserEmail("new@example.com"),
+                    password = "password2",
+                    status = UserStatus.BANNED,
+                    role = UserRole.ADMIN,
+                    clock = fakeClock,
+                )
 
             copiedUser.id shouldBe 987654321L
             copiedUser.nickname shouldBe "테스터2"
@@ -353,14 +391,15 @@ class UserUnitTest : FunSpec({
             val updatedTime = LocalDateTime.of(2024, 1, 2, 10, 0, 0)
             val fakeClock = FakeClock(updatedTime)
 
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "password",
-                nickname = "테스터",
-                createdAt = originalTime,
-                updatedAt = originalTime
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "password",
+                    nickname = "테스터",
+                    createdAt = originalTime,
+                    updatedAt = originalTime,
+                )
 
             val copiedUser = user.copy(nickname = "새닉네임", clock = fakeClock)
 
@@ -376,85 +415,92 @@ class UserUnitTest : FunSpec({
 
     context("equals와 hashCode") {
         test("동일한 ID를 가진 User는 동등") {
-            val user1 = User(
-                id = 123456789L,
-                email = UserEmail("test1@example.com"),
-                password = "password1",
-                nickname = "테스터1",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user1 =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test1@example.com"),
+                    password = "password1",
+                    nickname = "테스터1",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
-            val user2 = User(
-                id = 123456789L,
-                email = UserEmail("test2@example.com"),
-                password = "password2",
-                nickname = "테스터2",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user2 =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test2@example.com"),
+                    password = "password2",
+                    nickname = "테스터2",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
             user1 shouldBe user2
             user1.hashCode() shouldBe user2.hashCode()
         }
 
         test("다른 ID를 가진 User는 동등하지 않음") {
-            val user1 = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "password",
-                nickname = "테스터",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user1 =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "password",
+                    nickname = "테스터",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
-            val user2 = User(
-                id = 987654321L,
-                email = UserEmail("test@example.com"),
-                password = "password",
-                nickname = "테스터",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user2 =
+                User(
+                    id = 987654321L,
+                    email = UserEmail("test@example.com"),
+                    password = "password",
+                    nickname = "테스터",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
             user1 shouldNotBe user2
         }
 
         test("자기 자신과는 항상 동등") {
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "password",
-                nickname = "테스터",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "password",
+                    nickname = "테스터",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
             user shouldBe user
         }
 
         test("null과는 동등하지 않음") {
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "password",
-                nickname = "테스터",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "password",
+                    nickname = "테스터",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
             user.equals(null) shouldBe false
         }
 
         test("다른 타입과는 동등하지 않음") {
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "password",
-                nickname = "테스터",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "password",
+                    nickname = "테스터",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
             user.equals("not a user") shouldBe false
             user.equals(123456789L) shouldBe false
@@ -463,14 +509,15 @@ class UserUnitTest : FunSpec({
 
     context("email 메서드") {
         test("이메일 문자열 반환") {
-            val user = User(
-                id = 123456789L,
-                email = UserEmail("test@example.com"),
-                password = "password",
-                nickname = "테스터",
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
+            val user =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com"),
+                    password = "password",
+                    nickname = "테스터",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
 
             user.email() shouldBe "test@example.com"
         }

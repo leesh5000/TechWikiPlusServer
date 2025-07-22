@@ -1,8 +1,8 @@
 package me.helloc.techwikiplus.user.infrastructure.mail.java
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.EmailTemplate
 import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator
+import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator.EmailTemplateDetails
 import me.helloc.techwikiplus.user.domain.service.MailSender
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -34,15 +34,15 @@ class JavaMailSender(
 
     private fun sendEmail(
         email: String,
-        emailTemplate: EmailTemplate,
+        emailTemplateDetails: EmailTemplateDetails,
     ) {
         try {
             val message = mailSender.createMimeMessage()
             val helper = MimeMessageHelper(message, true, "UTF-8")
             helper.setFrom(from)
             helper.setTo(email)
-            helper.setSubject(emailTemplate.subject)
-            helper.setText(emailTemplate.body, true) // true for HTML
+            helper.setSubject(emailTemplateDetails.subject)
+            helper.setText(emailTemplateDetails.body, true) // true for HTML
             mailSender.send(message)
         } catch (e: Exception) {
             log.error("Failed to send verification email to $email", e)

@@ -3,6 +3,7 @@ package me.helloc.techwikiplus.user.interfaces.http
 import jakarta.servlet.http.HttpServletRequest
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.time.Instant
@@ -39,6 +40,22 @@ class GlobalExceptionHandler {
                 path = request.requestURI,
             )
         return ResponseEntity.status(status).body(errorResponse)
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException::class)
+    fun handleMissingServletRequestParameter(
+        ex: MissingServletRequestParameterException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ErrorResponse> {
+        val now: Instant = Instant.now()
+        val errorResponse =
+            ErrorResponse(
+                errorCode = "MISSING_PARAMETER",
+                message = "Required parameter '${ex.parameterName}' is missing",
+                timestamp = formatter.format(now),
+                path = request.requestURI,
+            )
+        return ResponseEntity.status(400).body(errorResponse)
     }
 
     @ExceptionHandler(Exception::class)

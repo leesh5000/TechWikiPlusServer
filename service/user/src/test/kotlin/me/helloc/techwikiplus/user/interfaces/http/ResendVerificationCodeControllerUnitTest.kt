@@ -5,7 +5,11 @@ import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.doThrow
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 
 class ResendVerificationCodeControllerUnitTest {
@@ -22,14 +26,14 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldResendVerificationCodeSuccessfullyAndReturnAcceptedStatus() {
         // given
         val email = "test@example.com"
-        
+
         // when
         val response = controller.resendVerificationCode(email)
-        
+
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.ACCEPTED)
         assertThat(response.body).isNull()
-        
+
         verify(resendVerificationCodeUseCase).resendVerificationCode(email)
     }
 
@@ -37,10 +41,10 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldCallUseCaseWithCorrectEmail() {
         // given
         val email = "user@domain.com"
-        
+
         // when
         controller.resendVerificationCode(email)
-        
+
         // then
         verify(resendVerificationCodeUseCase, times(1)).resendVerificationCode("user@domain.com")
     }
@@ -49,10 +53,10 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldHandleEmailWithSpecialCharacters() {
         // given
         val email = "test+user@example.com"
-        
+
         // when
         val response = controller.resendVerificationCode(email)
-        
+
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.ACCEPTED)
         verify(resendVerificationCodeUseCase).resendVerificationCode(email)
@@ -62,10 +66,10 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldHandleEmailWithSubdomain() {
         // given
         val email = "user@mail.example.com"
-        
+
         // when
         controller.resendVerificationCode(email)
-        
+
         // then
         verify(resendVerificationCodeUseCase).resendVerificationCode(email)
     }
@@ -74,10 +78,10 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldPropagateExceptionWhenUserNotFound() {
         // given
         val email = "nonexistent@example.com"
-        
+
         val exception = CustomException.AuthenticationException.PendingUserNotFound(email)
         doThrow(exception).`when`(resendVerificationCodeUseCase).resendVerificationCode(email)
-        
+
         // when & then
         try {
             controller.resendVerificationCode(email)
@@ -91,10 +95,10 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldPropagateExceptionWhenRateLimitExceeded() {
         // given
         val email = "test@example.com"
-        
+
         val exception = CustomException.ResendRateLimitExceeded("Too many requests. Please try again later.")
         doThrow(exception).`when`(resendVerificationCodeUseCase).resendVerificationCode(email)
-        
+
         // when & then
         try {
             controller.resendVerificationCode(email)
@@ -108,10 +112,10 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldHandleEmptyEmail() {
         // given
         val email = ""
-        
+
         // when
         controller.resendVerificationCode(email)
-        
+
         // then
         verify(resendVerificationCodeUseCase).resendVerificationCode("")
     }
@@ -120,10 +124,10 @@ class ResendVerificationCodeControllerUnitTest {
     fun shouldReturnEmptyResponseBodyOnSuccess() {
         // given
         val email = "test@example.com"
-        
+
         // when
         val response = controller.resendVerificationCode(email)
-        
+
         // then
         assertThat(response.body).isNull()
         assertThat(response.hasBody()).isFalse()
@@ -134,12 +138,12 @@ class ResendVerificationCodeControllerUnitTest {
         // given
         val email1 = "user1@example.com"
         val email2 = "user2@example.com"
-        
+
         // when
         controller.resendVerificationCode(email1)
         controller.resendVerificationCode(email2)
         controller.resendVerificationCode(email1)
-        
+
         // then
         verify(resendVerificationCodeUseCase, times(2)).resendVerificationCode(email1)
         verify(resendVerificationCodeUseCase, times(1)).resendVerificationCode(email2)

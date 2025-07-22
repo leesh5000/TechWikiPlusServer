@@ -67,22 +67,22 @@ open class SnowflakeBenchmarkTest {
     }
 
     @Benchmark
-    fun snowflake_environmentNodeId(blackhole: Blackhole) {
+    fun snowflakeEnvironmentNodeId(blackhole: Blackhole) {
         blackhole.consume(snowflakeEnvironment.nextId())
     }
 
     @Benchmark
-    fun snowflake_staticNodeId(blackhole: Blackhole) {
+    fun snowflakeStaticNodeId(blackhole: Blackhole) {
         blackhole.consume(snowflakeStatic.nextId())
     }
 
     @Benchmark
-    fun snowflake_randomNodeId(blackhole: Blackhole) {
+    fun snowflakeRandomNodeId(blackhole: Blackhole) {
         blackhole.consume(snowflakeRandom.nextId())
     }
 
     @Benchmark
-    fun snowflake_waitStrategy(blackhole: Blackhole) {
+    fun snowflakeWaitStrategy(blackhole: Blackhole) {
         blackhole.consume(snowflakeWaitStrategy.nextId())
     }
 }

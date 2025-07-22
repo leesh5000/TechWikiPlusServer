@@ -24,6 +24,13 @@ class JwtAuthenticationFilter(
         val token = extractTokenFromRequest(request)
 
         if (token != null && tokenProvider.validateToken(token)) {
+            // access 토큰인지 확인
+            val tokenType = tokenProvider.getTokenType(token)
+            if (tokenType != "access") {
+                filterChain.doFilter(request, response)
+                return
+            }
+
             val email = tokenProvider.getEmailFromToken(token)
             val userDetails = userDetailsService.loadUserByUsername(email)
 

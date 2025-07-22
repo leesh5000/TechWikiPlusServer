@@ -10,13 +10,14 @@ class UserEmailUnitTest : FunSpec({
 
     context("UserEmail 생성") {
         test("유효한 이메일로 생성 성공") {
-            val validEmails = listOf(
-                "user@example.com",
-                "test.user@example.com",
-                "user+tag@example.co.kr",
-                "user123@subdomain.example.com",
-                "user_name@example.org"
-            )
+            val validEmails =
+                listOf(
+                    "user@example.com",
+                    "test.user@example.com",
+                    "user+tag@example.co.kr",
+                    "user123@subdomain.example.com",
+                    "user_name@example.org",
+                )
 
             validEmails.forEach { email ->
                 val userEmail = UserEmail(email)
@@ -32,16 +33,17 @@ class UserEmailUnitTest : FunSpec({
         }
 
         test("잘못된 이메일 형식으로 생성 시 InvalidEmail 예외 발생") {
-            val invalidEmails = listOf(
-                "invalid-email",
-                "@example.com",
-                "user@",
-                "user@.com",
-                "user@example",
-                "user @example.com",
-                "user@example com",
-                ""
-            )
+            val invalidEmails =
+                listOf(
+                    "invalid-email",
+                    "@example.com",
+                    "user@",
+                    "user@.com",
+                    "user@example",
+                    "user @example.com",
+                    "user@example com",
+                    "",
+                )
 
             invalidEmails.forEach { email ->
                 shouldThrow<InvalidEmail> {

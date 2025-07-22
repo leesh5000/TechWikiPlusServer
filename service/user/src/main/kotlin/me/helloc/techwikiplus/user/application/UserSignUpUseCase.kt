@@ -6,8 +6,9 @@ import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.service.Clock
 import me.helloc.techwikiplus.user.domain.service.IdGenerator
 import me.helloc.techwikiplus.user.domain.service.MailSender
+import me.helloc.techwikiplus.user.domain.service.PasswordEncoder
+import me.helloc.techwikiplus.user.domain.service.PasswordValidator
 import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
-import me.helloc.techwikiplus.user.domain.service.UserPasswordService
 import me.helloc.techwikiplus.user.domain.service.UserWriter
 import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
 import org.springframework.stereotype.Component
@@ -19,7 +20,8 @@ import java.time.Duration
 open class UserSignUpUseCase(
     private val userWriter: UserWriter,
     private val userDuplicateChecker: UserDuplicateChecker,
-    private val userPasswordService: UserPasswordService,
+    private val passwordValidator: PasswordValidator,
+    private val passwordEncoder: PasswordEncoder,
     private val mailSender: MailSender,
     private val verificationCodeStore: VerificationCodeStore,
     private val idGenerator: IdGenerator,
@@ -36,7 +38,11 @@ open class UserSignUpUseCase(
                 id = idGenerator.next(),
                 email = UserEmail(email, false),
                 nickname = nickname,
-                password = userPasswordService.validateAndEncode(password),
+                password =
+                    run {
+                        passwordValidator.validate(password)
+                        passwordEncoder.encode(password)
+                    },
                 clock = Clock.system,
             )
         userWriter.insertOrUpdate(user)

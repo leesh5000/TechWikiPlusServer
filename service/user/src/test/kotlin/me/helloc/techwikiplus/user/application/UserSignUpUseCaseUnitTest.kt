@@ -1,26 +1,25 @@
 package me.helloc.techwikiplus.user.application
 
-import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.exception.CustomException
-import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
-import me.helloc.techwikiplus.user.infrastructure.id.fake.FakeIdGenerator
-import me.helloc.techwikiplus.user.infrastructure.mail.fake.FakeMailSender
-import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakeUserPasswordService
-import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
-import me.helloc.techwikiplus.user.infrastructure.verificationcode.fake.FakeVerificationCodeStore
 import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
 import me.helloc.techwikiplus.user.domain.service.UserWriter
+import me.helloc.techwikiplus.user.infrastructure.id.fake.FakeIdGenerator
+import me.helloc.techwikiplus.user.infrastructure.mail.fake.FakeMailSender
+import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePasswordEncoder
+import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePasswordValidator
+import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
+import me.helloc.techwikiplus.user.infrastructure.verificationcode.fake.FakeVerificationCodeStore
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Duration
 
 class UserSignUpUseCaseUnitTest {
     private lateinit var userRepository: FakeUserRepository
     private lateinit var userWriter: UserWriter
     private lateinit var userDuplicateChecker: UserDuplicateChecker
-    private lateinit var userPasswordService: FakeUserPasswordService
+    private lateinit var passwordValidator: FakePasswordValidator
+    private lateinit var passwordEncoder: FakePasswordEncoder
     private lateinit var mailSender: FakeMailSender
     private lateinit var verificationCodeStore: FakeVerificationCodeStore
     private lateinit var idGenerator: FakeIdGenerator
@@ -31,18 +30,21 @@ class UserSignUpUseCaseUnitTest {
         userRepository = FakeUserRepository()
         userWriter = UserWriter(userRepository)
         userDuplicateChecker = UserDuplicateChecker(userRepository)
-        userPasswordService = FakeUserPasswordService()
+        passwordValidator = FakePasswordValidator()
+        passwordEncoder = FakePasswordEncoder()
         mailSender = FakeMailSender()
         verificationCodeStore = FakeVerificationCodeStore()
         idGenerator = FakeIdGenerator()
-        userSignUpUseCase = UserSignUpUseCase(
-            userWriter = userWriter,
-            userDuplicateChecker = userDuplicateChecker,
-            userPasswordService = userPasswordService,
-            mailSender = mailSender,
-            verificationCodeStore = verificationCodeStore,
-            idGenerator = idGenerator
-        )
+        userSignUpUseCase =
+            UserSignUpUseCase(
+                userWriter = userWriter,
+                userDuplicateChecker = userDuplicateChecker,
+                passwordValidator = passwordValidator,
+                passwordEncoder = passwordEncoder,
+                mailSender = mailSender,
+                verificationCodeStore = verificationCodeStore,
+                idGenerator = idGenerator,
+            )
     }
 
     @Test
@@ -66,7 +68,7 @@ class UserSignUpUseCaseUnitTest {
         assertThat(savedUser.isPending()).isTrue()
 
         // 비밀번호가 인코딩되었는지 확인
-        assertThat(userPasswordService.matches(password, savedUser.password)).isTrue()
+        assertThat(passwordEncoder.matches(password, savedUser.password)).isTrue()
 
         // 이메일이 전송되었는지 확인
         assertThat(mailSender.getSentEmails()).hasSize(1)
@@ -83,7 +85,7 @@ class UserSignUpUseCaseUnitTest {
         val email = "existing@example.com"
         val nickname = "newuser"
         val password = "password123"
-        
+
         // 기존 사용자 생성
         userSignUpUseCase.signUp(email, "existinguser", "existingpass")
 
@@ -103,7 +105,7 @@ class UserSignUpUseCaseUnitTest {
         val email = "newuser@example.com"
         val nickname = "existinguser"
         val password = "password123"
-        
+
         // 기존 사용자 생성
         userSignUpUseCase.signUp("existing@example.com", nickname, "existingpass")
 
@@ -132,7 +134,7 @@ class UserSignUpUseCaseUnitTest {
 
         // 사용자가 생성되지 않았는지 확인
         assertThat(userRepository.findByEmail(email)).isNull()
-        
+
         // 이메일이 전송되지 않았는지 확인
         assertThat(mailSender.getSentEmails()).isEmpty()
     }
@@ -156,11 +158,12 @@ class UserSignUpUseCaseUnitTest {
     @Test
     fun shouldGenerateUniqueUserIds() {
         // given
-        val users = listOf(
-            Triple("user1@example.com", "user1", "password1"),
-            Triple("user2@example.com", "user2", "password2"),
-            Triple("user3@example.com", "user3", "password3")
-        )
+        val users =
+            listOf(
+                Triple("user1@example.com", "user1", "password1"),
+                Triple("user2@example.com", "user2", "password2"),
+                Triple("user3@example.com", "user3", "password3"),
+            )
 
         // when
         users.forEach { (email, nickname, password) ->
@@ -170,7 +173,7 @@ class UserSignUpUseCaseUnitTest {
         // then
         val savedUsers = userRepository.findAll()
         assertThat(savedUsers).hasSize(3)
-        
+
         val userIds = savedUsers.map { it.id }.toSet()
         assertThat(userIds).hasSize(3) // 모든 ID가 고유함
     }

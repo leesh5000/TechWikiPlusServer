@@ -8,23 +8,28 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 class FakeVerificationCodeStore(
-    private val clock: Clock = Clock.system
+    private val clock: Clock = Clock.system,
 ) : VerificationCodeStore {
     private val store = mutableMapOf<String, StoredCode>()
 
     data class StoredCode(
         val code: VerificationCode,
-        val expiryTime: LocalDateTime
+        val expiryTime: LocalDateTime,
     )
 
-    override fun storeWithExpiry(email: String, code: VerificationCode, ttl: Duration) {
+    override fun storeWithExpiry(
+        email: String,
+        code: VerificationCode,
+        ttl: Duration,
+    ) {
         val expiryTime = clock.localDateTime().plus(ttl)
         store[email] = StoredCode(code, expiryTime)
     }
 
     override fun retrieveOrThrows(email: String): VerificationCode {
-        val storedCode = store[email]
-            ?: throw ExpiredEmailVerification(email)
+        val storedCode =
+            store[email]
+                ?: throw ExpiredEmailVerification(email)
 
         if (clock.localDateTime().isAfter(storedCode.expiryTime)) {
             store.remove(email)

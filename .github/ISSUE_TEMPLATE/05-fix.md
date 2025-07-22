@@ -1,5 +1,5 @@
 ---
-name: 버그 수정
+name: fix (버그 수정)
 about: 버그 리포트 및 수정을 위한 이슈 템플릿
 title: "[fix]: "
 labels: fix

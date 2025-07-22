@@ -1,5 +1,5 @@
 ---
-name: 테스트 추가/수정
+name: test (테스트 추가/수정)
 about: 테스트 코드 작성 또는 개선을 위한 이슈 템플릿
 title: "[test]: "
 labels: test

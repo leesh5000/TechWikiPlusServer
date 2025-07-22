@@ -31,6 +31,7 @@ open class SecurityConfig(
                         "/api/v1/users/signup/verify",
                         "/api/v1/users/signup/verify/resend",
                         "/api/v1/users/login",
+                        "/api/v1/users/refresh",
                     ).permitAll()
                     .anyRequest().authenticated()
             }

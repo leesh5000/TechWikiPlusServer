@@ -11,12 +11,13 @@ class VerificationCodeUnitTest : FunSpec({
 
     context("VerificationCode 생성") {
         test("유효한 6자리 알파벳 대문자로 생성 성공") {
-            val validCodes = listOf(
-                "ABCDEF",
-                "XYZSAB",
-                "HELLO1",
-                "ABC123"
-            )
+            val validCodes =
+                listOf(
+                    "ABCDEF",
+                    "XYZSAB",
+                    "HELLO1",
+                    "ABC123",
+                )
 
             validCodes.forEach { code ->
                 val verificationCode = VerificationCode(code)
@@ -37,15 +38,16 @@ class VerificationCodeUnitTest : FunSpec({
         }
 
         test("6자리가 아닌 경우 예외 발생") {
-            val invalidLengthCodes = listOf(
-                "A",
-                "AB",
-                "ABC",
-                "ABCD",
-                "ABCDE",
-                "ABCDEFG",
-                "ABCDEFGH"
-            )
+            val invalidLengthCodes =
+                listOf(
+                    "A",
+                    "AB",
+                    "ABC",
+                    "ABCD",
+                    "ABCDE",
+                    "ABCDEFG",
+                    "ABCDEFGH",
+                )
 
             invalidLengthCodes.forEach { code ->
                 shouldThrow<IllegalArgumentException> {
@@ -55,14 +57,15 @@ class VerificationCodeUnitTest : FunSpec({
         }
 
         test("특수문자 포함 시 예외 발생") {
-            val invalidCharCodes = listOf(
-                "ABC@EF",
-                "ABC#EF",
-                "ABC EF",
-                "ABC-EF",
-                "ABC.EF",
-                "ABC!EF"
-            )
+            val invalidCharCodes =
+                listOf(
+                    "ABC@EF",
+                    "ABC#EF",
+                    "ABC EF",
+                    "ABC-EF",
+                    "ABC.EF",
+                    "ABC!EF",
+                )
 
             invalidCharCodes.forEach { code ->
                 shouldThrow<IllegalArgumentException> {
@@ -76,7 +79,7 @@ class VerificationCodeUnitTest : FunSpec({
         test("generate()는 6자리 대문자 알파벳 코드를 생성") {
             repeat(100) { // 여러 번 실행하여 무작위성 확인
                 val code = VerificationCode.generate()
-                
+
                 code.value shouldHaveLength 6
                 code.value shouldMatch "[A-Z]{6}".toRegex()
             }
@@ -84,11 +87,11 @@ class VerificationCodeUnitTest : FunSpec({
 
         test("generate()로 생성된 코드는 매번 다름") {
             val generatedCodes = mutableSetOf<String>()
-            
+
             repeat(10) {
                 generatedCodes.add(VerificationCode.generate().value)
             }
-            
+
             // 10번 생성 시 적어도 2개 이상의 다른 코드가 생성되어야 함
             generatedCodes.size shouldBe 10
         }
@@ -97,14 +100,14 @@ class VerificationCodeUnitTest : FunSpec({
     context("VerificationCode equalsOrThrows 메서드") {
         test("일치하는 코드 비교 시 예외 발생하지 않음") {
             val verificationCode = VerificationCode("ABCDEF")
-            
+
             // 예외가 발생하지 않으면 테스트 통과
             verificationCode.equalsOrThrows("ABCDEF")
         }
 
         test("일치하지 않는 코드 비교 시 InvalidVerificationCode 예외 발생") {
             val verificationCode = VerificationCode("ABCDEF")
-            
+
             shouldThrow<InvalidVerificationCode> {
                 verificationCode.equalsOrThrows("WRONG1")
             }.code shouldBe "WRONG1"
@@ -112,7 +115,7 @@ class VerificationCodeUnitTest : FunSpec({
 
         test("대소문자 구분하여 비교") {
             val verificationCode = VerificationCode("ABCDEF")
-            
+
             shouldThrow<InvalidVerificationCode> {
                 verificationCode.equalsOrThrows("abcdef")
             }.code shouldBe "abcdef"

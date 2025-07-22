@@ -24,11 +24,12 @@ class JwtTokenProviderUnitTest : FunSpec({
     lateinit var tokenProvider: JwtTokenProvider
 
     beforeEach {
-        jwtProperties = JwtProperties(
-            secret = secret,
-            accessTokenExpiration = accessTokenExpiration,
-            refreshTokenExpiration = refreshTokenExpiration
-        )
+        jwtProperties =
+            JwtProperties(
+                secret = secret,
+                accessTokenExpiration = accessTokenExpiration,
+                refreshTokenExpiration = refreshTokenExpiration,
+            )
         tokenProvider = JwtTokenProvider(jwtProperties)
     }
 
@@ -57,11 +58,12 @@ class JwtTokenProviderUnitTest : FunSpec({
             val token = tokenProvider.createAccessToken(email, userId)
 
             val key = Keys.hmacShaKeyFor(secret.toByteArray())
-            val claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .payload
+            val claims =
+                Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .payload
 
             val issuedAt = claims.issuedAt.time
             val expiration = claims.expiration.time
@@ -99,11 +101,12 @@ class JwtTokenProviderUnitTest : FunSpec({
             val token = tokenProvider.createRefreshToken(email, userId)
 
             val key = Keys.hmacShaKeyFor(secret.toByteArray())
-            val claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .payload
+            val claims =
+                Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .payload
 
             val issuedAt = claims.issuedAt.time
             val expiration = claims.expiration.time
@@ -123,14 +126,15 @@ class JwtTokenProviderUnitTest : FunSpec({
         test("만료된 토큰은 false를 반환한다") {
             // 만료된 토큰 생성
             val key = Keys.hmacShaKeyFor(secret.toByteArray())
-            val expiredToken = Jwts.builder()
-                .subject("test@example.com")
-                .claim("userId", 123L)
-                .claim("type", "access")
-                .issuedAt(Date(System.currentTimeMillis() - 7200000)) // 2시간 전
-                .expiration(Date(System.currentTimeMillis() - 3600000)) // 1시간 전 만료
-                .signWith(key)
-                .compact()
+            val expiredToken =
+                Jwts.builder()
+                    .subject("test@example.com")
+                    .claim("userId", 123L)
+                    .claim("type", "access")
+                    .issuedAt(Date(System.currentTimeMillis() - 7200000)) // 2시간 전
+                    .expiration(Date(System.currentTimeMillis() - 3600000)) // 1시간 전 만료
+                    .signWith(key)
+                    .compact()
 
             tokenProvider.validateToken(expiredToken) shouldBe false
         }
@@ -138,14 +142,15 @@ class JwtTokenProviderUnitTest : FunSpec({
         test("잘못된 서명의 토큰은 false를 반환한다") {
             // 다른 키로 서명된 토큰
             val wrongKey = Keys.hmacShaKeyFor("wrong-secret-key-12345678901234567890".toByteArray())
-            val invalidToken = Jwts.builder()
-                .subject("test@example.com")
-                .claim("userId", 123L)
-                .claim("type", "access")
-                .issuedAt(Date())
-                .expiration(Date(System.currentTimeMillis() + 3600000))
-                .signWith(wrongKey)
-                .compact()
+            val invalidToken =
+                Jwts.builder()
+                    .subject("test@example.com")
+                    .claim("userId", 123L)
+                    .claim("type", "access")
+                    .issuedAt(Date())
+                    .expiration(Date(System.currentTimeMillis() + 3600000))
+                    .signWith(wrongKey)
+                    .compact()
 
             tokenProvider.validateToken(invalidToken) shouldBe false
         }
@@ -186,31 +191,34 @@ class JwtTokenProviderUnitTest : FunSpec({
 
         test("만료된 토큰에서 정보 추출 시 예외가 발생한다") {
             val key = Keys.hmacShaKeyFor(secret.toByteArray())
-            val expiredToken = Jwts.builder()
-                .subject("test@example.com")
-                .claim("userId", 123L)
-                .claim("type", "access")
-                .issuedAt(Date(System.currentTimeMillis() - 7200000))
-                .expiration(Date(System.currentTimeMillis() - 3600000))
-                .signWith(key)
-                .compact()
+            val expiredToken =
+                Jwts.builder()
+                    .subject("test@example.com")
+                    .claim("userId", 123L)
+                    .claim("type", "access")
+                    .issuedAt(Date(System.currentTimeMillis() - 7200000))
+                    .expiration(Date(System.currentTimeMillis() - 3600000))
+                    .signWith(key)
+                    .compact()
 
-            val exception = shouldThrow<ExpiredJwtException> {
-                tokenProvider.getEmailFromToken(expiredToken)
-            }
+            val exception =
+                shouldThrow<ExpiredJwtException> {
+                    tokenProvider.getEmailFromToken(expiredToken)
+                }
             exception.shouldBeInstanceOf<ExpiredJwtException>()
         }
 
         test("잘못된 서명의 토큰에서 정보 추출 시 예외가 발생한다") {
             val wrongKey = Keys.hmacShaKeyFor("wrong-secret-key-12345678901234567890".toByteArray())
-            val invalidToken = Jwts.builder()
-                .subject("test@example.com")
-                .claim("userId", 123L)
-                .claim("type", "access")
-                .issuedAt(Date())
-                .expiration(Date(System.currentTimeMillis() + 3600000))
-                .signWith(wrongKey)
-                .compact()
+            val invalidToken =
+                Jwts.builder()
+                    .subject("test@example.com")
+                    .claim("userId", 123L)
+                    .claim("type", "access")
+                    .issuedAt(Date())
+                    .expiration(Date(System.currentTimeMillis() + 3600000))
+                    .signWith(wrongKey)
+                    .compact()
 
             shouldThrow<SignatureException> {
                 tokenProvider.getEmailFromToken(invalidToken)
@@ -225,11 +233,12 @@ class JwtTokenProviderUnitTest : FunSpec({
             val token = tokenProvider.createAccessToken(email, userId)
 
             val key = Keys.hmacShaKeyFor(secret.toByteArray())
-            val claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .payload
+            val claims =
+                Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .payload
 
             claims.subject shouldBe email
             when (val userIdClaim = claims.get("userId")) {
@@ -248,11 +257,12 @@ class JwtTokenProviderUnitTest : FunSpec({
             val token = tokenProvider.createRefreshToken(email, userId)
 
             val key = Keys.hmacShaKeyFor(secret.toByteArray())
-            val claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .payload
+            val claims =
+                Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .payload
 
             claims.subject shouldBe email
             when (val userIdClaim = claims.get("userId")) {

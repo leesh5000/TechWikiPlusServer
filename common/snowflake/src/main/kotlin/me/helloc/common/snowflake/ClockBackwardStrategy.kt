@@ -104,7 +104,8 @@ class ClockBackwardException(
     val currentTimeMillis: Long,
     message: String? = null,
 ) : RuntimeException(
-        message ?: "Clock moved backwards: last=$lastTimeMillis, current=$currentTimeMillis, diff=${lastTimeMillis - currentTimeMillis}ms",
+        message ?: "Clock moved backwards: last=$lastTimeMillis, current=$currentTimeMillis, " +
+            "diff=${lastTimeMillis - currentTimeMillis}ms",
     ) {
     val backwardMillis: Long = lastTimeMillis - currentTimeMillis
 }

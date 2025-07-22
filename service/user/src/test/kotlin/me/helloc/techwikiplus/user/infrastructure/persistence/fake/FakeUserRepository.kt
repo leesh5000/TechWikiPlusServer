@@ -14,7 +14,7 @@ class FakeUserRepository : UserRepository {
             emailIndex.remove(oldUser.email())
             nicknameIndex.remove(oldUser.nickname)
         }
-        
+
         users[user.id] = user
         emailIndex[user.email()] = user.id
         nicknameIndex[user.nickname] = user.id

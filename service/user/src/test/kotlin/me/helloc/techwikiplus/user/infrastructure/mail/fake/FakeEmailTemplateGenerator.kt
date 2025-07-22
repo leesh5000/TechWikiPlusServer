@@ -1,20 +1,20 @@
 package me.helloc.techwikiplus.user.infrastructure.mail.fake
 
-import me.helloc.techwikiplus.user.domain.service.EmailTemplate
 import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator
+import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator.EmailTemplateDetails
 
 class FakeEmailTemplateGenerator : EmailTemplateGenerator {
-    override fun generateVerificationEmail(code: String): EmailTemplate {
-        return EmailTemplate(
+    override fun generateVerificationEmail(code: String): EmailTemplateDetails {
+        return EmailTemplateDetails(
             subject = "Verify your email",
-            body = "Your verification code is: $code"
+            body = "Your verification code is: $code",
         )
     }
 
-    override fun generatePasswordResetEmail(code: String): EmailTemplate {
-        return EmailTemplate(
+    override fun generatePasswordResetEmail(code: String): EmailTemplateDetails {
+        return EmailTemplateDetails(
             subject = "Reset your password",
-            body = "Your password reset code is: $code"
+            body = "Your password reset code is: $code",
         )
     }
 }

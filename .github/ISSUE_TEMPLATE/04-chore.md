@@ -1,5 +1,5 @@
 ---
-name: 기타 작업
+name: chore (기타 작업)
 about: 빌드, 설정, 문서화 등 기타 작업을 위한 이슈 템플릿
 title: "[chore]: "
 labels: chore
