@@ -9,6 +9,8 @@ import me.helloc.techwikiplus.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.user.domain.service.UserReader
 import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePasswordEncoder
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
+import me.helloc.techwikiplus.user.infrastructure.refreshtoken.fake.FakeRefreshTokenStore
+import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import me.helloc.techwikiplus.user.infrastructure.security.fake.FakeTokenProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -21,6 +23,8 @@ class UserLoginUseCaseUnitTest {
     private lateinit var userAuthenticator: UserAuthenticator
     private lateinit var tokenProvider: FakeTokenProvider
     private lateinit var passwordEncoder: FakePasswordEncoder
+    private lateinit var refreshTokenStore: FakeRefreshTokenStore
+    private lateinit var jwtProperties: JwtProperties
     private lateinit var userLoginUseCase: UserLoginUseCase
 
     @BeforeEach
@@ -30,11 +34,17 @@ class UserLoginUseCaseUnitTest {
         passwordEncoder = FakePasswordEncoder()
         userAuthenticator = UserAuthenticator(passwordEncoder)
         tokenProvider = FakeTokenProvider()
+        refreshTokenStore = FakeRefreshTokenStore()
+        jwtProperties = JwtProperties().apply {
+            refreshTokenExpiration = 604800000 // 7 days
+        }
         userLoginUseCase =
             UserLoginUseCase(
                 userReader = userReader,
                 userAuthenticator = userAuthenticator,
                 tokenProvider = tokenProvider,
+                refreshTokenStore = refreshTokenStore,
+                jwtProperties = jwtProperties,
             )
     }
 
@@ -76,6 +86,9 @@ class UserLoginUseCaseUnitTest {
         val refreshTokenUserId = tokenProvider.getUserIdFromToken(result.refreshToken)
         assertThat(refreshTokenEmail).isEqualTo(email)
         assertThat(refreshTokenUserId).isEqualTo(userId)
+
+        // Refresh token이 저장되었는지 확인
+        assertThat(refreshTokenStore.exists(result.refreshToken)).isTrue
     }
 
     @Test

@@ -9,17 +9,22 @@ import me.helloc.techwikiplus.user.domain.service.TokenRefresher
 import me.helloc.techwikiplus.user.domain.service.UserReader
 import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePasswordEncoder
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
+import me.helloc.techwikiplus.user.infrastructure.refreshtoken.fake.FakeRefreshTokenStore
+import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import me.helloc.techwikiplus.user.infrastructure.security.fake.FakeTokenProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Duration
 
 class RefreshTokenUseCaseUnitTest {
     private lateinit var userRepository: FakeUserRepository
     private lateinit var userReader: UserReader
     private lateinit var tokenProvider: FakeTokenProvider
     private lateinit var tokenRefresher: TokenRefresher
+    private lateinit var refreshTokenStore: FakeRefreshTokenStore
+    private lateinit var jwtProperties: JwtProperties
     private lateinit var refreshTokenUseCase: RefreshTokenUseCase
 
     @BeforeEach
@@ -27,7 +32,11 @@ class RefreshTokenUseCaseUnitTest {
         userRepository = FakeUserRepository()
         userReader = UserReader(userRepository)
         tokenProvider = FakeTokenProvider()
-        tokenRefresher = TokenRefresher(tokenProvider)
+        refreshTokenStore = FakeRefreshTokenStore()
+        jwtProperties = JwtProperties().apply {
+            refreshTokenExpiration = 604800000 // 7 days
+        }
+        tokenRefresher = TokenRefresher(tokenProvider, refreshTokenStore, jwtProperties)
         refreshTokenUseCase =
             RefreshTokenUseCase(
                 tokenRefresher = tokenRefresher,
@@ -55,6 +64,8 @@ class RefreshTokenUseCaseUnitTest {
         userRepository.insertOrUpdate(user)
 
         val refreshToken = tokenProvider.createRefreshToken(email, userId)
+        // Refresh token을 store에 저장
+        refreshTokenStore.store(userId, refreshToken, Duration.ofDays(7))
 
         // when
         val result = refreshTokenUseCase.refresh(refreshToken)
@@ -110,6 +121,8 @@ class RefreshTokenUseCaseUnitTest {
 
         // Access token을 생성
         val accessToken = tokenProvider.createAccessToken(email, userId)
+        // Access token을 store에 저장 (잘못된 사용)
+        refreshTokenStore.store(userId, accessToken, Duration.ofDays(7))
 
         // when & then
         assertThatThrownBy {

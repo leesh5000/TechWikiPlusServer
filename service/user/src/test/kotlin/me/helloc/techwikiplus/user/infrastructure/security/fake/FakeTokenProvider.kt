@@ -50,6 +50,15 @@ class FakeTokenProvider : TokenProvider {
             ?: throw IllegalArgumentException("Invalid token")
     }
 
+    fun createExpiredRefreshToken(
+        email: String,
+        userId: Long,
+    ): String {
+        val token = "expired_refresh_${email}_${userId}_${System.currentTimeMillis()}_${tokenCounter++}"
+        tokens[token] = TokenData(email, userId, "refresh", valid = false)
+        return token
+    }
+
     fun invalidateToken(token: String) {
         tokens[token]?.let {
             tokens[token] = it.copy(valid = false)
