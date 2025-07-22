@@ -65,6 +65,10 @@ sealed class CustomException(val errorCode: String, override val message: String
             "Email not verified. Please verify your email before logging in.",
         )
 
+        class InvalidToken : AuthenticationException("Invalid refresh token")
+
+        class InvalidTokenType : AuthenticationException("Expected refresh token but received access token")
+
         class AccountBanned : AuthenticationException("Your account has been banned.")
 
         class AccountDormant : AuthenticationException("Your account is dormant. Please contact support to reactivate.")

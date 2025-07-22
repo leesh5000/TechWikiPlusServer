@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.Date
 import javax.crypto.SecretKey
 
 @Component
@@ -73,7 +73,7 @@ class JwtTokenProvider(
 
     override fun getUserIdFromToken(token: String): Long {
         val claims = getClaims(token)
-        return when (val userId = claims.get("userId")) {
+        return when (val userId = claims["userId"]) {
             is Long -> userId
             is Int -> userId.toLong()
             is String -> userId.toLong()
