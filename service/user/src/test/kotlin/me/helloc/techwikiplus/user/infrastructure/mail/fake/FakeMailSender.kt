@@ -9,12 +9,12 @@ class FakeMailSender : MailSender {
     data class SentEmail(
         val email: String,
         val type: EmailType,
-        val code: String
+        val code: String,
     )
 
     enum class EmailType {
         VERIFICATION,
-        PASSWORD_RESET
+        PASSWORD_RESET,
     }
 
     override fun sendVerificationEmail(email: String): VerificationCode {
@@ -23,7 +23,10 @@ class FakeMailSender : MailSender {
         return code
     }
 
-    override fun sendPasswordResetEmail(email: String, code: String) {
+    override fun sendPasswordResetEmail(
+        email: String,
+        code: String,
+    ) {
         sentEmails.add(SentEmail(email, EmailType.PASSWORD_RESET, code))
     }
 

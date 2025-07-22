@@ -1,9 +1,9 @@
 package me.helloc.techwikiplus.user.domain.service
 
-import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.exception.CustomException.NotFoundException.UserEmailNotFoundException
+import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class UserReaderUnitTest {
-
     private lateinit var userRepository: FakeUserRepository
     private lateinit var userReader: UserReader
     private lateinit var clock: FakeClock
@@ -28,14 +27,15 @@ class UserReaderUnitTest {
     fun `readByEmailOrThrows should return user when user exists`() {
         // given
         val email = "test@example.com"
-        val existingUser = User(
-            id = 1L,
-            email = UserEmail(email),
-            nickname = "testuser",
-            password = "encoded_password",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val existingUser =
+            User(
+                id = 1L,
+                email = UserEmail(email),
+                nickname = "testuser",
+                password = "encoded_password",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
         userRepository.insertOrUpdate(existingUser)
 
         // when
@@ -64,23 +64,25 @@ class UserReaderUnitTest {
         val email1 = "user1@example.com"
         val email2 = "user2@example.com"
 
-        val user1 = User(
-            id = 1L,
-            email = UserEmail(email1),
-            nickname = "user1",
-            password = "encoded_password1",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val user1 =
+            User(
+                id = 1L,
+                email = UserEmail(email1),
+                nickname = "user1",
+                password = "encoded_password1",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
 
-        val user2 = User(
-            id = 2L,
-            email = UserEmail(email2),
-            nickname = "user2",
-            password = "encoded_password2",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val user2 =
+            User(
+                id = 2L,
+                email = UserEmail(email2),
+                nickname = "user2",
+                password = "encoded_password2",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
 
         userRepository.insertOrUpdate(user1)
         userRepository.insertOrUpdate(user2)
@@ -98,14 +100,15 @@ class UserReaderUnitTest {
     fun `readByEmailOrThrows should handle email case sensitivity correctly`() {
         // given
         val email = "Test@Example.com"
-        val existingUser = User(
-            id = 1L,
-            email = UserEmail(email),
-            nickname = "testuser",
-            password = "encoded_password",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val existingUser =
+            User(
+                id = 1L,
+                email = UserEmail(email),
+                nickname = "testuser",
+                password = "encoded_password",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
         userRepository.insertOrUpdate(existingUser)
 
         // when

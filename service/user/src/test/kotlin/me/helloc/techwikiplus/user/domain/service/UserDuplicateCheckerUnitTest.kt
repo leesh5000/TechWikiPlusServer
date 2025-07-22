@@ -1,10 +1,10 @@
 package me.helloc.techwikiplus.user.domain.service
 
-import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateEmail
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateNickname
+import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
 import org.assertj.core.api.Assertions.assertThatNoException
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class UserDuplicateCheckerUnitTest {
-
     private lateinit var userRepository: FakeUserRepository
     private lateinit var userDuplicateChecker: UserDuplicateChecker
     private lateinit var clock: FakeClock
@@ -39,14 +38,15 @@ class UserDuplicateCheckerUnitTest {
     fun `validateUserEmailDuplicate should throw DuplicateEmail when email already exists`() {
         // given
         val email = "existing@example.com"
-        val existingUser = User(
-            id = 1L,
-            email = UserEmail(email),
-            nickname = "existinguser",
-            password = "encoded_password",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val existingUser =
+            User(
+                id = 1L,
+                email = UserEmail(email),
+                nickname = "existinguser",
+                password = "encoded_password",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
         userRepository.insertOrUpdate(existingUser)
 
         // when & then
@@ -69,14 +69,15 @@ class UserDuplicateCheckerUnitTest {
     fun `validateUserNicknameDuplicate should throw DuplicateNickname when nickname already exists`() {
         // given
         val nickname = "existingnickname"
-        val existingUser = User(
-            id = 1L,
-            email = UserEmail("test@example.com"),
-            nickname = nickname,
-            password = "encoded_password",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val existingUser =
+            User(
+                id = 1L,
+                email = UserEmail("test@example.com"),
+                nickname = nickname,
+                password = "encoded_password",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
         userRepository.insertOrUpdate(existingUser)
 
         // when & then
@@ -90,14 +91,15 @@ class UserDuplicateCheckerUnitTest {
         // given
         val existingEmail = "test@example.com"
         val newEmail = "test2@example.com"
-        val existingUser = User(
-            id = 1L,
-            email = UserEmail(existingEmail),
-            nickname = "testuser",
-            password = "encoded_password",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val existingUser =
+            User(
+                id = 1L,
+                email = UserEmail(existingEmail),
+                nickname = "testuser",
+                password = "encoded_password",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
         userRepository.insertOrUpdate(existingUser)
 
         // when & then
@@ -110,14 +112,15 @@ class UserDuplicateCheckerUnitTest {
         // given
         val existingNickname = "testuser"
         val newNickname = "testuser2"
-        val existingUser = User(
-            id = 1L,
-            email = UserEmail("test@example.com"),
-            nickname = existingNickname,
-            password = "encoded_password",
-            createdAt = clock.localDateTime(),
-            updatedAt = clock.localDateTime()
-        )
+        val existingUser =
+            User(
+                id = 1L,
+                email = UserEmail("test@example.com"),
+                nickname = existingNickname,
+                password = "encoded_password",
+                createdAt = clock.localDateTime(),
+                updatedAt = clock.localDateTime(),
+            )
         userRepository.insertOrUpdate(existingUser)
 
         // when & then

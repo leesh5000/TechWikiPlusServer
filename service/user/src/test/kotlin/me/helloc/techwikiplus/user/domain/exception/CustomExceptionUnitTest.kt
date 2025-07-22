@@ -32,14 +32,15 @@ class CustomExceptionUnitTest : FunSpec({
         }
 
         test("다양한 잘못된 닉네임 케이스") {
-            val invalidNicknames = listOf(
-                "a",           // 너무 짧음
-                "a".repeat(21), // 너무 김
-                "test@user",   // 특수문자
-                "test user",   // 공백
-                "test!",       // 느낌표
-                ""             // 빈 문자열
-            )
+            val invalidNicknames =
+                listOf(
+                    "a", // 너무 짧음
+                    "a".repeat(21), // 너무 김
+                    "test@user", // 특수문자
+                    "test user", // 공백
+                    "test!", // 느낌표
+                    "", // 빈 문자열
+                )
 
             invalidNicknames.forEach { nickname ->
                 val exception = InvalidNickname(nickname)
@@ -49,16 +50,17 @@ class CustomExceptionUnitTest : FunSpec({
         }
 
         test("다양한 잘못된 이메일 케이스") {
-            val invalidEmails = listOf(
-                "invalid-email",
-                "@example.com",
-                "user@",
-                "user@.com",
-                "user@example",
-                "user @example.com",
-                "user@example com",
-                ""
-            )
+            val invalidEmails =
+                listOf(
+                    "invalid-email",
+                    "@example.com",
+                    "user@",
+                    "user@.com",
+                    "user@example",
+                    "user @example.com",
+                    "user@example com",
+                    "",
+                )
 
             invalidEmails.forEach { email ->
                 val exception = InvalidEmail(email)
@@ -134,19 +136,21 @@ class CustomExceptionUnitTest : FunSpec({
         }
 
         test("예외 메시지에 실제 입력값 포함") {
-            val testCases = mapOf(
-                "invalid@" to InvalidEmail::class,
-                "!" to InvalidNickname::class,
-                "" to InvalidEmail::class,
-                "toolongnicknamethatwillcauseerror" to InvalidNickname::class
-            )
+            val testCases =
+                mapOf(
+                    "invalid@" to InvalidEmail::class,
+                    "!" to InvalidNickname::class,
+                    "" to InvalidEmail::class,
+                    "toolongnicknamethatwillcauseerror" to InvalidNickname::class,
+                )
 
             testCases.forEach { (input, exceptionClass) ->
-                val exception = when (exceptionClass) {
-                    InvalidEmail::class -> InvalidEmail(input)
-                    InvalidNickname::class -> InvalidNickname(input)
-                    else -> throw IllegalArgumentException("Unknown exception class")
-                }
+                val exception =
+                    when (exceptionClass) {
+                        InvalidEmail::class -> InvalidEmail(input)
+                        InvalidNickname::class -> InvalidNickname(input)
+                        else -> throw IllegalArgumentException("Unknown exception class")
+                    }
 
                 exception.message.contains(input) shouldBe true
             }

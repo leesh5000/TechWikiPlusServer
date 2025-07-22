@@ -21,93 +21,98 @@ class VerifyEmailControllerUnitTest {
     @Test
     fun shouldVerifyEmailSuccessfullyAndReturnOkStatus() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "test@example.com",
-            code = "123456"
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "test@example.com",
+                code = "123456",
+            )
+
         // when
         val response = controller.verifyEmail(request)
-        
+
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isNull()
-        
+
         verify(verifyEmailUseCase).verifyEmail(
             email = request.email,
-            code = request.code
+            code = request.code,
         )
     }
 
     @Test
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "user@domain.com",
-            code = "ABCD1234"
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "user@domain.com",
+                code = "ABCD1234",
+            )
+
         // when
         controller.verifyEmail(request)
-        
+
         // then
         verify(verifyEmailUseCase, times(1)).verifyEmail(
             email = "user@domain.com",
-            code = "ABCD1234"
+            code = "ABCD1234",
         )
     }
 
     @Test
     fun shouldHandleNumericVerificationCode() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "test@example.com",
-            code = "999999"
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "test@example.com",
+                code = "999999",
+            )
+
         // when
         val response = controller.verifyEmail(request)
-        
+
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         verify(verifyEmailUseCase).verifyEmail(
             email = request.email,
-            code = request.code
+            code = request.code,
         )
     }
 
     @Test
     fun shouldHandleAlphanumericVerificationCode() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "test@example.com",
-            code = "ABC123XYZ"
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "test@example.com",
+                code = "ABC123XYZ",
+            )
+
         // when
         controller.verifyEmail(request)
-        
+
         // then
         verify(verifyEmailUseCase).verifyEmail(
             email = request.email,
-            code = request.code
+            code = request.code,
         )
     }
 
     @Test
     fun shouldPropagateExceptionWhenVerificationCodeExpired() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "test@example.com",
-            code = "123456"
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "test@example.com",
+                code = "123456",
+            )
+
         val exception = CustomException.AuthenticationException.ExpiredEmailVerification("test@example.com")
         doThrow(exception).`when`(verifyEmailUseCase).verifyEmail(
             email = request.email,
-            code = request.code
+            code = request.code,
         )
-        
+
         // when & then
         try {
             controller.verifyEmail(request)
@@ -120,17 +125,18 @@ class VerifyEmailControllerUnitTest {
     @Test
     fun shouldPropagateExceptionWhenInvalidVerificationCode() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "test@example.com",
-            code = "WRONG"
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "test@example.com",
+                code = "WRONG",
+            )
+
         val exception = CustomException.AuthenticationException.InvalidVerificationCode("WRONG")
         doThrow(exception).`when`(verifyEmailUseCase).verifyEmail(
             email = request.email,
-            code = request.code
+            code = request.code,
         )
-        
+
         // when & then
         try {
             controller.verifyEmail(request)
@@ -143,32 +149,34 @@ class VerifyEmailControllerUnitTest {
     @Test
     fun shouldHandleEmptyFields() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "",
-            code = ""
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "",
+                code = "",
+            )
+
         // when
         controller.verifyEmail(request)
-        
+
         // then
         verify(verifyEmailUseCase).verifyEmail(
             email = "",
-            code = ""
+            code = "",
         )
     }
 
     @Test
     fun shouldReturnEmptyResponseBodyOnSuccess() {
         // given
-        val request = VerifyEmailController.UserSignUpVerifyRequest(
-            email = "test@example.com",
-            code = "123456"
-        )
-        
+        val request =
+            VerifyEmailController.UserSignUpVerifyRequest(
+                email = "test@example.com",
+                code = "123456",
+            )
+
         // when
         val response = controller.verifyEmail(request)
-        
+
         // then
         assertThat(response.body).isNull()
         assertThat(response.hasBody()).isFalse()

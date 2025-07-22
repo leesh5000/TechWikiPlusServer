@@ -2,14 +2,14 @@ package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
-import me.helloc.techwikiplus.user.domain.service.Clock
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.service.UserAuthenticationService
-import me.helloc.techwikiplus.user.domain.service.UserReader
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.service.UserAuthenticator
+import me.helloc.techwikiplus.user.domain.service.UserReader
+import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePasswordEncoder
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
 import me.helloc.techwikiplus.user.infrastructure.security.fake.FakeTokenProvider
-import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakeUserPasswordService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -18,23 +18,24 @@ import org.junit.jupiter.api.Test
 class UserLoginUseCaseUnitTest {
     private lateinit var userRepository: FakeUserRepository
     private lateinit var userReader: UserReader
-    private lateinit var userAuthenticationService: UserAuthenticationService
+    private lateinit var userAuthenticator: UserAuthenticator
     private lateinit var tokenProvider: FakeTokenProvider
-    private lateinit var userPasswordService: FakeUserPasswordService
+    private lateinit var passwordEncoder: FakePasswordEncoder
     private lateinit var userLoginUseCase: UserLoginUseCase
 
     @BeforeEach
     fun setUp() {
         userRepository = FakeUserRepository()
         userReader = UserReader(userRepository)
-        userPasswordService = FakeUserPasswordService()
-        userAuthenticationService = UserAuthenticationService(userPasswordService)
+        passwordEncoder = FakePasswordEncoder()
+        userAuthenticator = UserAuthenticator(passwordEncoder)
         tokenProvider = FakeTokenProvider()
-        userLoginUseCase = UserLoginUseCase(
-            userReader = userReader,
-            userAuthenticationService = userAuthenticationService,
-            tokenProvider = tokenProvider
-        )
+        userLoginUseCase =
+            UserLoginUseCase(
+                userReader = userReader,
+                userAuthenticator = userAuthenticator,
+                tokenProvider = tokenProvider,
+            )
     }
 
     @Test
@@ -43,17 +44,18 @@ class UserLoginUseCaseUnitTest {
         val email = "test@example.com"
         val password = "password123"
         val userId = 1L
-        val encodedPassword = userPasswordService.validateAndEncode(password)
-        
-        val user = User(
-            id = userId,
-            email = UserEmail(email, true),
-            nickname = "testuser",
-            password = encodedPassword,
-            status = UserStatus.ACTIVE,
-            createdAt = Clock.system.localDateTime(),
-            updatedAt = Clock.system.localDateTime()
-        )
+        val encodedPassword = passwordEncoder.encode(password)
+
+        val user =
+            User(
+                id = userId,
+                email = UserEmail(email, true),
+                nickname = "testuser",
+                password = encodedPassword,
+                status = UserStatus.ACTIVE,
+                createdAt = Clock.system.localDateTime(),
+                updatedAt = Clock.system.localDateTime(),
+            )
         userRepository.insertOrUpdate(user)
 
         // when
@@ -63,13 +65,13 @@ class UserLoginUseCaseUnitTest {
         assertThat(result.userId).isEqualTo(userId)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        
+
         // 토큰에 올바른 정보가 포함되었는지 확인
         val accessTokenEmail = tokenProvider.getEmailFromToken(result.accessToken)
         val accessTokenUserId = tokenProvider.getUserIdFromToken(result.accessToken)
         assertThat(accessTokenEmail).isEqualTo(email)
         assertThat(accessTokenUserId).isEqualTo(userId)
-        
+
         val refreshTokenEmail = tokenProvider.getEmailFromToken(result.refreshToken)
         val refreshTokenUserId = tokenProvider.getUserIdFromToken(result.refreshToken)
         assertThat(refreshTokenEmail).isEqualTo(email)
@@ -96,17 +98,18 @@ class UserLoginUseCaseUnitTest {
         val correctPassword = "password123"
         val wrongPassword = "wrongpassword"
         val userId = 1L
-        val encodedPassword = userPasswordService.validateAndEncode(correctPassword)
-        
-        val user = User(
-            id = userId,
-            email = UserEmail(email, true),
-            nickname = "testuser",
-            password = encodedPassword,
-            status = UserStatus.ACTIVE,
-            createdAt = Clock.system.localDateTime(),
-            updatedAt = Clock.system.localDateTime()
-        )
+        val encodedPassword = passwordEncoder.encode(correctPassword)
+
+        val user =
+            User(
+                id = userId,
+                email = UserEmail(email, true),
+                nickname = "testuser",
+                password = encodedPassword,
+                status = UserStatus.ACTIVE,
+                createdAt = Clock.system.localDateTime(),
+                updatedAt = Clock.system.localDateTime(),
+            )
         userRepository.insertOrUpdate(user)
 
         // when & then
@@ -122,15 +125,16 @@ class UserLoginUseCaseUnitTest {
         val email = "pending@example.com"
         val password = "password123"
         val userId = 1L
-        val encodedPassword = userPasswordService.validateAndEncode(password)
-        
-        val pendingUser = User.withPendingUser(
-            id = userId,
-            email = UserEmail(email, false),
-            nickname = "pendinguser",
-            password = encodedPassword,
-            clock = Clock.system
-        )
+        val encodedPassword = passwordEncoder.encode(password)
+
+        val pendingUser =
+            User.withPendingUser(
+                id = userId,
+                email = UserEmail(email, false),
+                nickname = "pendinguser",
+                password = encodedPassword,
+                clock = Clock.system,
+            )
         userRepository.insertOrUpdate(pendingUser)
 
         // when & then
@@ -146,17 +150,18 @@ class UserLoginUseCaseUnitTest {
         val email = "test@example.com"
         val password = "password123"
         val userId = 1L
-        val encodedPassword = userPasswordService.validateAndEncode(password)
-        
-        val user = User(
-            id = userId,
-            email = UserEmail(email, true),
-            nickname = "testuser",
-            password = encodedPassword,
-            status = UserStatus.ACTIVE,
-            createdAt = Clock.system.localDateTime(),
-            updatedAt = Clock.system.localDateTime()
-        )
+        val encodedPassword = passwordEncoder.encode(password)
+
+        val user =
+            User(
+                id = userId,
+                email = UserEmail(email, true),
+                nickname = "testuser",
+                password = encodedPassword,
+                status = UserStatus.ACTIVE,
+                createdAt = Clock.system.localDateTime(),
+                updatedAt = Clock.system.localDateTime(),
+            )
         userRepository.insertOrUpdate(user)
 
         // when
@@ -171,23 +176,25 @@ class UserLoginUseCaseUnitTest {
     @Test
     fun shouldReturnCorrectUserIdInLoginResult() {
         // given
-        val users = listOf(
-            Triple(1L, "user1@example.com", "password1"),
-            Triple(2L, "user2@example.com", "password2"),
-            Triple(3L, "user3@example.com", "password3")
-        )
-        
-        users.forEach { (id, email, password) ->
-            val encodedPassword = userPasswordService.validateAndEncode(password)
-            val user = User(
-                id = id,
-                email = UserEmail(email, true),
-                nickname = "user$id",
-                password = encodedPassword,
-                status = UserStatus.ACTIVE,
-                createdAt = Clock.system.localDateTime(),
-                updatedAt = Clock.system.localDateTime()
+        val users =
+            listOf(
+                Triple(1L, "user1@example.com", "password1"),
+                Triple(2L, "user2@example.com", "password2"),
+                Triple(3L, "user3@example.com", "password3"),
             )
+
+        users.forEach { (id, email, password) ->
+            val encodedPassword = passwordEncoder.encode(password)
+            val user =
+                User(
+                    id = id,
+                    email = UserEmail(email, true),
+                    nickname = "user$id",
+                    password = encodedPassword,
+                    status = UserStatus.ACTIVE,
+                    createdAt = Clock.system.localDateTime(),
+                    updatedAt = Clock.system.localDateTime(),
+                )
             userRepository.insertOrUpdate(user)
         }
 

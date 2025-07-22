@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserRole
@@ -19,7 +18,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
-import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDateTime
 
@@ -30,7 +28,6 @@ import java.time.LocalDateTime
 @Testcontainers
 @ActiveProfiles("test")
 class UserRepositoryImplIntegrationTest : FunSpec() {
-
     @Autowired
     private lateinit var userRepository: UserRepositoryImpl
 
@@ -52,11 +49,12 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
 
         context("이메일 중복 체크") {
             test("존재하는 이메일은 true를 반환한다") {
-                val user = createTestUser(
-                    id = 1L,
-                    email = "existing@example.com",
-                    nickname = "테스터1"
-                )
+                val user =
+                    createTestUser(
+                        id = 1L,
+                        email = "existing@example.com",
+                        nickname = "테스터1",
+                    )
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
                 entityManager.clear()
@@ -73,11 +71,12 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
             }
 
             test("대소문자를 구분하지 않고 체크한다") {
-                val user = createTestUser(
-                    id = 1L,
-                    email = "test@example.com",
-                    nickname = "테스터"
-                )
+                val user =
+                    createTestUser(
+                        id = 1L,
+                        email = "test@example.com",
+                        nickname = "테스터",
+                    )
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
                 entityManager.clear()
@@ -90,11 +89,12 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
 
         context("닉네임 중복 체크") {
             test("존재하는 닉네임은 true를 반환한다") {
-                val user = createTestUser(
-                    id = 2L,
-                    email = "user@example.com",
-                    nickname = "기존닉네임"
-                )
+                val user =
+                    createTestUser(
+                        id = 2L,
+                        email = "user@example.com",
+                        nickname = "기존닉네임",
+                    )
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
                 entityManager.clear()
@@ -111,11 +111,12 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
             }
 
             test("닉네임도 정확히 일치해야 한다") {
-                val user = createTestUser(
-                    id = 3L,
-                    email = "nick@example.com",
-                    nickname = "테스터123"
-                )
+                val user =
+                    createTestUser(
+                        id = 3L,
+                        email = "nick@example.com",
+                        nickname = "테스터123",
+                    )
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
                 entityManager.clear()
@@ -128,11 +129,12 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
 
         context("사용자 저장") {
             test("새로운 사용자를 저장한다") {
-                val user = createTestUser(
-                    id = 4L,
-                    email = "new@example.com",
-                    nickname = "새사용자"
-                )
+                val user =
+                    createTestUser(
+                        id = 4L,
+                        email = "new@example.com",
+                        nickname = "새사용자",
+                    )
 
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
@@ -147,19 +149,21 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
             }
 
             test("기존 사용자를 업데이트한다") {
-                val user = createTestUser(
-                    id = 5L,
-                    email = "update@example.com",
-                    nickname = "원래닉네임"
-                )
+                val user =
+                    createTestUser(
+                        id = 5L,
+                        email = "update@example.com",
+                        nickname = "원래닉네임",
+                    )
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
                 entityManager.clear()
 
-                val updatedUser = user.copy(
-                    nickname = "변경된닉네임",
-                    status = UserStatus.BANNED
-                )
+                val updatedUser =
+                    user.copy(
+                        nickname = "변경된닉네임",
+                        status = UserStatus.BANNED,
+                    )
                 userRepository.insertOrUpdate(updatedUser)
                 entityManager.flush()
                 entityManager.clear()
@@ -172,16 +176,17 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
 
             test("모든 필드가 올바르게 저장된다") {
                 val now = LocalDateTime.of(2024, 1, 15, 10, 30, 0)
-                val user = User(
-                    id = 6L,
-                    email = UserEmail("complete@example.com", true),
-                    password = "hashedPassword123",
-                    nickname = "완전한사용자",
-                    status = UserStatus.ACTIVE,
-                    role = UserRole.ADMIN,
-                    createdAt = now,
-                    updatedAt = now.plusHours(1)
-                )
+                val user =
+                    User(
+                        id = 6L,
+                        email = UserEmail("complete@example.com", true),
+                        password = "hashedPassword123",
+                        nickname = "완전한사용자",
+                        status = UserStatus.ACTIVE,
+                        role = UserRole.ADMIN,
+                        createdAt = now,
+                        updatedAt = now.plusHours(1),
+                    )
 
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
@@ -204,11 +209,12 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
 
         context("이메일로 사용자 조회") {
             test("존재하는 사용자를 조회한다") {
-                val user = createTestUser(
-                    id = 7L,
-                    email = "find@example.com",
-                    nickname = "찾을사용자"
-                )
+                val user =
+                    createTestUser(
+                        id = 7L,
+                        email = "find@example.com",
+                        nickname = "찾을사용자",
+                    )
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
                 entityManager.clear()
@@ -228,18 +234,20 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
             }
 
             test("이메일 검증 상태가 올바르게 매핑된다") {
-                val unverifiedUser = createTestUser(
-                    id = 8L,
-                    email = "unverified@example.com",
-                    nickname = "미인증",
-                    emailVerified = false
-                )
-                val verifiedUser = createTestUser(
-                    id = 9L,
-                    email = "verified@example.com",
-                    nickname = "인증됨",
-                    emailVerified = true
-                )
+                val unverifiedUser =
+                    createTestUser(
+                        id = 8L,
+                        email = "unverified@example.com",
+                        nickname = "미인증",
+                        emailVerified = false,
+                    )
+                val verifiedUser =
+                    createTestUser(
+                        id = 9L,
+                        email = "verified@example.com",
+                        nickname = "인증됨",
+                        emailVerified = true,
+                    )
 
                 userRepository.insertOrUpdate(unverifiedUser)
                 userRepository.insertOrUpdate(verifiedUser)
@@ -256,21 +264,23 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
 
         context("도메인 모델과 엔티티 변환") {
             test("모든 UserStatus가 올바르게 변환된다") {
-                val statuses = listOf(
-                    UserStatus.ACTIVE,
-                    UserStatus.PENDING,
-                    UserStatus.BANNED,
-                    UserStatus.DORMANT,
-                    UserStatus.DELETED
-                )
+                val statuses =
+                    listOf(
+                        UserStatus.ACTIVE,
+                        UserStatus.PENDING,
+                        UserStatus.BANNED,
+                        UserStatus.DORMANT,
+                        UserStatus.DELETED,
+                    )
 
                 statuses.forEachIndexed { index, status ->
-                    val user = createTestUser(
-                        id = (100 + index).toLong(),
-                        email = "status$index@example.com",
-                        nickname = "상태테스트$index",
-                        status = status
-                    )
+                    val user =
+                        createTestUser(
+                            id = (100 + index).toLong(),
+                            email = "status$index@example.com",
+                            nickname = "상태테스트$index",
+                            status = status,
+                        )
 
                     userRepository.insertOrUpdate(user)
                     entityManager.flush()
@@ -285,12 +295,13 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
                 val roles = listOf(UserRole.USER, UserRole.ADMIN)
 
                 roles.forEachIndexed { index, role ->
-                    val user = createTestUser(
-                        id = (200 + index).toLong(),
-                        email = "role$index@example.com",
-                        nickname = "역할테스트$index",
-                        role = role
-                    )
+                    val user =
+                        createTestUser(
+                            id = (200 + index).toLong(),
+                            email = "role$index@example.com",
+                            nickname = "역할테스트$index",
+                            role = role,
+                        )
 
                     userRepository.insertOrUpdate(user)
                     entityManager.flush()
@@ -304,11 +315,12 @@ class UserRepositoryImplIntegrationTest : FunSpec() {
 
         context("트랜잭션 처리") {
             test("트랜잭션 롤백 시 변경사항이 저장되지 않는다") {
-                val user = createTestUser(
-                    id = 300L,
-                    email = "rollback@example.com",
-                    nickname = "롤백테스트"
-                )
+                val user =
+                    createTestUser(
+                        id = 300L,
+                        email = "rollback@example.com",
+                        nickname = "롤백테스트",
+                    )
 
                 userRepository.insertOrUpdate(user)
                 entityManager.flush()
@@ -334,7 +346,7 @@ private fun createTestUser(
     status: UserStatus = UserStatus.ACTIVE,
     role: UserRole = UserRole.USER,
     createdAt: LocalDateTime = LocalDateTime.now(),
-    updatedAt: LocalDateTime = LocalDateTime.now()
+    updatedAt: LocalDateTime = LocalDateTime.now(),
 ): User {
     return User(
         id = id,
@@ -344,6 +356,6 @@ private fun createTestUser(
         status = status,
         role = role,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )
 }

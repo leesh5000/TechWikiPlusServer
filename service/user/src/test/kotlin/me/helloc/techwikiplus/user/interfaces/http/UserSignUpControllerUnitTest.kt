@@ -21,59 +21,62 @@ class UserSignUpControllerUnitTest {
     @Test
     fun shouldSignUpSuccessfullyAndReturnAcceptedStatus() {
         // given
-        val request = UserSignUpController.UserSignUpRequest(
-            email = "test@example.com",
-            nickname = "testuser",
-            password = "ValidPass123!"
-        )
-        
+        val request =
+            UserSignUpController.UserSignUpRequest(
+                email = "test@example.com",
+                nickname = "testuser",
+                password = "ValidPass123!",
+            )
+
         // when
         val response = controller.signUp(request)
-        
+
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.ACCEPTED)
         assertThat(response.headers["Location"]).containsExactly("/api/v1/users/signup/verify")
         assertThat(response.body).isNull()
-        
+
         verify(userSignUpUseCase).signUp(
             email = request.email,
             nickname = request.nickname,
-            password = request.password
+            password = request.password,
         )
     }
 
     @Test
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
-        val request = UserSignUpController.UserSignUpRequest(
-            email = "user@domain.com",
-            nickname = "newuser",
-            password = "Password123!"
-        )
-        
+        val request =
+            UserSignUpController.UserSignUpRequest(
+                email = "user@domain.com",
+                nickname = "newuser",
+                password = "Password123!",
+            )
+
         // when
         controller.signUp(request)
-        
+
         // then
         verify(userSignUpUseCase, times(1)).signUp(
             email = "user@domain.com",
             nickname = "newuser",
-            password = "Password123!"
+            password = "Password123!",
         )
     }
 
     @Test
     fun shouldReturnLocationHeaderWithVerifyEndpoint() {
         // given
-        val request = UserSignUpController.UserSignUpRequest(
-            email = "test@example.com",
-            nickname = "testuser",
-            password = "ValidPass123!"
-        )
-        
+        val request =
+            UserSignUpController.UserSignUpRequest(
+                email = "test@example.com",
+                nickname = "testuser",
+                password = "ValidPass123!",
+            )
+
         // when
         val response = controller.signUp(request)
-        
+
         // then
         assertThat(response.headers.containsKey("Location")).isTrue()
         assertThat(response.headers["Location"]).containsExactly("/api/v1/users/signup/verify")
@@ -82,19 +85,20 @@ class UserSignUpControllerUnitTest {
     @Test
     fun shouldPropagateExceptionWhenUseCaseThrowsException() {
         // given
-        val request = UserSignUpController.UserSignUpRequest(
-            email = "duplicate@example.com",
-            nickname = "testuser",
-            password = "ValidPass123!"
-        )
-        
+        val request =
+            UserSignUpController.UserSignUpRequest(
+                email = "duplicate@example.com",
+                nickname = "testuser",
+                password = "ValidPass123!",
+            )
+
         val exception = CustomException.ConflictException.DuplicateEmail("duplicate@example.com")
         doThrow(exception).`when`(userSignUpUseCase).signUp(
             email = request.email,
             nickname = request.nickname,
-            password = request.password
+            password = request.password,
         )
-        
+
         // when & then
         try {
             controller.signUp(request)
@@ -107,40 +111,42 @@ class UserSignUpControllerUnitTest {
     @Test
     fun shouldHandleEmptyRequestFields() {
         // given
-        val request = UserSignUpController.UserSignUpRequest(
-            email = "",
-            nickname = "",
-            password = ""
-        )
-        
+        val request =
+            UserSignUpController.UserSignUpRequest(
+                email = "",
+                nickname = "",
+                password = "",
+            )
+
         // when
         controller.signUp(request)
-        
+
         // then
         verify(userSignUpUseCase).signUp(
             email = "",
             nickname = "",
-            password = ""
+            password = "",
         )
     }
 
     @Test
     fun shouldHandleSpecialCharactersInNickname() {
         // given
-        val request = UserSignUpController.UserSignUpRequest(
-            email = "test@example.com",
-            nickname = "test_user-123",
-            password = "ValidPass123!"
-        )
-        
+        val request =
+            UserSignUpController.UserSignUpRequest(
+                email = "test@example.com",
+                nickname = "test_user-123",
+                password = "ValidPass123!",
+            )
+
         // when
         controller.signUp(request)
-        
+
         // then
         verify(userSignUpUseCase).signUp(
             email = request.email,
             nickname = request.nickname,
-            password = request.password
+            password = request.password,
         )
     }
 }

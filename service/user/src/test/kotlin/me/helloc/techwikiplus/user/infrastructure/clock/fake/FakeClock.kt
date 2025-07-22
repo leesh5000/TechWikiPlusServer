@@ -6,9 +6,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 class FakeClock(private var currentTime: LocalDateTime) : Clock {
-
-    override fun currentTimeMillis(): Long =
-        currentTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    override fun currentTimeMillis(): Long = currentTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
     override fun localDateTime(): LocalDateTime = currentTime
 

@@ -10,16 +10,22 @@ class FakeTokenProvider : TokenProvider {
         val email: String,
         val userId: Long,
         val type: String,
-        val valid: Boolean = true
+        val valid: Boolean = true,
     )
 
-    override fun createAccessToken(email: String, userId: Long): String {
+    override fun createAccessToken(
+        email: String,
+        userId: Long,
+    ): String {
         val token = "access_${email}_${userId}_${System.currentTimeMillis()}_${tokenCounter++}"
         tokens[token] = TokenData(email, userId, "access")
         return token
     }
 
-    override fun createRefreshToken(email: String, userId: Long): String {
+    override fun createRefreshToken(
+        email: String,
+        userId: Long,
+    ): String {
         val token = "refresh_${email}_${userId}_${System.currentTimeMillis()}_${tokenCounter++}"
         tokens[token] = TokenData(email, userId, "refresh")
         return token
