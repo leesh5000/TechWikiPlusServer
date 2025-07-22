@@ -50,7 +50,7 @@ class FakeTokenProvider : TokenProvider {
             ?: throw IllegalArgumentException("Invalid token")
     }
 
-    fun createExpiredRefreshToken(
+    override fun createExpiredRefreshToken(
         email: String,
         userId: Long,
     ): String {

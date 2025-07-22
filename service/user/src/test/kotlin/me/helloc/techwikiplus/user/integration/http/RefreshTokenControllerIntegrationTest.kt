@@ -154,12 +154,14 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     @Test
     fun `만료된 refresh token으로 갱신 시 401 응답을 반환한다`() {
         // given
-        // 실제로 만료된 토큰을 생성하기 어려우므로,
-        // 잘못된 시그니처를 가진 토큰으로 테스트
-        val expiredToken = validRefreshToken + "corrupted"
+        val expiredRefreshToken = tokenProvider.createExpiredRefreshToken(testEmail, testUserId)
+        // 만료된 토큰도 Redis에 저장 (실제 시나리오를 시뮬레이션)
+        val ttl = Duration.ofMillis(jwtProperties.refreshTokenExpiration)
+        refreshTokenStore.store(testUserId, expiredRefreshToken, ttl)
+        
         val request =
             RefreshTokenController.RefreshTokenRequest(
-                refreshToken = expiredToken,
+                refreshToken = expiredRefreshToken,
             )
 
         // when
