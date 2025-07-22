@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.MissingServletRequestParameterException
 
 class GlobalExceptionHandlerUnitTest {
     private lateinit var handler: GlobalExceptionHandler
@@ -166,5 +167,20 @@ class GlobalExceptionHandlerUnitTest {
 
         // then
         assertThat(response.body!!.message).isEqualTo("An unexpected error occurred.")
+    }
+
+    @Test
+    fun shouldHandleMissingServletRequestParameterException() {
+        // given
+        val exception = MissingServletRequestParameterException("email", "String")
+
+        // when
+        val response = handler.handleMissingServletRequestParameter(exception, request)
+
+        // then
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(response.body!!.errorCode).isEqualTo("MISSING_PARAMETER")
+        assertThat(response.body!!.message).isEqualTo("Required parameter 'email' is missing")
+        assertThat(response.body!!.path).isEqualTo("/api/v1/users/test")
     }
 }

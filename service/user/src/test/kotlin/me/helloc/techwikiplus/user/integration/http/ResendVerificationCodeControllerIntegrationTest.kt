@@ -158,7 +158,7 @@ class ResendVerificationCodeControllerIntegrationTest : ControllerIntegrationTes
     }
     
     @Test
-    fun `이메일 파라미터 없이 재전송 요청 시 500 응답을 반환한다`() {
+    fun `이메일 파라미터 없이 재전송 요청 시 400 응답을 반환한다`() {
         // when
         val response: ResponseEntity<String> = restTemplate.getForEntity(
             "/api/v1/users/signup/verify/resend",
@@ -166,7 +166,11 @@ class ResendVerificationCodeControllerIntegrationTest : ControllerIntegrationTes
         )
         
         // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        
+        val errorResponse = parseErrorResponse(response.body!!)
+        assertThat(errorResponse.errorCode).isEqualTo("MISSING_PARAMETER")
+        assertThat(errorResponse.message).contains("Required parameter 'email' is missing")
     }
     
     @Test
