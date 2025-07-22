@@ -8,11 +8,13 @@ sealed class CustomException(val errorCode: String, override val message: String
         data class InvalidEmail(val email: String) : ValidationException("Invalid email format. Your input: $email")
 
         data class InvalidNickname(val nickname: String) : ValidationException(
-            "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Your input: $nickname",
+            "Nickname must be 2-20 characters long and can only contain " +
+                "alphanumeric characters and Korean characters. Your input: $nickname",
         )
 
         data class InvalidPassword(val password: String) : ValidationException(
-            "Password must be 8-30 characters long and include uppercase, lowercase, numbers, and special characters. Your input: $password",
+            "Password must be 8-30 characters long and include uppercase, " +
+                "lowercase, numbers, and special characters. Your input: $password",
         )
     }
 
