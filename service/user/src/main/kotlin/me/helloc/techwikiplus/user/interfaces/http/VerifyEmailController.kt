@@ -3,7 +3,7 @@ package me.helloc.techwikiplus.user.interfaces.http
 import me.helloc.techwikiplus.user.application.VerifyEmailUseCase
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 class VerifyEmailController(
     private val facade: VerifyEmailUseCase,
 ) {
-    @GetMapping("/api/v1/users/signup/verify")
+    @PostMapping("/api/v1/users/signup/verify")
     fun verifyEmail(
         @RequestBody request: UserSignUpVerifyRequest,
     ): ResponseEntity<Void> {
