@@ -125,7 +125,8 @@ class UserUnitTest : FunSpec({
                     "test123",
                     "테스트123",
                     "User테스트123",
-                    "ABCDEFGHIJKLMNopqrs", // 20자
+                    // 20자
+                    "ABCDEFGHIJKLMNopqrs",
                     "가나다라마바사아자차카타파하",
                     "1234567890123456789",
                     "한글English123",

@@ -25,7 +25,8 @@ class CustomExceptionUnitTest : FunSpec({
             val exception = InvalidNickname(nickname)
 
             exception.nickname shouldBe nickname
-            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Your input: $nickname"
+            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain " +
+                "alphanumeric characters and Korean characters. Your input: $nickname"
             exception.shouldBeInstanceOf<CustomException.ValidationException>()
             exception.shouldBeInstanceOf<CustomException>()
             exception.shouldBeInstanceOf<RuntimeException>()
@@ -34,18 +35,25 @@ class CustomExceptionUnitTest : FunSpec({
         test("다양한 잘못된 닉네임 케이스") {
             val invalidNicknames =
                 listOf(
-                    "a", // 너무 짧음
-                    "a".repeat(21), // 너무 김
-                    "test@user", // 특수문자
-                    "test user", // 공백
-                    "test!", // 느낌표
-                    "", // 빈 문자열
+                    // 너무 짧음
+                    "a",
+                    // 너무 김
+                    "a".repeat(21),
+                    // 특수문자
+                    "test@user",
+                    // 공백
+                    "test user",
+                    // 느낌표
+                    "test!",
+                    // 빈 문자열
+                    "",
                 )
 
             invalidNicknames.forEach { nickname ->
                 val exception = InvalidNickname(nickname)
                 exception.nickname shouldBe nickname
-                exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Your input: $nickname"
+                exception.message shouldBe "Nickname must be 2-20 characters long and can only contain " +
+                    "alphanumeric characters and Korean characters. Your input: $nickname"
             }
         }
 
@@ -132,7 +140,8 @@ class CustomExceptionUnitTest : FunSpec({
             val nickname = "ab@cd"
             val exception = InvalidNickname(nickname)
 
-            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain alphanumeric characters and Korean characters. Your input: $nickname"
+            exception.message shouldBe "Nickname must be 2-20 characters long and can only contain " +
+                "alphanumeric characters and Korean characters. Your input: $nickname"
         }
 
         test("예외 메시지에 실제 입력값 포함") {

@@ -52,7 +52,8 @@ class PendingUserValidatorUnitTest {
         assertThatThrownBy { pendingUserValidator.existsOrThrows(email) }
             .isInstanceOf(PendingUserNotFound::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. Please ensure you have registered and requested verification.",
+                "Pending user not found for email: $email. " +
+                    "Please ensure you have registered and requested verification.",
             )
     }
 
@@ -76,7 +77,8 @@ class PendingUserValidatorUnitTest {
         assertThatThrownBy { pendingUserValidator.existsOrThrows(email) }
             .isInstanceOf(PendingUserNotFound::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. Please ensure you have registered and requested verification.",
+                "Pending user not found for email: $email. " +
+                    "Please ensure you have registered and requested verification.",
             )
     }
 
@@ -100,7 +102,8 @@ class PendingUserValidatorUnitTest {
         assertThatThrownBy { pendingUserValidator.existsOrThrows(email) }
             .isInstanceOf(PendingUserNotFound::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. Please ensure you have registered and requested verification.",
+                "Pending user not found for email: $email. " +
+                    "Please ensure you have registered and requested verification.",
             )
     }
 }

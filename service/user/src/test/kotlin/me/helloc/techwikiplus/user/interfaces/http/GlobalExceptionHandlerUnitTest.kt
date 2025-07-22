@@ -5,7 +5,8 @@ import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MissingServletRequestParameterException
 

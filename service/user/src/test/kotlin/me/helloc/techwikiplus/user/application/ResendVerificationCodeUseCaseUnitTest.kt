@@ -108,7 +108,8 @@ class ResendVerificationCodeUseCaseUnitTest {
             resendVerificationCodeUseCase.resendVerificationCode(email)
         }.isInstanceOf(CustomException.AuthenticationException.PendingUserNotFound::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. Please ensure you have registered and requested verification.",
+                "Pending user not found for email: $email. " +
+                    "Please ensure you have registered and requested verification.",
             )
 
         // 이메일이 전송되지 않았는지 확인
@@ -139,7 +140,8 @@ class ResendVerificationCodeUseCaseUnitTest {
             resendVerificationCodeUseCase.resendVerificationCode(email)
         }.isInstanceOf(CustomException.AuthenticationException.PendingUserNotFound::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. Please ensure you have registered and requested verification.",
+                "Pending user not found for email: $email. " +
+                    "Please ensure you have registered and requested verification.",
             )
 
         // 이메일이 전송되지 않았는지 확인

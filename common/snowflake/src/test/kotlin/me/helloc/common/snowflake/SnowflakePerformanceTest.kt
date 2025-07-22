@@ -307,9 +307,12 @@ class SnowflakePerformanceTest : FunSpec({
             val testCount = 100_000
             val strategies =
                 mapOf(
-                    "Fail Strategy" to SnowflakeConfig.Builder().staticNodeId(1L).failOnClockBackward().build(),
-                    "Wait Strategy" to SnowflakeConfig.Builder().staticNodeId(2L).waitOnClockBackward(1000L).build(),
-                    "Sequence Strategy" to SnowflakeConfig.Builder().staticNodeId(3L).useSequenceOnClockBackward().build(),
+                    "Fail Strategy" to
+                        SnowflakeConfig.Builder().staticNodeId(1L).failOnClockBackward().build(),
+                    "Wait Strategy" to
+                        SnowflakeConfig.Builder().staticNodeId(2L).waitOnClockBackward(1000L).build(),
+                    "Sequence Strategy" to
+                        SnowflakeConfig.Builder().staticNodeId(3L).useSequenceOnClockBackward().build(),
                 )
 
             strategies.forEach { (name, config) ->
