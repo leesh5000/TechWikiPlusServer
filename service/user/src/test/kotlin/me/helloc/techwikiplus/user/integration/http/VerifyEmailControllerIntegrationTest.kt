@@ -174,7 +174,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        
+
         val errorResponse = parseErrorResponse(response.body!!)
         assertThat(errorResponse.errorCode).isEqualTo("VALIDATION_FAILED")
         assertThat(errorResponse.message).contains("Email is already verified")

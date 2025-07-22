@@ -84,7 +84,7 @@ class JwtTokenProvider(
     override fun getTokenType(token: String): String {
         return getClaims(token).get("type", String::class.java)
     }
-    
+
     override fun createExpiredRefreshToken(
         email: String,
         userId: Long,
@@ -92,7 +92,7 @@ class JwtTokenProvider(
         val now = Date()
         // 1초 전에 만료된 토큰 생성
         val expiryDate = Date(now.time - 1000)
-        
+
         return Jwts.builder()
             .subject(email)
             .claim("userId", userId)

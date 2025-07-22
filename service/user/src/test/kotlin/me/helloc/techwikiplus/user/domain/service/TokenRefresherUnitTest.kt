@@ -20,9 +20,10 @@ class TokenRefresherUnitTest {
     fun setUp() {
         tokenProvider = FakeTokenProvider()
         refreshTokenStore = FakeRefreshTokenStore()
-        jwtProperties = JwtProperties().apply {
-            refreshTokenExpiration = 604800000 // 7 days
-        }
+        jwtProperties =
+            JwtProperties().apply {
+                refreshTokenExpiration = 604800000 // 7 days
+            }
         tokenRefresher = TokenRefresher(tokenProvider, refreshTokenStore, jwtProperties)
     }
 

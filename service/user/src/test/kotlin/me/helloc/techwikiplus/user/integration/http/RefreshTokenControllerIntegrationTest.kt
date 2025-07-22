@@ -40,14 +40,15 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     fun setUp() {
         // 각 테스트마다 고유한 ID 생성
         testUserId = System.currentTimeMillis()
-        testEmail = "test${testUserId}@example.com"
-        
+        testEmail = "test$testUserId@example.com"
+
         // 테스트용 사용자 생성
         testUser =
             User(
                 id = testUserId,
                 email = UserEmail(testEmail, true),
-                nickname = "user${testUserId % 100000}",  // 닉네임 길이 제한으로 인해 숫자를 줄임
+                // 닉네임 길이 제한으로 인해 숫자를 줄임
+                nickname = "user${testUserId % 100000}",
                 password = "encoded_password",
                 status = UserStatus.ACTIVE,
                 createdAt = Clock.system.localDateTime(),
@@ -158,7 +159,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         // 만료된 토큰도 Redis에 저장 (실제 시나리오를 시뮬레이션)
         val ttl = Duration.ofMillis(jwtProperties.refreshTokenExpiration)
         refreshTokenStore.store(testUserId, expiredRefreshToken, ttl)
-        
+
         val request =
             RefreshTokenController.RefreshTokenRequest(
                 refreshToken = expiredRefreshToken,

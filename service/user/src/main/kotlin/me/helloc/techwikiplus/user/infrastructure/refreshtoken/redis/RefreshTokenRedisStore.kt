@@ -4,7 +4,6 @@ import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 @Component
 class RefreshTokenRedisStore(

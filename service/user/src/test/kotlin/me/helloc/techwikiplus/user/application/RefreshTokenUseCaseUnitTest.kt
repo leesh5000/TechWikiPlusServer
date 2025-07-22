@@ -33,9 +33,10 @@ class RefreshTokenUseCaseUnitTest {
         userReader = UserReader(userRepository)
         tokenProvider = FakeTokenProvider()
         refreshTokenStore = FakeRefreshTokenStore()
-        jwtProperties = JwtProperties().apply {
-            refreshTokenExpiration = 604800000 // 7 days
-        }
+        jwtProperties =
+            JwtProperties().apply {
+                refreshTokenExpiration = 604800000 // 7 days
+            }
         tokenRefresher = TokenRefresher(tokenProvider, refreshTokenStore, jwtProperties)
         refreshTokenUseCase =
             RefreshTokenUseCase(

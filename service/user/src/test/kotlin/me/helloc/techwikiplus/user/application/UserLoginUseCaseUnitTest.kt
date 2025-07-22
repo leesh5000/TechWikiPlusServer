@@ -35,9 +35,10 @@ class UserLoginUseCaseUnitTest {
         userAuthenticator = UserAuthenticator(passwordEncoder)
         tokenProvider = FakeTokenProvider()
         refreshTokenStore = FakeRefreshTokenStore()
-        jwtProperties = JwtProperties().apply {
-            refreshTokenExpiration = 604800000 // 7 days
-        }
+        jwtProperties =
+            JwtProperties().apply {
+                refreshTokenExpiration = 604800000 // 7 days
+            }
         userLoginUseCase =
             UserLoginUseCase(
                 userReader = userReader,

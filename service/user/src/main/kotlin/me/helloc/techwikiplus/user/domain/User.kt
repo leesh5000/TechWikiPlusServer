@@ -105,7 +105,7 @@ class User(
         if (status == UserStatus.ACTIVE) {
             throw CustomException.ValidationException.AlreadyVerifiedEmail(email.value)
         }
-        
+
         val verifiedUser: User = this.verifyEmail(clock)
         return verifiedUser.copy(
             status = UserStatus.ACTIVE,
