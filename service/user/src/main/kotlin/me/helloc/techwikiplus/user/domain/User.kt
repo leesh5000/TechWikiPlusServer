@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.domain
 
+import me.helloc.techwikiplus.user.domain.exception.CustomException
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidNickname
 import me.helloc.techwikiplus.user.domain.service.Clock
 import java.time.LocalDateTime
@@ -101,6 +102,10 @@ class User(
     }
 
     fun completeSignUp(clock: Clock = Clock.system): User {
+        if (status == UserStatus.ACTIVE) {
+            throw CustomException.ValidationException.AlreadyVerifiedEmail(email.value)
+        }
+        
         val verifiedUser: User = this.verifyEmail(clock)
         return verifiedUser.copy(
             status = UserStatus.ACTIVE,

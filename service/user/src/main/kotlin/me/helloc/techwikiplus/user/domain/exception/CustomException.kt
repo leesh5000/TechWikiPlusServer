@@ -16,6 +16,10 @@ sealed class CustomException(val errorCode: String, override val message: String
             "Password must be 8-30 characters long and include uppercase, " +
                 "lowercase, numbers, and special characters. Your input: $password",
         )
+
+        data class AlreadyVerifiedEmail(val email: String) : ValidationException(
+            "Email is already verified. Your input: $email",
+        )
     }
 
     // 리소스 찾기 실패 예외

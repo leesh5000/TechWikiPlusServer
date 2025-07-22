@@ -4,6 +4,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
+import me.helloc.techwikiplus.user.domain.exception.CustomException
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidNickname
 import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import java.time.LocalDateTime
@@ -322,6 +324,26 @@ class UserUnitTest : FunSpec({
             // 원본은 변경되지 않음
             pendingUser.email.verified shouldBe false
             pendingUser.status shouldBe UserStatus.PENDING
+        }
+
+        test("이미 활성화된 사용자가 completeSignUp 호출 시 AlreadyVerifiedEmail 예외 발생") {
+            val activeUser =
+                User(
+                    id = 123456789L,
+                    email = UserEmail("test@example.com", true),
+                    password = "hashedPassword",
+                    nickname = "테스터",
+                    status = UserStatus.ACTIVE,
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now(),
+                )
+
+            shouldThrow<CustomException.ValidationException.AlreadyVerifiedEmail> {
+                activeUser.completeSignUp()
+            }.apply {
+                email shouldBe "test@example.com"
+                message shouldContain "Email is already verified"
+            }
         }
     }
 

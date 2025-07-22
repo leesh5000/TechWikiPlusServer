@@ -110,6 +110,9 @@ class CustomExceptionUnitTest : FunSpec({
                         is CustomException.ValidationException.InvalidPassword -> {
                             // 이 케이스는 실행되지 않음
                         }
+                        is CustomException.ValidationException.AlreadyVerifiedEmail -> {
+                            // 이 케이스는 실행되지 않음
+                        }
                     }
                 }
                 is CustomException.NotFoundException -> {
@@ -142,6 +145,14 @@ class CustomExceptionUnitTest : FunSpec({
 
             exception.message shouldBe "Nickname must be 2-20 characters long and can only contain " +
                 "alphanumeric characters and Korean characters. Your input: $nickname"
+        }
+
+        test("AlreadyVerifiedEmail 예외 생성 및 메시지 확인") {
+            val email = "test@example.com"
+            val exception = CustomException.ValidationException.AlreadyVerifiedEmail(email)
+
+            exception.errorCode shouldBe "VALIDATION_FAILED"
+            exception.message shouldBe "Email is already verified. Your input: $email"
         }
 
         test("예외 메시지에 실제 입력값 포함") {

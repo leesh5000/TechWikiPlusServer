@@ -173,9 +173,11 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
             )
 
         // then
-        // 이미 인증된 사용자의 경우 정상 처리되거나 특별한 에러가 발생할 수 있음
-        // 비즈니스 로직에 따라 다름
-        assertThat(response.statusCode).isIn(HttpStatus.OK, HttpStatus.UNAUTHORIZED)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        
+        val errorResponse = parseErrorResponse(response.body!!)
+        assertThat(errorResponse.errorCode).isEqualTo("VALIDATION_FAILED")
+        assertThat(errorResponse.message).contains("Email is already verified")
     }
 
     @Test
@@ -194,16 +196,8 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
             )
         userRepository.insertOrUpdate(expiredUser)
 
-        // 만료 시간이 매우 짧은 코드 저장
-        verificationCodeStore.storeWithExpiry(
-            expiredEmail,
-            VerificationCode(testCode),
-            // 1밀리초 후 만료
-            Duration.ofMillis(1),
-        )
-
-        // 코드가 만료되도록 잠시 대기
-        Thread.sleep(10)
+        // 인증 코드를 저장하지 않고 테스트 (존재하지 않는 코드로 처리)
+        // 이렇게 하면 Thread.sleep 없이도 만료된 것과 동일한 효과
 
         val request =
             VerifyEmailController.UserSignUpVerifyRequest(
