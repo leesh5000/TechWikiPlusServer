@@ -1,24 +1,34 @@
 package me.helloc.techwikiplus.user.domain.exception
 
+import me.helloc.techwikiplus.user.domain.DomainConstants
+
 sealed class CustomException(val errorCode: String, override val message: String) : RuntimeException(message) {
+    companion object {
+        private const val INPUT_FORMAT = "Your input: %s"
+    }
+
     // 유효성 검증 예외
     sealed class ValidationException(
         override val message: String,
     ) : CustomException(errorCode = "VALIDATION_FAILED", message) {
-        data class InvalidEmail(val email: String) : ValidationException("Invalid email format. Your input: $email")
+        data class InvalidEmail(val email: String) : ValidationException(
+            "Invalid email format. ${INPUT_FORMAT.format(email)}",
+        )
 
         data class InvalidNickname(val nickname: String) : ValidationException(
-            "Nickname must be 2-20 characters long and can only contain " +
-                "alphanumeric characters and Korean characters. Your input: $nickname",
+            "Nickname must be ${DomainConstants.Nickname.MIN_LENGTH}-" +
+                "${DomainConstants.Nickname.MAX_LENGTH} characters long and can only contain " +
+                "alphanumeric characters and Korean characters. ${INPUT_FORMAT.format(nickname)}",
         )
 
         data class InvalidPassword(val password: String) : ValidationException(
-            "Password must be 8-30 characters long and include uppercase, " +
-                "lowercase, numbers, and special characters. Your input: $password",
+            "Password must be ${DomainConstants.Password.MIN_LENGTH}-" +
+                "${DomainConstants.Password.MAX_LENGTH} characters long and include uppercase, " +
+                "lowercase, numbers, and special characters. ${INPUT_FORMAT.format(password)}",
         )
 
         data class AlreadyVerifiedEmail(val email: String) : ValidationException(
-            "Email is already verified. Your input: $email",
+            "Email is already verified. ${INPUT_FORMAT.format(email)}",
         )
     }
 
@@ -36,10 +46,12 @@ sealed class CustomException(val errorCode: String, override val message: String
         errorCode = "CONFLICT",
         message,
     ) {
-        data class DuplicateEmail(val email: String) : ConflictException("Email already exists. Your input: $email")
+        data class DuplicateEmail(val email: String) : ConflictException(
+            "Email already exists. ${INPUT_FORMAT.format(email)}",
+        )
 
         data class DuplicateNickname(val nickname: String) : ConflictException(
-            "Nickname already exists. Your input: $nickname",
+            "Nickname already exists. ${INPUT_FORMAT.format(nickname)}",
         )
     }
 

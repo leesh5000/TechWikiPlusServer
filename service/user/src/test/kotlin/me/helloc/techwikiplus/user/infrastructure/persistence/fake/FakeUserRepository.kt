@@ -11,12 +11,12 @@ class FakeUserRepository : UserRepository {
     override fun insertOrUpdate(user: User) {
         // If updating existing user, remove old email and nickname from indexes
         users[user.id]?.let { oldUser ->
-            emailIndex.remove(oldUser.email())
+            emailIndex.remove(oldUser.getEmailValue())
             nicknameIndex.remove(oldUser.nickname)
         }
 
         users[user.id] = user
-        emailIndex[user.email()] = user.id
+        emailIndex[user.getEmailValue()] = user.id
         nicknameIndex[user.nickname] = user.id
     }
 

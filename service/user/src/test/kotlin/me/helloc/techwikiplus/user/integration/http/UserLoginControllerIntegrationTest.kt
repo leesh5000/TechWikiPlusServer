@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.integration.http
 
+import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
@@ -79,8 +80,8 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         // 발급된 토큰 검증
         assertThat(tokenProvider.validateToken(loginResponse.accessToken)).isTrue
         assertThat(tokenProvider.validateToken(loginResponse.refreshToken)).isTrue
-        assertThat(tokenProvider.getTokenType(loginResponse.accessToken)).isEqualTo("access")
-        assertThat(tokenProvider.getTokenType(loginResponse.refreshToken)).isEqualTo("refresh")
+        assertThat(tokenProvider.getTokenType(loginResponse.accessToken)).isEqualTo(TokenType.ACCESS)
+        assertThat(tokenProvider.getTokenType(loginResponse.refreshToken)).isEqualTo(TokenType.REFRESH)
         assertThat(tokenProvider.getEmailFromToken(loginResponse.accessToken)).isEqualTo(testEmail)
 
         // Refresh token이 Redis에 저장되었는지 확인

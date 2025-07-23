@@ -1,0 +1,119 @@
+services:
+  mysql:
+    image: mysql:8.0.32
+    container_name: techwikiplus-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-techwikiplus}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-techwikiplus}
+      MYSQL_USER: ${MYSQL_USER:-techwikiplus}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-techwikiplus}
+    ports:
+      - "${MYSQL_PORT:-13306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./service/user/mysql/init:/docker-entrypoint-initdb.d
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=200
+      - --innodb_buffer_pool_size=256M
+    networks:
+      - techwikiplus-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-techwikiplus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: techwikiplus-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-techwikiplus}
+    ports:
+      - "${REDIS_PORT:-16379}:6379"
+    volumes:
+      - redis-data:/data
+    command: >
+      sh -c 'redis-server --appendonly yes
+             --requirepass "$${REDIS_PASSWORD}"
+             --maxmemory 256mb
+             --maxmemory-policy allkeys-lru'
+    networks:
+      - techwikiplus-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD:-techwikiplus}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  user-service:
+    build:
+      context: .
+      dockerfile: service/user/Dockerfile
+      args:
+        DOCKER_BUILDKIT: 1
+    image: techwikiplus/user-service:latest
+    container_name: techwikiplus-user-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # 데이터베이스 설정
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-techwikiplus}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-techwikiplus}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-techwikiplus}
+
+      # Redis 설정
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-techwikiplus}
+
+      # JWT 설정
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600000}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000}
+
+      # 메일 설정
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-noreply@techwikiplus.com}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-techwikiplus}
+
+      # 로깅 설정
+      LOG_LEVEL_ROOT: ${LOGGING_LEVEL_ROOT:-WARN}
+      LOG_LEVEL_TECHWIKIPLUS: ${LOGGING_LEVEL_TECHWIKIPLUS:-WARN}
+      LOG_LEVEL_SPRING_WEB: ${LOGGING_LEVEL_SPRING_WEB:-WARN}
+      LOG_LEVEL_SPRING_SECURITY: ${LOGGING_LEVEL_SPRING_SECURITY:-WARN}
+      LOG_LEVEL_HIBERNATE_SQL: ${LOGGING_LEVEL_HIBERNATE_SQL:-WARN}
+
+      # JVM 옵션
+      JAVA_OPTS: ${JAVA_OPTS:--Xms512m -Xmx1024m}
+    ports:
+      - "${USER_SERVICE_PORT:-9000}:9000"
+    networks:
+      - techwikiplus-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  techwikiplus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

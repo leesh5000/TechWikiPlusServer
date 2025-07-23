@@ -41,4 +41,22 @@ dependencies {
 
     // Redis 컨테이너 - VerificationCodeStore 통합 테스트용
     testImplementation("com.redis.testcontainers:testcontainers-redis:1.6.4")
+
+    // ArchUnit - 아키텍처 검증 도구
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.2.1")
+}
+
+tasks.test {
+    // Disable IntelliJ capture agent for WSL compatibility
+    jvmArgs =
+        listOf(
+            "-Djava.security.manager=allow",
+            "-Didea.no.capture.agent=true",
+        )
+
+    // Disable agent loading
+    systemProperty("idea.test.cyclic.buffer.size", "disabled")
+
+    // Remove any capture agent from classpath
+    environment("JAVA_TOOL_OPTIONS", "")
 }

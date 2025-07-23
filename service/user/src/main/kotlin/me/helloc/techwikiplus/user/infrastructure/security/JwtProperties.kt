@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.security
 
+import me.helloc.techwikiplus.user.domain.service.TokenConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component
 data class JwtProperties(
     var secret: String = "techwikiplus-jwt-secret-key-for-authentication-2024",
     // 1 hour in milliseconds
-    var accessTokenExpiration: Long = 3600000,
+    override var accessTokenExpiration: Long = 3600000,
     // 7 days in milliseconds
-    var refreshTokenExpiration: Long = 604800000,
-)
+    override var refreshTokenExpiration: Long = 604800000,
+) : TokenConfiguration

@@ -15,7 +15,7 @@ class FakeRefreshTokenStore : RefreshTokenStore {
         ttl: Duration,
     ) {
         // Invalidate existing token for user
-        invalidate(userId)
+        invalidate(userId = userId)
 
         val expiresAt = Instant.now().plus(ttl)
         tokenStore[refreshToken] = userId to expiresAt
@@ -35,18 +35,30 @@ class FakeRefreshTokenStore : RefreshTokenStore {
         return true
     }
 
-    override fun invalidate(userId: Long) {
-        val existingToken = userTokenStore[userId]
-        existingToken?.let {
-            tokenStore.remove(it)
-        }
-        userTokenStore.remove(userId)
-    }
-
-    override fun invalidateToken(refreshToken: String) {
-        val entry = tokenStore.remove(refreshToken)
-        entry?.let { (userId, _) ->
-            userTokenStore.remove(userId)
+    override fun invalidate(
+        userId: Long?,
+        refreshToken: String?,
+    ) {
+        when {
+            userId != null && refreshToken == null -> {
+                val existingToken = userTokenStore[userId]
+                existingToken?.let {
+                    tokenStore.remove(it)
+                }
+                userTokenStore.remove(userId)
+            }
+            refreshToken != null -> {
+                val entry = tokenStore.remove(refreshToken)
+                entry?.let { (uid, _) ->
+                    val currentToken = userTokenStore[uid]
+                    if (currentToken == refreshToken) {
+                        userTokenStore.remove(uid)
+                    }
+                }
+            }
+            else -> {
+                throw IllegalArgumentException("Either userId or refreshToken must be provided")
+            }
         }
     }
 

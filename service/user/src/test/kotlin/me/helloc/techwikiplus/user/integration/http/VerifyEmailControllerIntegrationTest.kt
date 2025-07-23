@@ -74,7 +74,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
         val verifiedUser = userRepository.findByEmail(testEmail)
         assertThat(verifiedUser).isNotNull
         assertThat(verifiedUser!!.status).isEqualTo(UserStatus.ACTIVE)
-        assertThat(verifiedUser.email().endsWith(testEmail)).isTrue
+        assertThat(verifiedUser.getEmailValue().endsWith(testEmail)).isTrue
 
         // 인증 코드가 삭제되었는지 확인 (실제로는 삭제되지 않을 수 있음)
         // 인증 성공 여부는 사용자 상태 변경으로 확인함

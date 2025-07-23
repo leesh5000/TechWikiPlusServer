@@ -8,15 +8,15 @@ import org.testcontainers.containers.MySQLContainer
 import org.testcontainers.utility.DockerImageName
 
 @TestConfiguration
-class TestContainerConfig {
+open class TestContainerConfig {
     companion object {
         // MySQL 컨테이너 - 여러 테스트에서 재사용하여 성능 향상
         @JvmStatic
         val mysqlContainer: MySQLContainer<*> =
             MySQLContainer("mysql:8.0")
-                .withDatabaseName("testdb")
-                .withUsername("test")
-                .withPassword("test")
+                .withDatabaseName("techwikiplus")
+                .withUsername("techwikiplus")
+                .withPassword("techwikiplus")
                 .withReuse(true)
                 .apply { start() }
 

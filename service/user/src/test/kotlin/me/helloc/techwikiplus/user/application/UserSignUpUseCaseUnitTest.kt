@@ -1,7 +1,9 @@
 package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.service.EmailVerificationService
 import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
+import me.helloc.techwikiplus.user.domain.service.UserRegistrationService
 import me.helloc.techwikiplus.user.domain.service.UserWriter
 import me.helloc.techwikiplus.user.infrastructure.id.fake.FakeIdGenerator
 import me.helloc.techwikiplus.user.infrastructure.mail.fake.FakeMailSender
@@ -35,15 +37,23 @@ class UserSignUpUseCaseUnitTest {
         mailSender = FakeMailSender()
         verificationCodeStore = FakeVerificationCodeStore()
         idGenerator = FakeIdGenerator()
-        userSignUpUseCase =
-            UserSignUpUseCase(
+        val userRegistrationService =
+            UserRegistrationService(
                 userWriter = userWriter,
                 userDuplicateChecker = userDuplicateChecker,
                 passwordValidator = passwordValidator,
                 passwordEncoder = passwordEncoder,
+                idGenerator = idGenerator,
+            )
+        val emailVerificationService =
+            EmailVerificationService(
                 mailSender = mailSender,
                 verificationCodeStore = verificationCodeStore,
-                idGenerator = idGenerator,
+            )
+        userSignUpUseCase =
+            UserSignUpUseCase(
+                userRegistrationService = userRegistrationService,
+                emailVerificationService = emailVerificationService,
             )
     }
 
@@ -63,7 +73,7 @@ class UserSignUpUseCaseUnitTest {
         val savedUser = userRepository.findByEmail(email)
         assertThat(savedUser).isNotNull
         assertThat(savedUser!!.id).isEqualTo(expectedUserId)
-        assertThat(savedUser.email()).isEqualTo(email)
+        assertThat(savedUser.getEmailValue()).isEqualTo(email)
         assertThat(savedUser.nickname).isEqualTo(nickname)
         assertThat(savedUser.isPending()).isTrue()
 

@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.security.fake
 
+import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
 
 class FakeTokenProvider : TokenProvider {
@@ -45,12 +46,14 @@ class FakeTokenProvider : TokenProvider {
             ?: throw IllegalArgumentException("Invalid token")
     }
 
-    override fun getTokenType(token: String): String {
-        return tokens[token]?.type
-            ?: throw IllegalArgumentException("Invalid token")
+    override fun getTokenType(token: String): TokenType {
+        val type =
+            tokens[token]?.type
+                ?: throw IllegalArgumentException("Invalid token")
+        return TokenType.from(type)
     }
 
-    override fun createExpiredRefreshToken(
+    fun createExpiredRefreshToken(
         email: String,
         userId: Long,
     ): String {

@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.domain.service
 
+import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.exception.CustomException
-import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import org.springframework.stereotype.Component
 import java.time.Duration
 
@@ -9,7 +9,7 @@ import java.time.Duration
 class TokenRefresher(
     private val tokenProvider: TokenProvider,
     private val refreshTokenStore: RefreshTokenStore,
-    private val jwtProperties: JwtProperties,
+    private val tokenConfiguration: TokenConfiguration,
 ) {
     fun refreshTokens(refreshToken: String): RefreshDetails {
         validateRefreshToken(refreshToken)
@@ -20,12 +20,9 @@ class TokenRefresher(
         val accessToken = tokenProvider.createAccessToken(email, userId)
         val newRefreshToken = tokenProvider.createRefreshToken(email, userId)
 
-        // Store new refresh token and invalidate old one
-        val ttl = Duration.ofMillis(jwtProperties.refreshTokenExpiration)
+        // Store a new refresh token (this will handle the rotation logic internally)
+        val ttl = Duration.ofMillis(tokenConfiguration.refreshTokenExpiration)
         refreshTokenStore.store(userId, newRefreshToken, ttl)
-
-        // Invalidate the old refresh token
-        refreshTokenStore.invalidateToken(refreshToken)
 
         return RefreshDetails(
             accessToken = accessToken,
@@ -41,11 +38,11 @@ class TokenRefresher(
         }
 
         val tokenType = tokenProvider.getTokenType(refreshToken)
-        if (tokenType != "refresh") {
+        if (tokenType != TokenType.REFRESH) {
             throw CustomException.AuthenticationException.InvalidTokenType()
         }
 
-        // Check if refresh token exists in store
+        // Check if a refresh token exists in store
         if (!refreshTokenStore.exists(refreshToken)) {
             throw CustomException.AuthenticationException.InvalidToken()
         }

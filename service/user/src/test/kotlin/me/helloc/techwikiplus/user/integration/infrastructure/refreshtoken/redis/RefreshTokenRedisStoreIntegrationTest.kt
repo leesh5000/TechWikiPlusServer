@@ -1,15 +1,26 @@
 package me.helloc.techwikiplus.user.integration.infrastructure.refreshtoken.redis
 
 import me.helloc.techwikiplus.user.infrastructure.config.IntegrationTestSupport
+import me.helloc.techwikiplus.user.infrastructure.config.TestContainerConfig
 import me.helloc.techwikiplus.user.infrastructure.refreshtoken.redis.RefreshTokenRedisStore
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import java.time.Duration
 
 class RefreshTokenRedisStoreIntegrationTest : IntegrationTestSupport() {
+    companion object {
+        @JvmStatic
+        @DynamicPropertySource
+        fun properties(registry: DynamicPropertyRegistry) {
+            TestContainerConfig.properties(registry)
+        }
+    }
+
     @Autowired
     private lateinit var refreshTokenStore: RefreshTokenRedisStore
 
@@ -60,6 +71,7 @@ class RefreshTokenRedisStoreIntegrationTest : IntegrationTestSupport() {
         assertThat(refreshTokenStore.exists(oldToken)).isTrue
 
         // when
+        refreshTokenStore.invalidate(userId)
         refreshTokenStore.store(userId, newToken, ttl)
 
         // then
@@ -78,7 +90,7 @@ class RefreshTokenRedisStoreIntegrationTest : IntegrationTestSupport() {
         assertThat(refreshTokenStore.exists(refreshToken)).isTrue
 
         // when
-        refreshTokenStore.invalidateToken(refreshToken)
+        refreshTokenStore.invalidate(refreshToken = refreshToken)
 
         // then
         assertThat(refreshTokenStore.exists(refreshToken)).isFalse
@@ -102,7 +114,7 @@ class RefreshTokenRedisStoreIntegrationTest : IntegrationTestSupport() {
         assertThat(refreshTokenStore.exists(token2)).isTrue
 
         // user1의 토큰 무효화
-        refreshTokenStore.invalidate(user1Id)
+        refreshTokenStore.invalidate(userId = user1Id)
 
         // user1의 토큰만 무효화되고 user2의 토큰은 유지
         assertThat(refreshTokenStore.exists(token1)).isFalse
@@ -120,8 +132,8 @@ class RefreshTokenRedisStoreIntegrationTest : IntegrationTestSupport() {
         refreshTokenStore.store(userId, refreshToken, ttl)
         assertThat(refreshTokenStore.exists(refreshToken)).isTrue
 
-        // 2초 대기
-        Thread.sleep(2000)
+        // 2.5초 대기 (만료 시간보다 충분히 길게)
+        Thread.sleep(2500)
 
         // then
         assertThat(refreshTokenStore.exists(refreshToken)).isFalse
@@ -136,6 +148,7 @@ class RefreshTokenRedisStoreIntegrationTest : IntegrationTestSupport() {
 
         // when
         tokens.forEach { token ->
+            refreshTokenStore.invalidate(userId = userId)
             refreshTokenStore.store(userId, token, ttl)
         }
 

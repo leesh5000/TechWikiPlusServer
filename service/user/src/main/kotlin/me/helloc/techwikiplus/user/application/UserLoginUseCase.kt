@@ -1,10 +1,10 @@
 package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
+import me.helloc.techwikiplus.user.domain.service.TokenConfiguration
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
 import me.helloc.techwikiplus.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.user.domain.service.UserReader
-import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
@@ -16,32 +16,26 @@ open class UserLoginUseCase(
     private val userAuthenticator: UserAuthenticator,
     private val tokenProvider: TokenProvider,
     private val refreshTokenStore: RefreshTokenStore,
-    private val jwtProperties: JwtProperties,
+    private val tokenConfiguration: TokenConfiguration,
 ) {
     fun login(
         email: String,
         password: String,
-    ): LoginResult {
+    ): TokenResult {
         val user = userReader.readByEmailOrThrows(email)
         val authenticatedUser = userAuthenticator.authenticate(user, password)
 
-        val accessToken = tokenProvider.createAccessToken(authenticatedUser.email(), authenticatedUser.id)
-        val refreshToken = tokenProvider.createRefreshToken(authenticatedUser.email(), authenticatedUser.id)
+        val accessToken = tokenProvider.createAccessToken(authenticatedUser.getEmailValue(), authenticatedUser.id)
+        val refreshToken = tokenProvider.createRefreshToken(authenticatedUser.getEmailValue(), authenticatedUser.id)
 
         // Store refresh token in Redis
-        val ttl = Duration.ofMillis(jwtProperties.refreshTokenExpiration)
+        val ttl = Duration.ofMillis(tokenConfiguration.refreshTokenExpiration)
         refreshTokenStore.store(authenticatedUser.id, refreshToken, ttl)
 
-        return LoginResult(
+        return TokenResult(
             accessToken = accessToken,
             refreshToken = refreshToken,
             userId = authenticatedUser.id,
         )
     }
-
-    data class LoginResult(
-        val accessToken: String,
-        val refreshToken: String,
-        val userId: Long,
-    )
 }

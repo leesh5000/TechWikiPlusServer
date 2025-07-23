@@ -58,7 +58,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
         // 데이터베이스에 사용자가 저장되었는지 확인
         val savedUser = userRepository.findByEmail(request.email)
         assertThat(savedUser).isNotNull
-        assertThat(savedUser!!.email()).isEqualTo(request.email)
+        assertThat(savedUser!!.getEmailValue()).isEqualTo(request.email)
         assertThat(savedUser.nickname).isEqualTo(request.nickname)
         assertThat(savedUser.status).isEqualTo(UserStatus.PENDING)
 

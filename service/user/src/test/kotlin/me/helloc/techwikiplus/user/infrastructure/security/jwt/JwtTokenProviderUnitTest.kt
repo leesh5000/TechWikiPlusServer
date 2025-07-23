@@ -10,8 +10,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
+import me.helloc.techwikiplus.user.infrastructure.security.JwtTokenGenerator
+import me.helloc.techwikiplus.user.infrastructure.security.JwtTokenParser
 import me.helloc.techwikiplus.user.infrastructure.security.JwtTokenProvider
+import me.helloc.techwikiplus.user.infrastructure.security.JwtTokenValidator
 import java.util.Date
 
 class JwtTokenProviderUnitTest : FunSpec({
@@ -30,7 +34,10 @@ class JwtTokenProviderUnitTest : FunSpec({
                 accessTokenExpiration = accessTokenExpiration,
                 refreshTokenExpiration = refreshTokenExpiration,
             )
-        tokenProvider = JwtTokenProvider(jwtProperties)
+        val tokenGenerator = JwtTokenGenerator(jwtProperties)
+        val tokenValidator = JwtTokenValidator(jwtProperties)
+        val tokenParser = JwtTokenParser(jwtProperties)
+        tokenProvider = JwtTokenProvider(tokenGenerator, tokenValidator, tokenParser)
     }
 
     context("Access Token 생성") {
@@ -47,7 +54,7 @@ class JwtTokenProviderUnitTest : FunSpec({
             tokenProvider.validateToken(token) shouldBe true
             tokenProvider.getEmailFromToken(token) shouldBe email
             tokenProvider.getUserIdFromToken(token) shouldBe userId
-            tokenProvider.getTokenType(token) shouldBe "access"
+            tokenProvider.getTokenType(token) shouldBe TokenType.ACCESS
         }
 
         test("access token은 설정된 만료 시간을 가진다") {
@@ -91,7 +98,7 @@ class JwtTokenProviderUnitTest : FunSpec({
             tokenProvider.validateToken(token) shouldBe true
             tokenProvider.getEmailFromToken(token) shouldBe email
             tokenProvider.getUserIdFromToken(token) shouldBe userId
-            tokenProvider.getTokenType(token) shouldBe "refresh"
+            tokenProvider.getTokenType(token) shouldBe TokenType.REFRESH
         }
 
         test("refresh token은 설정된 만료 시간을 가진다") {
@@ -185,8 +192,8 @@ class JwtTokenProviderUnitTest : FunSpec({
             val accessToken = tokenProvider.createAccessToken("test@example.com", 123L)
             val refreshToken = tokenProvider.createRefreshToken("test@example.com", 123L)
 
-            tokenProvider.getTokenType(accessToken) shouldBe "access"
-            tokenProvider.getTokenType(refreshToken) shouldBe "refresh"
+            tokenProvider.getTokenType(accessToken) shouldBe TokenType.ACCESS
+            tokenProvider.getTokenType(refreshToken) shouldBe TokenType.REFRESH
         }
 
         test("만료된 토큰에서 정보 추출 시 예외가 발생한다") {

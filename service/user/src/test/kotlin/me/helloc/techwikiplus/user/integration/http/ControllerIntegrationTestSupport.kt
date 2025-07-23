@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.junit.jupiter.Testcontainers
 
 /**
@@ -25,6 +27,27 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @Import(TestContainerConfig::class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 abstract class ControllerIntegrationTestSupport {
+    companion object {
+        // Spring의 동적 프로퍼티 설정 - 컨테이너의 실제 포트를 애플리케이션에 주입
+        @JvmStatic
+        @DynamicPropertySource
+        fun properties(registry: DynamicPropertyRegistry) {
+            // MySQL 연결 정보 설정
+            registry.add("spring.datasource.url") { TestContainerConfig.mysqlContainer.jdbcUrl }
+            registry.add("spring.datasource.username") { TestContainerConfig.mysqlContainer.username }
+            registry.add("spring.datasource.password") { TestContainerConfig.mysqlContainer.password }
+            registry.add("spring.datasource.driver-class-name") { "com.mysql.cj.jdbc.Driver" }
+
+            // JPA 설정 - 테스트 시 테이블 자동 생성
+            registry.add("spring.jpa.hibernate.ddl-auto") { "create-drop" }
+            registry.add("spring.jpa.properties.hibernate.dialect") { "org.hibernate.dialect.MySQL8Dialect" }
+
+            // Redis 연결 정보 설정
+            registry.add("spring.data.redis.host") { TestContainerConfig.redisContainer.host }
+            registry.add("spring.data.redis.port") { TestContainerConfig.redisContainer.getMappedPort(6379) }
+        }
+    }
+
     @Autowired
     protected lateinit var restTemplate: TestRestTemplate
 

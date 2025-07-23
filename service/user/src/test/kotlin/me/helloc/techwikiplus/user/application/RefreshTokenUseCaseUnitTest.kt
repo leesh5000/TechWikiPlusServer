@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.application
 
+import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
@@ -81,11 +82,11 @@ class RefreshTokenUseCaseUnitTest {
         // 새로 발급된 토큰들이 올바른 정보를 담고 있는지 확인
         assertThat(tokenProvider.getEmailFromToken(result.accessToken)).isEqualTo(email)
         assertThat(tokenProvider.getUserIdFromToken(result.accessToken)).isEqualTo(userId)
-        assertThat(tokenProvider.getTokenType(result.accessToken)).isEqualTo("access")
+        assertThat(tokenProvider.getTokenType(result.accessToken)).isEqualTo(TokenType.ACCESS)
 
         assertThat(tokenProvider.getEmailFromToken(result.refreshToken)).isEqualTo(email)
         assertThat(tokenProvider.getUserIdFromToken(result.refreshToken)).isEqualTo(userId)
-        assertThat(tokenProvider.getTokenType(result.refreshToken)).isEqualTo("refresh")
+        assertThat(tokenProvider.getTokenType(result.refreshToken)).isEqualTo(TokenType.REFRESH)
     }
 
     @Test

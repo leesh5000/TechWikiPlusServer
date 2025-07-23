@@ -18,23 +18,23 @@ spring:
   
   flyway:
     enabled: false
+  
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@example.com
+    password: test-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 jwt:
   secret: "test-secret-key-for-integration-testing-only-12345678901234567890"
-  access-token-validity: 3600000  # 1시간
-  refresh-token-validity: 604800000  # 7일
-
-mail:
-  host: smtp.gmail.com
-  port: 587
-  username: test@example.com
-  password: test-password
-  properties:
-    mail:
-      smtp:
-        auth: true
-        starttls:
-          enable: true
+  access-token-expiration: 3600000  # 1시간
+  refresh-token-expiration: 604800000  # 7일
 
 snowflake:
   machine-id: 1
