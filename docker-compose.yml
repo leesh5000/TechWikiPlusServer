@@ -71,6 +71,9 @@ services:
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-techwikiplus}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-techwikiplus}
 
+      # JPA 설정
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+
       # Redis 설정
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
