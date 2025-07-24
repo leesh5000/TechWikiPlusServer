@@ -92,6 +92,13 @@ LOGGING_LEVEL_HIBERNATE_SQL=WARN
 
 # JVM 옵션
 JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+
+# CORS 설정 (선택적 - 필요시 주석 해제하고 수정)
+# CORS_ALLOWED_ORIGINS=https://example.com,https://api.example.com
+# CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+# CORS_ALLOWED_HEADERS=*
+# CORS_ALLOW_CREDENTIALS=true
+# CORS_MAX_AGE=3600
 EOF
     chmod 600 "$HOME/$PROJECT_DIR/.env"
     echo ".env 파일이 생성되었습니다. 실제 값으로 수정해주세요!"

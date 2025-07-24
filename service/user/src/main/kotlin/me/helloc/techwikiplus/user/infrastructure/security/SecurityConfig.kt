@@ -11,6 +11,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
@@ -18,10 +19,12 @@ open class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
+    private val corsConfigurationSource: CorsConfigurationSource,
 ) {
     @Bean
     open fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
+            .cors { it.configurationSource(corsConfigurationSource) }
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
@@ -32,6 +35,8 @@ open class SecurityConfig(
                         "/api/v1/users/signup/verify/resend",
                         "/api/v1/users/login",
                         "/api/v1/users/refresh",
+                        "/actuator/health",
+                        "/actuator/info",
                     ).permitAll()
                     .anyRequest().authenticated()
             }
