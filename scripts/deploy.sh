@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 배포 스크립트
+# 배포 스크립트 - 빠른 배포 및 스마트 이미지 관리
 # GitHub Actions에서 호출되어 EC2에서 실행됩니다.
 
 set -e  # 에러 발생 시 스크립트 중단
@@ -26,19 +26,30 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# 3. 새 이미지 태그로 환경변수 업데이트
+# 3. 현재 실행 중인 이미지 태그 저장 (롤백용)
+echo "현재 실행 중인 이미지 정보 저장 중..."
+CURRENT_IMAGE_TAG=$(docker inspect user-service 2>/dev/null | grep -o '"Image": "[^"]*"' | cut -d'"' -f4 || echo "none")
+echo "현재 이미지: $CURRENT_IMAGE_TAG"
+
+# 4. 새 이미지 태그로 환경변수 업데이트
 if [ -n "$1" ]; then
-    IMAGE_TAG="$1"
-    echo "새 이미지 태그: $IMAGE_TAG"
+    NEW_IMAGE_TAG="$1"
+    echo "새 이미지 태그: $NEW_IMAGE_TAG"
+    
+    # 이미지가 실제로 변경되었는지 확인
+    if [ "$CURRENT_IMAGE_TAG" = "$NEW_IMAGE_TAG" ]; then
+        echo "이미지가 이미 최신 버전입니다. 배포를 건너뜁니다."
+        exit 0
+    fi
     
     # .env 파일의 USER_SERVICE_IMAGE 업데이트
-    sed -i.bak "s|^USER_SERVICE_IMAGE=.*|USER_SERVICE_IMAGE=$IMAGE_TAG|" .env
+    sed -i.bak "s|^USER_SERVICE_IMAGE=.*|USER_SERVICE_IMAGE=$NEW_IMAGE_TAG|" .env
     echo "USER_SERVICE_IMAGE 업데이트 완료"
 else
     echo "WARNING: 이미지 태그가 제공되지 않았습니다. 기존 이미지를 사용합니다."
 fi
 
-# 4. docker-compose.yml 파일 확인
+# 5. docker-compose.yml 파일 확인
 if [ ! -f "docker-compose.yml" ]; then
     echo "ERROR: docker-compose.yml 파일이 없습니다."
     exit 1
@@ -54,219 +65,188 @@ df -h | grep -E '^/dev/' | head -5
 echo "메모리 사용량:"
 free -h
 
-# 5. ECR 로그인 (IAM 역할 사용)
+# 6. ECR 로그인 (IAM 역할 사용)
 echo "ECR 로그인 중..."
-if [ -n "$IMAGE_TAG" ]; then
-    ECR_REGISTRY=$(echo $IMAGE_TAG | cut -d'/' -f1)
+if [ -n "$NEW_IMAGE_TAG" ]; then
+    ECR_REGISTRY=$(echo $NEW_IMAGE_TAG | cut -d'/' -f1)
     aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY || {
         echo "WARNING: ECR 로그인 실패. EC2 IAM 역할이 설정되어 있는지 확인하세요."
         echo "IAM 역할에 AmazonEC2ContainerRegistryReadOnly 권한이 필요합니다."
     }
 fi
 
-# 6. 기존 컨테이너 정지 및 제거
-echo "기존 컨테이너 정지 중..."
-docker-compose down || true
-
-# 7. 오래된 이미지 정리 (선택사항)
-echo "오래된 이미지 정리 중..."
-docker image prune -af --filter "until=24h" || true
-
-# 8. 최신 이미지 pull 및 컨테이너 시작
+# 7. 변경된 서비스 확인
 echo ""
-echo "===== Docker 이미지 Pull ====="
-echo "현재 환경변수:"
-grep -E "^(USER_SERVICE_IMAGE|MYSQL_|REDIS_)" .env | head -5
+echo "===== 변경된 서비스 확인 ====="
+SERVICES_TO_UPDATE=""
 
-echo ""
-echo "최신 이미지 pull 중..."
-docker-compose pull || {
-    echo ""
-    echo "❌ ERROR: Docker 이미지 pull 실패"
-    echo "오류 원인:"
-    echo "1. ECR 로그인 실패 - IAM 역할 확인"
-    echo "2. 이미지 URL 오타 - .env 파일 확인"
-    echo "3. 네트워크 문제 - 인터넷 연결 확인"
-    echo ""
-    echo "Docker 이미지 상태:"
-    docker images | grep -E "(user-service|mysql|redis)" || echo "관련 이미지 없음"
-    exit 1
-}
-
-echo ""
-echo "===== Docker Compose 실행 ====="
-echo "새 컨테이너 시작 중..."
-
-# Docker Compose 실행 전 검증
-docker-compose config > /dev/null 2>&1 || {
-    echo "ERROR: docker-compose.yml 파일 검증 실패"
-    docker-compose config
-    exit 1
-}
-
-docker-compose up -d || {
-    echo ""
-    echo "❌ ERROR: Docker Compose 시작 실패"
-    echo ""
-    echo "===== 상세 오류 정보 ====="
+# docker-compose config로 현재 설정된 이미지 확인
+for service in user-service mysql redis; do
+    CONFIGURED_IMAGE=$(docker-compose config | grep -A 5 "^  $service:" | grep "image:" | awk '{print $2}')
+    RUNNING_IMAGE=$(docker inspect ${PROJECT_DIR}_${service}_1 2>/dev/null | grep -o '"Image": "[^"]*"' | cut -d'"' -f4 || echo "none")
     
-    echo "\n1. Docker Compose 상태:"
-    docker-compose ps -a
-    
-    echo "\n2. 각 서비스 로그:"
-    echo "\n--- MySQL 로그 ---"
-    docker-compose logs --tail=30 mysql || echo "MySQL 로그 없음"
-    
-    echo "\n--- Redis 로그 ---"
-    docker-compose logs --tail=30 redis || echo "Redis 로그 없음"
-    
-    echo "\n--- User Service 로그 ---"
-    docker-compose logs --tail=50 user-service || echo "User Service 로그 없음"
-    
-    echo "\n3. Docker 이벤트 (최근 2분):"
-    docker events --since 2m --until now || echo "Docker 이벤트 없음"
-    
-    echo "\n4. 가능한 오류 원인:"
-    echo "- 포트 충돌: 이미 사용 중인 포트"
-    echo "- 메모리 부족: 컨테이너 시작에 필요한 메모리 부족"
-    echo "- 볼륨 문제: Docker 볼륨 마운트 실패"
-    echo "- 환경변수 오류: .env 파일의 필수 환경변수 누락"
-    echo "- 의존성 문제: depends_on으로 지정된 서비스 시작 실패"
-    
-    exit 1
-}
-
-# 9. 서비스 시작 대기
-echo "서비스 시작 대기 중..."
-echo "Spring Boot 애플리케이션 초기화를 위해 45초 대기"
-sleep 45
-
-# 10. 서비스 상태 확인
-echo "===== 서비스 상태 ====="
-docker-compose ps
-
-# 11. 로그 확인 (마지막 50줄)
-echo "===== 최근 로그 ====="
-docker-compose logs --tail=50 user-service || {
-    echo "WARNING: user-service 로그를 가져올 수 없습니다."
-    echo "컨테이너 상태 확인:"
-    docker ps -a | grep user-service
-}
-
-# 12. 헬스체크
-echo "===== 헬스체크 ====="
-echo "헬스체크 URL: $HEALTH_CHECK_URL"
-
-# Actuator가 없을 수 있으므로 다른 URL도 테스트
-echo "기본 연결 테스트 (http://localhost:9000):"
-if curl -s -m 5 http://localhost:9000 > /dev/null 2>&1; then
-    echo "  ✅ 포트 9000에 연결 가능"
-else
-    echo "  ❌ 포트 9000에 연결할 수 없습니다."
-fi
-echo ""
-
-RETRY_COUNT=0
-
-while [ $RETRY_COUNT -lt $HEALTH_CHECK_MAX_RETRIES ]; do
-    # curl의 상세 에러 메시지 확인
-    CURL_RESPONSE=$(curl -s -w "\n\nHTTP_CODE: %{http_code}\nCONNECT_TIME: %{time_connect}s" $HEALTH_CHECK_URL 2>&1)
-    CURL_EXIT_CODE=$?
-    
-    if [ $CURL_EXIT_CODE -eq 0 ] && echo "$CURL_RESPONSE" | grep -q "HTTP_CODE: 200"; then
-        echo ""
-        echo "✅ 헬스체크 성공!"
-        break
+    if [ "$CONFIGURED_IMAGE" != "$RUNNING_IMAGE" ]; then
+        echo "✓ $service: 업데이트 필요"
+        echo "  현재: $RUNNING_IMAGE"
+        echo "  신규: $CONFIGURED_IMAGE"
+        SERVICES_TO_UPDATE="$SERVICES_TO_UPDATE $service"
     else
-        echo "헬스체크 실패... 재시도 중 ($((RETRY_COUNT+1))/$HEALTH_CHECK_MAX_RETRIES)"
-        
-        # 첫 번째 실패 시 상세 정보 출력
-        if [ $RETRY_COUNT -eq 0 ]; then
-            echo "  - URL: $HEALTH_CHECK_URL"
-            echo "  - Curl Exit Code: $CURL_EXIT_CODE"
-            echo "  - Response: $(echo "$CURL_RESPONSE" | head -20)"
-            echo ""
-            echo "  User Service 컨테이너 상태:"
-            docker ps | grep user-service || echo "  user-service 컨테이너가 실행 중이지 않습니다."
-            echo ""
-            echo "  User Service 최근 로그 (10줄):"
-            docker-compose logs --tail=10 user-service 2>&1 | sed 's/^/  /'
-        fi
-        
-        sleep $HEALTH_CHECK_RETRY_DELAY
-        RETRY_COUNT=$((RETRY_COUNT+1))
+        echo "- $service: 이미 최신 버전"
     fi
 done
 
-if [ $RETRY_COUNT -eq $HEALTH_CHECK_MAX_RETRIES ]; then
+# 8. 선택적 이미지 Pull
+if [ -n "$SERVICES_TO_UPDATE" ]; then
     echo ""
-    echo "⚠️  WARNING: 헬스체크가 계속 실패합니다."
-    echo "시도한 URL: $HEALTH_CHECK_URL"
-    echo ""
-    echo "===== 최종 진단 ====="
-    echo "1. 네트워크 연결 테스트:"
-    nc -zv localhost 9000 2>&1 || echo "  포트 9000에 연결할 수 없습니다."
+    echo "===== 변경된 이미지만 Pull ====="
     
-    echo ""
-    echo "2. User Service 상태:"
-    docker-compose ps user-service
+    # 각 서비스별로 pull (병렬 처리)
+    for service in $SERVICES_TO_UPDATE; do
+        echo "Pulling $service..."
+        docker-compose pull --ignore-pull-failures $service &
+    done
     
-    echo ""
-    echo "3. User Service 전체 로그 (마지막 30줄):"
-    docker-compose logs --tail=30 user-service
+    # 모든 pull 작업 대기
+    wait
     
-    echo ""
-    echo "4. 네트워크 포트 사용 현황:"
-    netstat -tuln | grep 9000 || ss -tuln | grep 9000 || echo "  포트 9000이 열려있지 않습니다."
+    # Pull 결과 확인
+    for service in $SERVICES_TO_UPDATE; do
+        if docker-compose config | grep -A 5 "^  $service:" | grep "image:" | awk '{print $2}' | xargs docker inspect >/dev/null 2>&1; then
+            echo "✅ $service: Pull 성공"
+        else
+            echo "❌ $service: Pull 실패"
+            exit 1
+        fi
+    done
+else
+    echo "모든 서비스가 이미 최신 버전입니다."
 fi
+
+# 9. Rolling Update (무중단 배포)
+if [ -n "$SERVICES_TO_UPDATE" ]; then
+    echo ""
+    echo "===== Rolling Update 시작 ====="
+    
+    # MySQL과 Redis는 먼저 업데이트 (의존성 때문에)
+    for service in mysql redis; do
+        if echo "$SERVICES_TO_UPDATE" | grep -q "$service"; then
+            echo "Updating $service..."
+            docker-compose up -d --no-deps $service
+            sleep 5  # 데이터베이스 초기화 대기
+        fi
+    done
+    
+    # User Service 업데이트
+    if echo "$SERVICES_TO_UPDATE" | grep -q "user-service"; then
+        echo "Updating user-service..."
+        
+        # 새 컨테이너 시작 (기존 컨테이너는 유지)
+        docker-compose up -d --no-deps --scale user-service=2 user-service
+        
+        # 새 컨테이너가 준비될 때까지 대기
+        echo "새 컨테이너 초기화 대기 중 (30초)..."
+        sleep 30
+        
+        # 헬스체크
+        echo "헬스체크 수행 중..."
+        RETRY_COUNT=0
+        HEALTH_CHECK_PASSED=false
+        
+        while [ $RETRY_COUNT -lt $HEALTH_CHECK_MAX_RETRIES ]; do
+            if curl -s -f $HEALTH_CHECK_URL > /dev/null 2>&1; then
+                echo "✅ 헬스체크 성공!"
+                HEALTH_CHECK_PASSED=true
+                break
+            else
+                echo "헬스체크 재시도 중... ($((RETRY_COUNT+1))/$HEALTH_CHECK_MAX_RETRIES)"
+                sleep $HEALTH_CHECK_RETRY_DELAY
+                RETRY_COUNT=$((RETRY_COUNT+1))
+            fi
+        done
+        
+        if [ "$HEALTH_CHECK_PASSED" = true ]; then
+            # 이전 컨테이너 제거
+            echo "이전 컨테이너 제거 중..."
+            docker-compose up -d --no-deps --scale user-service=1 user-service
+        else
+            echo "❌ 헬스체크 실패! 롤백 중..."
+            # 롤백: 이전 이미지로 복원
+            sed -i.bak "s|^USER_SERVICE_IMAGE=.*|USER_SERVICE_IMAGE=$CURRENT_IMAGE_TAG|" .env
+            docker-compose up -d --no-deps user-service
+            exit 1
+        fi
+    fi
+else
+    echo "업데이트할 서비스가 없습니다."
+fi
+
+# 10. 서비스 상태 확인
+echo ""
+echo "===== 서비스 상태 ====="
+docker-compose ps
+
+# 11. 로그 확인 (마지막 30줄)
+echo ""
+echo "===== 최근 로그 ====="
+docker-compose logs --tail=30 user-service || {
+    echo "WARNING: user-service 로그를 가져올 수 없습니다."
+}
+
+# 12. 스마트 이미지 정리
+echo ""
+echo "===== 이미지 정리 ====="
+
+# 현재 사용 중인 이미지 ID 목록
+USED_IMAGES=$(docker-compose ps -q | xargs docker inspect -f '{{.Image}}' 2>/dev/null | sort -u)
+
+# 롤백용 이전 이미지도 보존
+if [ -n "$CURRENT_IMAGE_TAG" ] && [ "$CURRENT_IMAGE_TAG" != "none" ]; then
+    ROLLBACK_IMAGE_ID=$(docker images -q $CURRENT_IMAGE_TAG 2>/dev/null || echo "")
+    if [ -n "$ROLLBACK_IMAGE_ID" ]; then
+        USED_IMAGES="$USED_IMAGES $ROLLBACK_IMAGE_ID"
+    fi
+fi
+
+# 사용하지 않는 이미지 삭제
+echo "사용하지 않는 이미지 정리 중..."
+DELETED_COUNT=0
+
+# techwikiplus 관련 이미지만 대상으로
+for image in $(docker images | grep -E "(techwikiplus|user-service)" | awk '{print $3}' | sort -u); do
+    if ! echo "$USED_IMAGES" | grep -q "$image"; then
+        echo "삭제: $(docker images | grep $image | head -1 | awk '{print $1":"$2}')"
+        docker rmi $image 2>/dev/null && DELETED_COUNT=$((DELETED_COUNT+1)) || true
+    fi
+done
+
+# dangling 이미지 정리
+docker image prune -f > /dev/null 2>&1
+
+echo "✅ $DELETED_COUNT개의 이미지를 정리했습니다."
 
 # 13. 배포 완료
 echo ""
 echo "===== 배포 완료 ====="
 echo "시간: $(date)"
-echo "이미지: ${IMAGE_TAG:-기존 이미지 사용}"
+echo "배포된 이미지: ${NEW_IMAGE_TAG:-기존 이미지 사용}"
 
 # 14. 실행 중인 컨테이너 확인
 echo ""
 echo "===== 실행 중인 컨테이너 ====="
-docker ps --filter "name=techwikiplus"
+docker ps --filter "name=techwikiplus" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
 
 # 실제로 컨테이너가 실행 중인지 확인
 RUNNING_CONTAINERS=$(docker-compose ps -q | wc -l)
 EXPECTED_CONTAINERS=3  # mysql, redis, user-service
 
-if [ "$RUNNING_CONTAINERS" -eq "0" ]; then
+if [ "$RUNNING_CONTAINERS" -eq "$EXPECTED_CONTAINERS" ]; then
     echo ""
-    echo "❌ ERROR: 실행 중인 컨테이너가 없습니다!"
+    echo "✅ 모든 서비스가 정상적으로 실행 중입니다. ($RUNNING_CONTAINERS/$EXPECTED_CONTAINERS)"
+else
     echo ""
-    echo "===== 상세 진단 정보 ====="
-    echo "1. 모든 컨테이너 상태:"
-    docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    
-    echo "\n2. Docker Compose 로그:"
-    docker-compose logs --tail=100
-    
-    echo "\n3. Docker 네트워크:"
-    docker network ls | grep techwikiplus
-    
-    echo "\n4. Docker 볼륨:"
-    docker volume ls | grep techwikiplus
-    
-    exit 1
-elif [ "$RUNNING_CONTAINERS" -lt "$EXPECTED_CONTAINERS" ]; then
-    echo ""
-    echo "⚠️  WARNING: 예상보다 적은 컨테이너가 실행 중입니다."
-    echo "예상: $EXPECTED_CONTAINERS개, 실제: $RUNNING_CONTAINERS개"
-    echo ""
-    echo "실행 중인 컨테이너:"
+    echo "⚠️  WARNING: 일부 서비스가 실행되지 않았습니다. ($RUNNING_CONTAINERS/$EXPECTED_CONTAINERS)"
     docker-compose ps
-    echo ""
-    echo "중지된 컨테이너:"
-    docker-compose ps -a | grep -E "Exit|Created"
 fi
-
-echo ""
-echo "✅ $RUNNING_CONTAINERS개의 컨테이너가 실행 중입니다."
 
 # 각 서비스 상태 확인
 echo ""
@@ -279,3 +259,10 @@ for service in mysql redis user-service; do
         echo "  로그 확인: docker-compose logs --tail=20 $service"
     fi
 done
+
+# 15. 배포 통계
+echo ""
+echo "===== 배포 통계 ====="
+echo "총 소요 시간: $SECONDS초"
+echo "업데이트된 서비스: ${SERVICES_TO_UPDATE:-없음}"
+echo "정리된 이미지: $DELETED_COUNT개"
