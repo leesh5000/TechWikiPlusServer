@@ -9,12 +9,18 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
+  # ECR 리포지토리 이름 - 프로젝트별로 변경 가능
+  ECR_REPOSITORY_NAME: techwikiplus/server/user-service
+  PROJECT_DIRECTORY: techwikiplus-server
 
 jobs:
   ci:
     name: CI - Lint, Test, Build
     runs-on: ubuntu-latest
     environment: AWS
+    env:
+      # CI job에서 workflow-level 환경변수 상속
+      ECR_REPOSITORY_NAME: ${{ env.ECR_REPOSITORY_NAME }}
 
     steps:
     - name: 코드 체크아웃
@@ -73,15 +79,15 @@ jobs:
       if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
       run: |
         echo "ECR Registry: ${{ steps.login-ecr.outputs.registry }}"
-        echo "ECR Repository: ${{ env.ECR_REPOSITORY }}"
-        echo "Full Image: ${{ steps.login-ecr.outputs.registry }}/techwikiplus/user-service"
+        echo "ECR Repository: ${{ env.ECR_REPOSITORY_NAME }}"
+        echo "Full Image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}"
 
     - name: Docker 메타데이터 생성
       if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ steps.login-ecr.outputs.registry }}/techwikiplus/user-service
+        images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}
         tags: |
           type=ref,event=branch
           type=sha,prefix={{date 'YYYYMMDD'}}-
@@ -125,13 +131,14 @@ jobs:
 
     - name: EC2로 docker-compose.yml 전송
       run: |
-        scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "mkdir -p ~/${{ env.PROJECT_DIRECTORY }}"
+        scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/${{ env.PROJECT_DIRECTORY }}/
 
     - name: EC2에서 Docker Compose 실행
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
           # Docker Compose 실행 디렉토리로 이동
-          cd ~
+          cd ~/${{ env.PROJECT_DIRECTORY }}
 
           # 최신 이미지 태그로 환경변수 업데이트
           # .env 파일에서 USER_SERVICE_IMAGE 라인만 업데이트

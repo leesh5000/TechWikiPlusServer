@@ -91,6 +91,21 @@
 - **설명**: SMTP 서버 접속용 비밀번호
 - **Gmail 사용 시**: 앱 비밀번호 생성 필요 (2단계 인증 필수)
 
+## ECR 리포지토리 설정
+
+CI/CD 파이프라인에서 사용하는 ECR 리포지토리 이름은 `.github/workflows/ci-cd.yml` 파일의 상단에서 설정합니다:
+
+```yaml
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY_NAME: techwikiplus/user-service  # 프로젝트에 맞게 변경
+  PROJECT_DIRECTORY: techwikiplus-server  # EC2에서 사용할 프로젝트 디렉토리
+```
+
+다른 프로젝트에서 사용 시:
+- `ECR_REPOSITORY_NAME`: 해당 프로젝트의 ECR 리포지토리 이름으로 변경
+- `PROJECT_DIRECTORY`: EC2에서 사용할 디렉토리 이름으로 변경
+
 ## GitHub에서 Secrets 설정하기
 
 ### Repository Secrets 설정 (모든 환경 공통)
