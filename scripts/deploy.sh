@@ -14,7 +14,7 @@ echo "호스트: $(hostname)"
 # 1. 작업 디렉토리 확인
 # 환경변수 설정
 PROJECT_DIR="${PROJECT_DIRECTORY:-techwikiplus-server}"
-HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000}"
+HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/actuator/health}"
 HEALTH_CHECK_MAX_RETRIES="${HEALTH_CHECK_MAX_RETRIES:-10}"
 HEALTH_CHECK_RETRY_DELAY="${HEALTH_CHECK_RETRY_DELAY:-5}"
 
@@ -157,16 +157,35 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
         
         # 헬스체크
         echo "헬스체크 수행 중..."
+        echo "헬스체크 URL: $HEALTH_CHECK_URL"
         RETRY_COUNT=0
         HEALTH_CHECK_PASSED=false
         
+        # 먼저 포트가 열려있는지 확인
+        if nc -zv localhost 9000 2>&1 | grep -q succeeded; then
+            echo "포트 9000이 열려있습니다."
+        else
+            echo "WARNING: 포트 9000이 아직 열리지 않았습니다."
+        fi
+        
         while [ $RETRY_COUNT -lt $HEALTH_CHECK_MAX_RETRIES ]; do
-            if curl -s -f $HEALTH_CHECK_URL > /dev/null 2>&1; then
-                echo "✅ 헬스체크 성공!"
+            # curl 결과를 변수에 저장하여 디버그
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL 2>&1)
+            CURL_EXIT=$?
+            
+            if [ $CURL_EXIT -eq 0 ] && [ "$HTTP_STATUS" = "200" -o "$HTTP_STATUS" = "204" ]; then
+                echo "✅ 헬스체크 성공! (HTTP $HTTP_STATUS)"
                 HEALTH_CHECK_PASSED=true
                 break
             else
-                echo "헬스체크 재시도 중... ($((RETRY_COUNT+1))/$HEALTH_CHECK_MAX_RETRIES)"
+                echo "헬스체크 재시도 중... ($((RETRY_COUNT+1))/$HEALTH_CHECK_MAX_RETRIES) - HTTP Status: $HTTP_STATUS, Exit Code: $CURL_EXIT"
+                
+                # 첫 번째 실패 시 더 자세한 정보 출력
+                if [ $RETRY_COUNT -eq 0 ]; then
+                    echo "컨테이너 상태 확인:"
+                    docker ps --filter "label=com.docker.compose.service=user-service" --format "table {{.Names}}\t{{.Status}}"
+                fi
+                
                 sleep $HEALTH_CHECK_RETRY_DELAY
                 RETRY_COUNT=$((RETRY_COUNT+1))
             fi
@@ -176,7 +195,12 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
             echo "❌ 헬스체크 실패! 서비스가 정상적으로 시작되지 않았습니다."
             # 로그 확인
             echo "User Service 로그:"
-            docker-compose logs --tail=50 user-service
+            USER_SERVICE_CONTAINER=$(docker ps --filter "label=com.docker.compose.service=user-service" --format "{{.Names}}" | head -1)
+            if [ -n "$USER_SERVICE_CONTAINER" ]; then
+                docker logs --tail=50 $USER_SERVICE_CONTAINER 2>&1 || echo "로그 확인 실패"
+            else
+                echo "User Service 컨테이너를 찾을 수 없습니다."
+            fi
         fi
     fi
 else
