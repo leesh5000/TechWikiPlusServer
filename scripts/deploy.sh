@@ -10,7 +10,9 @@ echo "시간: $(date)"
 echo "디렉토리: $(pwd)"
 
 # 1. 작업 디렉토리 확인
-cd ~/techwikiplus || { echo "techwikiplus 디렉토리가 없습니다. ec2-setup.sh를 먼저 실행하세요."; exit 1; }
+# PROJECT_DIRECTORY 환경변수 사용 (기본값: techwikiplus-server)
+PROJECT_DIR="${PROJECT_DIRECTORY:-techwikiplus-server}"
+cd ~/$PROJECT_DIR || { echo "$PROJECT_DIR 디렉토리가 없습니다. ec2-setup.sh를 먼저 실행하세요."; exit 1; }
 
 # 2. .env 파일 확인
 if [ ! -f ".env" ]; then
