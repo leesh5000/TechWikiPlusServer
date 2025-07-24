@@ -88,7 +88,7 @@ env:
 - `AWS_REGION`: AWS 리전 설정
 - `ECR_REPOSITORY_NAME`: ECR 리포지토리 이름
 - `PROJECT_DIRECTORY`: EC2에서 사용할 프로젝트 디렉토리
-- `HEALTH_CHECK_URL`: 서비스 헬스체크 엔드포인트
+- `HEALTH_CHECK_URL`: 서비스 헬스체크 URL (기본값: http://localhost:9000/actuator/health)
 - `HEALTH_CHECK_MAX_RETRIES`: 헬스체크 최대 재시도 횟수
 - `HEALTH_CHECK_RETRY_DELAY`: 헬스체크 재시도 간격(초)
 

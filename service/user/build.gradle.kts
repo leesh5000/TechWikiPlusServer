@@ -18,6 +18,9 @@ dependencies {
     // thymeleaf for email templates
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 
+    // Spring Boot Actuator - 헬스체크 및 모니터링
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")

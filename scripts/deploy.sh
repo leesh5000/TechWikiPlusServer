@@ -14,7 +14,7 @@ echo "호스트: $(hostname)"
 # 1. 작업 디렉토리 확인
 # 환경변수 설정
 PROJECT_DIR="${PROJECT_DIRECTORY:-techwikiplus-server}"
-HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/actuator/health}"
+HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000}"
 HEALTH_CHECK_MAX_RETRIES="${HEALTH_CHECK_MAX_RETRIES:-10}"
 HEALTH_CHECK_RETRY_DELAY="${HEALTH_CHECK_RETRY_DELAY:-5}"
 
@@ -138,7 +138,8 @@ docker-compose up -d || {
 
 # 9. 서비스 시작 대기
 echo "서비스 시작 대기 중..."
-sleep 30
+echo "Spring Boot 애플리케이션 초기화를 위해 45초 대기"
+sleep 45
 
 # 10. 서비스 상태 확인
 echo "===== 서비스 상태 ====="
@@ -155,15 +156,43 @@ docker-compose logs --tail=50 user-service || {
 # 12. 헬스체크
 echo "===== 헬스체크 ====="
 echo "헬스체크 URL: $HEALTH_CHECK_URL"
+
+# Actuator가 없을 수 있으므로 다른 URL도 테스트
+echo "기본 연결 테스트 (http://localhost:9000):"
+if curl -s -m 5 http://localhost:9000 > /dev/null 2>&1; then
+    echo "  ✅ 포트 9000에 연결 가능"
+else
+    echo "  ❌ 포트 9000에 연결할 수 없습니다."
+fi
+echo ""
+
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $HEALTH_CHECK_MAX_RETRIES ]; do
-    if curl -f $HEALTH_CHECK_URL 2>/dev/null; then
+    # curl의 상세 에러 메시지 확인
+    CURL_RESPONSE=$(curl -s -w "\n\nHTTP_CODE: %{http_code}\nCONNECT_TIME: %{time_connect}s" $HEALTH_CHECK_URL 2>&1)
+    CURL_EXIT_CODE=$?
+    
+    if [ $CURL_EXIT_CODE -eq 0 ] && echo "$CURL_RESPONSE" | grep -q "HTTP_CODE: 200"; then
         echo ""
         echo "✅ 헬스체크 성공!"
         break
     else
         echo "헬스체크 실패... 재시도 중 ($((RETRY_COUNT+1))/$HEALTH_CHECK_MAX_RETRIES)"
+        
+        # 첫 번째 실패 시 상세 정보 출력
+        if [ $RETRY_COUNT -eq 0 ]; then
+            echo "  - URL: $HEALTH_CHECK_URL"
+            echo "  - Curl Exit Code: $CURL_EXIT_CODE"
+            echo "  - Response: $(echo "$CURL_RESPONSE" | head -20)"
+            echo ""
+            echo "  User Service 컨테이너 상태:"
+            docker ps | grep user-service || echo "  user-service 컨테이너가 실행 중이지 않습니다."
+            echo ""
+            echo "  User Service 최근 로그 (10줄):"
+            docker-compose logs --tail=10 user-service 2>&1 | sed 's/^/  /'
+        fi
+        
         sleep $HEALTH_CHECK_RETRY_DELAY
         RETRY_COUNT=$((RETRY_COUNT+1))
     fi
@@ -173,7 +202,22 @@ if [ $RETRY_COUNT -eq $HEALTH_CHECK_MAX_RETRIES ]; then
     echo ""
     echo "⚠️  WARNING: 헬스체크가 계속 실패합니다."
     echo "시도한 URL: $HEALTH_CHECK_URL"
-    echo "서비스 로그를 확인하세요."
+    echo ""
+    echo "===== 최종 진단 ====="
+    echo "1. 네트워크 연결 테스트:"
+    nc -zv localhost 9000 2>&1 || echo "  포트 9000에 연결할 수 없습니다."
+    
+    echo ""
+    echo "2. User Service 상태:"
+    docker-compose ps user-service
+    
+    echo ""
+    echo "3. User Service 전체 로그 (마지막 30줄):"
+    docker-compose logs --tail=30 user-service
+    
+    echo ""
+    echo "4. 네트워크 포트 사용 현황:"
+    netstat -tuln | grep 9000 || ss -tuln | grep 9000 || echo "  포트 9000이 열려있지 않습니다."
 fi
 
 # 13. 배포 완료
