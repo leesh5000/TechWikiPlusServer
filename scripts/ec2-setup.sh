@@ -53,9 +53,9 @@ echo "6. .env 파일 설정 중..."
 if [ ! -f "$HOME/$PROJECT_DIR/.env" ]; then
     cat > "$HOME/$PROJECT_DIR/.env" << 'EOF'
 # User Service 이미지 (CI/CD에서 자동 업데이트됨)
-# 형식: <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<ECR_REPOSITORY_NAME>:<TAG>
-# 예시: 127994096408.dkr.ecr.ap-northeast-2.amazonaws.com/techwikiplus/user-service:main
-USER_SERVICE_IMAGE=<ECR_REGISTRY>/<ECR_REPOSITORY_NAME>:<TAG>
+# 형식: <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<ECR_REPOSITORY_NAME>:latest
+# 예시: 127994096408.dkr.ecr.ap-northeast-2.amazonaws.com/techwikiplus/user-service:latest
+USER_SERVICE_IMAGE=<ECR_REGISTRY>/<ECR_REPOSITORY_NAME>:latest
 
 # 데이터베이스 설정
 MYSQL_ROOT_PASSWORD=your-strong-password

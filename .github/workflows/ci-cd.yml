@@ -208,6 +208,17 @@ jobs:
     - name: 코드 체크아웃
       uses: actions/checkout@v4
 
+    - name: AWS 자격 증명 구성
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Amazon ECR 로그인
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
     - name: SSH 키 설정
       run: |
         mkdir -p ~/.ssh
@@ -221,18 +232,17 @@ jobs:
         scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/${{ env.PROJECT_DIRECTORY }}/
 
     - name: 배포 스크립트 전송 및 실행
-      env:
-        IMAGE_TAGS: ${{ needs.docker-build.outputs.image-tag }}
       run: |
         # 배포 스크립트 전송
         scp -o StrictHostKeyChecking=no scripts/deploy.sh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/${{ env.PROJECT_DIRECTORY }}/
         
-        # 이미지 태그에서 첫 번째 태그 추출 (로컬에서)
-        FIRST_TAG=$(echo "$IMAGE_TAGS" | tr ',' '\n' | grep -v 'latest' | head -1 | xargs)
-        echo "배포할 이미지: $FIRST_TAG"
+        # ECR 레지스트리 URL 생성
+        ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+        LATEST_TAG="${ECR_REGISTRY}/${{ env.ECR_REPOSITORY_NAME }}:latest"
+        echo "배포할 이미지: $LATEST_TAG"
         
-        # 배포 스크립트 실행
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && chmod +x deploy.sh && HEALTH_CHECK_URL='${{ env.HEALTH_CHECK_URL }}' HEALTH_CHECK_MAX_RETRIES='${{ env.HEALTH_CHECK_MAX_RETRIES }}' HEALTH_CHECK_RETRY_DELAY='${{ env.HEALTH_CHECK_RETRY_DELAY }}' PROJECT_DIRECTORY='${{ env.PROJECT_DIRECTORY }}' ./deploy.sh '$FIRST_TAG'"
+        # 배포 스크립트 실행 (latest 태그 사용)
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && chmod +x deploy.sh && HEALTH_CHECK_URL='${{ env.HEALTH_CHECK_URL }}' HEALTH_CHECK_MAX_RETRIES='${{ env.HEALTH_CHECK_MAX_RETRIES }}' HEALTH_CHECK_RETRY_DELAY='${{ env.HEALTH_CHECK_RETRY_DELAY }}' PROJECT_DIRECTORY='${{ env.PROJECT_DIRECTORY }}' ./deploy.sh '$LATEST_TAG'"
 
     - name: 배포 성공 알림
       if: success()

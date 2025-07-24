@@ -60,7 +60,13 @@ docker-compose down || true
 echo "오래된 이미지 정리 중..."
 docker image prune -af --filter "until=24h" || true
 
-# 8. 새 이미지로 컨테이너 시작
+# 8. 최신 이미지 pull 및 컨테이너 시작
+echo "최신 이미지 pull 중..."
+docker-compose pull || {
+    echo "ERROR: Docker 이미지 pull 실패"
+    exit 1
+}
+
 echo "새 컨테이너 시작 중..."
 docker-compose up -d || {
     echo "ERROR: Docker Compose 시작 실패"
