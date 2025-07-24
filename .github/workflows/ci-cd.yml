@@ -27,7 +27,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Gradle 캐시 설정
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
@@ -46,7 +46,7 @@ jobs:
       run: ./gradlew test
 
     - name: 테스트 리포트 업로드
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-reports
