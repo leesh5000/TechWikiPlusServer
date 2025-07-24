@@ -9,30 +9,48 @@
 #### 1. **lint** - 코드 스타일 검사
 - ktlint를 사용한 코드 스타일 검사
 - test job과 병렬 실행
+- **Job Summary**: ktlint 검사 통과/실패 여부 표시
 
 #### 2. **test** - 테스트 실행
 - 단위 및 통합 테스트 실행
 - 테스트 리포트 업로드
 - lint job과 병렬 실행
+- **Job Summary**: 
+  - 테스트 성공/실패 상태
+  - 모듈별 테스트 리포트 생성 여부
+  - Artifacts 링크 제공
 
 #### 3. **build** - 애플리케이션 빌드
 - Gradle로 JAR 파일 빌드
 - lint와 test가 모두 성공해야 실행
 - 빌드된 JAR을 artifact로 업로드
+- **Job Summary**: 
+  - 빌드 성공/실패 상태
+  - JAR 파일명 및 크기 정보
 
 #### 4. **docker-build** - Docker 이미지 빌드
 - Docker 이미지 빌드 및 ECR 푸시
 - build job의 JAR 파일 사용
 - main/develop 브랜치에서만 실행
+- **Job Summary**: 
+  - ECR Registry 정보
+  - 생성된 이미지 태그 목록
+  - 푸시 성공 확인
 
 #### 5. **deploy-staging** - 스테이징 배포
 - develop 브랜치에서 자동 배포
 - staging environment 사용
+- **Job Summary**: 배포 환경 및 이미지 정보
 
 #### 6. **deploy-production** - 프로덕션 배포
 - main 브랜치에서만 실행
 - AWS environment 사용
 - EC2로 docker-compose.yml 전송 및 실행
+- **Job Summary**: 
+  - 배포 성공/실패 상태
+  - 배포 시간 및 배포자 정보
+  - 컨테이너 상태
+  - 다음 단계 가이드
 
 ## 트리거 조건
 
@@ -69,6 +87,11 @@
 5. **Artifact 공유**
    - 빌드된 JAR 파일을 job 간 공유
    - Docker 빌드 시간 단축
+
+6. **Job Summary 제공**
+   - 각 Job의 실행 결과를 시각적으로 표시
+   - 빠른 상태 파악과 디버깅 지원
+   - 테스트 결과, 빌드 정보, 배포 상태 요약
 
 ## 환경 변수
 
@@ -154,6 +177,19 @@ env:
 4. **오류 진단**
    - 가능한 오류 원인 제시
    - 해결 방법 가이드
+
+### Job Summary
+각 Job이 완료되면 GitHub Actions Summary 페이지에서 다음 정보를 확인할 수 있습니다:
+
+- **코드 스타일 검사**: ktlint 실행 결과 및 수정 가이드
+- **테스트 결과**: 모듈별 테스트 상태 및 리포트 링크
+- **빌드 정보**: JAR 파일 정보 및 빌드 시간
+- **Docker 이미지**: ECR 푸시 결과 및 태그 목록
+- **배포 상태**: 
+  - 배포 성공/실패 여부
+  - 배포된 이미지 태그
+  - 서비스 상태
+  - 후속 조치 가이드
 
 ## 개선 가능한 사항
 

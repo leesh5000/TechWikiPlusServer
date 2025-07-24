@@ -23,6 +23,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Run a single test method
 ./gradlew :service:user:test --tests "me.helloc.techwikiplus.user.domain.UserTest.shouldCreateUserWithValidData"
+
+# Build with kapt (for configuration metadata)
+./gradlew :service:user:kaptKotlin
 ```
 
 ### Code Quality
@@ -114,6 +117,12 @@ Follow the Kotlin style guide in `docs/kotlin-style-guide.md`:
   - `JWT_SECRET`
   - `MAIL_USERNAME` / `MAIL_PASSWORD`
   - `REDIS_PASSWORD`
+  
+#### Mail Configuration
+- `spring.mail.type`: Choose mail sender implementation
+  - `smtp`: Real email sending via SMTP (production)
+  - `console`: Log to console without sending (development/test)
+- Default ports changed: 587 → 1025 for local development
 
 ### Database Setup
 

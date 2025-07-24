@@ -106,12 +106,17 @@ docker inspect techwikiplus-user-service --format='{{.State.Health.Status}}'
 | 변수명 | 기본값 | 설명 |
 |--------|--------|------|
 | `SPRING_PROFILES_ACTIVE` | `docker` | Spring 프로파일 |
+| `SPRING_MAIL_TYPE` | `smtp` | 메일 전송 방식 (`smtp` 또는 `console`) |
+| `SPRING_MAIL_HOST` | `localhost` | SMTP 서버 호스트 |
+| `SPRING_MAIL_PORT` | `1025` | SMTP 서버 포트 |
 | `MYSQL_ROOT_PASSWORD` | `rootpassword` | MySQL root 비밀번호 |
 | `MYSQL_PASSWORD` | `techwikipassword` | MySQL 사용자 비밀번호 |
 | `REDIS_PASSWORD` | `techwikipassword` | Redis 비밀번호 |
 | `USER_SERVICE_PORT` | `9000` | User Service 포트 |
 | `MYSQL_PORT` | `13306` | MySQL 외부 포트 |
 | `REDIS_PORT` | `16379` | Redis 외부 포트 |
+| `LOG_LEVEL_ROOT` | `INFO` | 루트 로깅 레벨 |
+| `LOG_LEVEL_TECHWIKIPLUS` | `INFO` | 애플리케이션 로깅 레벨 |
 
 ### 볼륨 구성
 
@@ -344,7 +349,19 @@ export SPRING_PROFILES_ACTIVE=docker
 export SPRING_PROFILES_ACTIVE=local
 ```
 
-### 2. 컨테이너 내부 접속
+### 2. 메일 전송 설정
+
+개발/테스트 환경에서는 실제 이메일을 보내지 않고 콘솔에 로그로 출력할 수 있습니다:
+
+```bash
+# 개발 환경: 콘솔에 로그 출력
+export SPRING_MAIL_TYPE=console
+
+# 프로덕션 환경: 실제 이메일 발송
+export SPRING_MAIL_TYPE=smtp
+```
+
+### 3. 컨테이너 내부 접속
 
 ```bash
 # User Service 컨테이너 쉘 접속
@@ -354,7 +371,7 @@ docker exec -it techwikiplus-user-service sh
 docker exec -it techwikiplus-mysql mysql -u techwikiplus -p
 ```
 
-### 3. 실시간 로그 모니터링
+### 4. 실시간 로그 모니터링
 
 ```bash
 # 여러 서비스 로그 동시 모니터링
