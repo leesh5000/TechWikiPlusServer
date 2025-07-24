@@ -41,7 +41,7 @@ spring:
           min-idle: 0
 
   mail:
-    type: smtp
+    type: ${SPRING_MAIL_TYPE:console}
     host: ${SPRING_MAIL_HOST:localhost}
     port: ${SPRING_MAIL_PORT:1025}
     username: ${SPRING_MAIL_USERNAME:-hello}
