@@ -21,6 +21,9 @@ dependencies {
     // Spring Boot Actuator - 헬스체크 및 모니터링
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
+    // Spring Boot Configuration Processor - IDE에서 설정 프로퍼티 자동 완성 지원
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
