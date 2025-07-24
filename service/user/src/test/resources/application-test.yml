@@ -13,7 +13,6 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
   
   flyway:
