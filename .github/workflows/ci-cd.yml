@@ -69,12 +69,19 @@ jobs:
       if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
       uses: docker/setup-buildx-action@v3
 
+    - name: 환경 변수 확인 (디버깅)
+      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+      run: |
+        echo "ECR Registry: ${{ steps.login-ecr.outputs.registry }}"
+        echo "ECR Repository: ${{ env.ECR_REPOSITORY }}"
+        echo "Full Image: ${{ steps.login-ecr.outputs.registry }}/techwikiplus/user-service"
+
     - name: Docker 메타데이터 생성
       if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+        images: ${{ steps.login-ecr.outputs.registry }}/techwikiplus/user-service
         tags: |
           type=ref,event=branch
           type=sha,prefix={{date 'YYYYMMDD'}}-
