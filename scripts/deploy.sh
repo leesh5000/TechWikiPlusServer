@@ -86,24 +86,27 @@ echo ""
 echo "===== 변경된 서비스 확인 ====="
 SERVICES_TO_UPDATE=""
 
-# 안전한 방식으로 서비스 확인
+# 각 서비스별로 이미지 변경 확인
 for service in user-service mysql redis; do
     echo "서비스 확인 중: $service"
     
-    # 설정된 이미지
-    CONFIGURED_IMAGE=$(docker-compose config 2>/dev/null | grep -A 5 "^  $service:" | grep "image:" | awk '{print $2}' || echo "error")
+    # 설정된 이미지 (docker-compose config로 확인)
+    CONFIGURED_IMAGE=$(docker-compose config 2>/dev/null | awk -v svc="$service" '/^services:/{in_services=1} in_services && $0 ~ "^  " svc ":"{in_service=1} in_service && /^    image:/{gsub(/^[ \t]+image:[ \t]*/, ""); print; exit}' || echo "error")
     
-    # 실행 중인 이미지
+    # 실행 중인 이미지 확인
     RUNNING_CONTAINER=$(docker ps --filter "label=com.docker.compose.service=$service" --format "{{.Names}}" | head -1)
     if [ -n "$RUNNING_CONTAINER" ]; then
-        RUNNING_IMAGE=$(docker inspect $RUNNING_CONTAINER 2>/dev/null | grep -o '"Image": "[^"]*"' | head -1 | cut -d'"' -f4 || echo "none")
+        # 컨테이너의 이미지 태그 확인 (Config.Image 사용)
+        RUNNING_IMAGE=$(docker inspect $RUNNING_CONTAINER 2>/dev/null | jq -r '.[0].Config.Image' || echo "none")
     else
         RUNNING_IMAGE="none"
+        echo "  컨테이너가 실행되지 않음"
     fi
     
     echo "  설정된 이미지: $CONFIGURED_IMAGE"
     echo "  실행 중인 이미지: $RUNNING_IMAGE"
     
+    # 이미지가 다르거나 컨테이너가 없으면 업데이트 필요
     if [ "$CONFIGURED_IMAGE" != "$RUNNING_IMAGE" ] && [ "$CONFIGURED_IMAGE" != "error" ]; then
         echo "  ✓ 업데이트 필요"
         SERVICES_TO_UPDATE="$SERVICES_TO_UPDATE $service"

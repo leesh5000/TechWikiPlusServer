@@ -165,8 +165,8 @@ jobs:
       with:
         images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}
         tags: |
-          type=ref,event=branch
           type=sha,prefix={{date 'YYYYMMDD'}}-
+          type=ref,event=branch
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Docker 이미지 빌드 및 ECR 푸시
@@ -252,8 +252,12 @@ jobs:
 
         # 이미지 태그 처리
         IMAGE_TAGS="${{ needs.docker-build.outputs.image-tag }}"
-        # 첫 번째 태그 추출 (latest가 아닌 실제 태그)
-        FIRST_TAG=$(echo "$IMAGE_TAGS" | tr ',' '\n' | grep -v 'latest' | head -1 | xargs)
+        # 날짜-SHA 형식의 태그 추출 (YYYYMMDD-xxxxxx 패턴)
+        FIRST_TAG=$(echo "$IMAGE_TAGS" | tr ',' '\n' | grep -E '^[0-9]{8}-[a-f0-9]+' | head -1 | xargs)
+        # 날짜 태그가 없으면 latest가 아닌 첫 번째 태그 사용
+        if [ -z "$FIRST_TAG" ]; then
+          FIRST_TAG=$(echo "$IMAGE_TAGS" | tr ',' '\n' | grep -v 'latest' | head -1 | xargs)
+        fi
         echo "🎯 배포할 이미지: $FIRST_TAG"
         echo ""
 
