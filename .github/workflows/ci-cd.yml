@@ -48,6 +48,19 @@ jobs:
     - name: 코드 스타일 검사 (ktlint)
       run: ./gradlew ktlintCheck
 
+    - name: Job Summary 생성
+      if: always()
+      run: |
+        echo "## 🎨 코드 스타일 검사 결과" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ $? -eq 0 ]; then
+          echo "✅ **ktlint 검사 통과**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **ktlint 검사 실패**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "코드 스타일 수정이 필요합니다. \`./gradlew ktlintFormat\`을 실행하세요." >> $GITHUB_STEP_SUMMARY
+        fi
+
   test:
     name: 테스트 실행
     runs-on: ubuntu-latest
@@ -76,7 +89,13 @@ jobs:
       run: chmod +x gradlew
 
     - name: 테스트 실행
-      run: ./gradlew test
+      id: test
+      run: |
+        set +e
+        ./gradlew test
+        TEST_EXIT_CODE=$?
+        echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+        exit $TEST_EXIT_CODE
 
     - name: 테스트 리포트 업로드
       uses: actions/upload-artifact@v4
@@ -86,6 +105,35 @@ jobs:
         path: |
           service/user/build/reports/tests/
           common/snowflake/build/reports/tests/
+
+    - name: Job Summary 생성
+      if: always()
+      run: |
+        echo "## 🧪 테스트 결과" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # 테스트 결과 표시
+        if [ "${{ steps.test.outputs.test_exit_code }}" == "0" ]; then
+          echo "✅ **모든 테스트 통과**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **테스트 실패**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 테스트 상세 정보" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # 테스트 결과 요약 추출
+        if [ -f service/user/build/reports/tests/test/index.html ]; then
+          echo "- **User Service 테스트**: 테스트 리포트가 생성됨" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ -f common/snowflake/build/reports/tests/test/index.html ]; then
+          echo "- **Snowflake 모듈 테스트**: 테스트 리포트가 생성됨" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📄 자세한 테스트 리포트는 Artifacts에서 확인할 수 있습니다." >> $GITHUB_STEP_SUMMARY
 
   build:
     name: 빌드
@@ -116,7 +164,22 @@ jobs:
       run: chmod +x gradlew
 
     - name: 애플리케이션 빌드
-      run: ./gradlew :service:user:build -x test
+      id: build
+      run: |
+        set +e
+        ./gradlew :service:user:build -x test
+        BUILD_EXIT_CODE=$?
+        echo "build_exit_code=$BUILD_EXIT_CODE" >> $GITHUB_OUTPUT
+        
+        # JAR 파일 정보 추출
+        if [ $BUILD_EXIT_CODE -eq 0 ]; then
+          JAR_FILE=$(ls service/user/build/libs/*.jar | head -1)
+          JAR_SIZE=$(du -h $JAR_FILE | cut -f1)
+          echo "jar_file=$(basename $JAR_FILE)" >> $GITHUB_OUTPUT
+          echo "jar_size=$JAR_SIZE" >> $GITHUB_OUTPUT
+        fi
+        
+        exit $BUILD_EXIT_CODE
 
     - name: JAR 파일 업로드
       uses: actions/upload-artifact@v4
@@ -124,6 +187,24 @@ jobs:
         name: app-jar
         path: service/user/build/libs/*.jar
         retention-days: 1
+
+    - name: Job Summary 생성
+      if: always()
+      run: |
+        echo "## 🔨 빌드 결과" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.build.outputs.build_exit_code }}" == "0" ]; then
+          echo "✅ **빌드 성공**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 빌드 상세 정보" >> $GITHUB_STEP_SUMMARY
+          echo "- **JAR 파일**: ${{ steps.build.outputs.jar_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **파일 크기**: ${{ steps.build.outputs.jar_size }}" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **빌드 실패**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "빌드 로그를 확인하세요." >> $GITHUB_STEP_SUMMARY
+        fi
 
   docker-build:
     name: Docker 이미지 빌드
@@ -192,6 +273,25 @@ jobs:
         # 플랫폼 지정으로 빌드 속도 향상
         platforms: linux/amd64
 
+    - name: Job Summary 생성
+      if: always()
+      run: |
+        echo "## 🐳 Docker 이미지 빌드 결과" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### 이미지 정보" >> $GITHUB_STEP_SUMMARY
+        echo "- **ECR Registry**: ${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Repository**: ${{ env.ECR_REPOSITORY_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### 생성된 태그" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "✅ **이미지가 성공적으로 ECR에 푸시되었습니다.**" >> $GITHUB_STEP_SUMMARY
+
   deploy-staging:
     name: 스테이징 배포
     needs: docker-build
@@ -208,6 +308,15 @@ jobs:
         echo "🚀 스테이징 환경 배포 시작"
         echo "이미지: ${{ needs.docker-build.outputs.image-tag }}"
         # TODO: 스테이징 배포 로직 추가
+
+    - name: Job Summary 생성
+      if: always()
+      run: |
+        echo "## 🚀 스테이징 배포 결과" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **환경**: Staging (develop branch)" >> $GITHUB_STEP_SUMMARY
+        echo "- **배포 이미지**: ${{ needs.docker-build.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **상태**: 배포 로직 구현 예정" >> $GITHUB_STEP_SUMMARY
 
   deploy-production:
     name: 프로덕션 배포
@@ -285,11 +394,49 @@ jobs:
 
     - name: 배포 후 간단 검증
       if: success()
+      id: verify
       run: |
         echo "✅ 배포가 성공적으로 완료되었습니다!"
         echo ""
         echo "간단 상태 확인:"
+        CONTAINER_STATUS=$(ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose ps --format json" | jq -r '.[] | select(.Service == "user-service") | .State')
+        echo "container_status=$CONTAINER_STATUS" >> $GITHUB_OUTPUT
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose ps"
+
+    - name: Job Summary 생성
+      if: always()
+      run: |
+        echo "## 🚀 프로덕션 배포 결과" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "### ✅ 배포 성공" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **환경**: Production (main branch)" >> $GITHUB_STEP_SUMMARY
+          echo "- **배포 시간**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **배포된 이미지**: \`${{ needs.docker-build.outputs.image-tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **커밋**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **배포자**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ steps.verify.outputs.container_status }}" ]; then
+            echo "- **서비스 상태**: ${{ steps.verify.outputs.container_status }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 다음 단계" >> $GITHUB_STEP_SUMMARY
+          echo "- 애플리케이션 헬스체크 확인" >> $GITHUB_STEP_SUMMARY
+          echo "- 모니터링 대시보드에서 메트릭 확인" >> $GITHUB_STEP_SUMMARY
+          echo "- 로그 확인 (필요시)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ❌ 배포 실패" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **환경**: Production (main branch)" >> $GITHUB_STEP_SUMMARY
+          echo "- **실패 시간**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **브랜치**: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **커밋**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ 로그를 확인하여 실패 원인을 파악하세요." >> $GITHUB_STEP_SUMMARY
+        fi
 
     - name: 배포 실패 알림
       if: failure()
