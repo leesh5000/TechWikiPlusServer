@@ -9,19 +9,13 @@ import org.springframework.transaction.annotation.Transactional
 open class RefreshTokenUseCase(
     private val tokenRefresher: TokenRefresher,
 ) {
-    fun refresh(refreshToken: String): RefreshResult {
+    fun refresh(refreshToken: String): TokenResult {
         val result = tokenRefresher.refreshTokens(refreshToken)
 
-        return RefreshResult(
+        return TokenResult(
             accessToken = result.accessToken,
             refreshToken = result.refreshToken,
             userId = result.userId,
         )
     }
-
-    data class RefreshResult(
-        val accessToken: String,
-        val refreshToken: String,
-        val userId: Long,
-    )
 }

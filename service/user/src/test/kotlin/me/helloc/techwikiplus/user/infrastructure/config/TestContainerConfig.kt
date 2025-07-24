@@ -8,15 +8,15 @@ import org.testcontainers.containers.MySQLContainer
 import org.testcontainers.utility.DockerImageName
 
 @TestConfiguration
-class TestContainerConfig {
+open class TestContainerConfig {
     companion object {
         // MySQL 컨테이너 - 여러 테스트에서 재사용하여 성능 향상
         @JvmStatic
         val mysqlContainer: MySQLContainer<*> =
             MySQLContainer("mysql:8.0")
-                .withDatabaseName("testdb")
-                .withUsername("test")
-                .withPassword("test")
+                .withDatabaseName("techwikiplus")
+                .withUsername("techwikiplus")
+                .withPassword("techwikiplus")
                 .withReuse(true)
                 .apply { start() }
 
@@ -41,7 +41,7 @@ class TestContainerConfig {
 
             // JPA 설정 - 테스트 시 테이블 자동 생성
             registry.add("spring.jpa.hibernate.ddl-auto") { "create-drop" }
-            registry.add("spring.jpa.properties.hibernate.dialect") { "org.hibernate.dialect.MySQL8Dialect" }
+            // Hibernate가 자동으로 dialect를 감지하므로 명시적 지정 불필요
 
             // Redis 연결 정보 설정
             registry.add("spring.data.redis.host") { redisContainer.host }

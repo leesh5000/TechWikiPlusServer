@@ -1,31 +1,49 @@
 server:
   port: 9000
+
 spring:
   application:
     name: techwikiplus-user-service
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:13306/techwikiplus?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
-    username: techwikiplus
-    password: techwikipassword
+    # Docker Compose 환경에서는 서비스명으로 접근
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/techwikiplus?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true}
+    username: ${SPRING_DATASOURCE_USERNAME:techwikiplus}
+    password: ${SPRING_DATASOURCE_PASSWORD:techwikiplus}
     hikari:
       maximum-pool-size: 30
       minimum-idle: 10
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+
   data:
     redis:
-      host: localhost
-      port: 16379
-      password: ${REDIS_PASSWORD:techwikipassword}
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:techwikiplus}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:noreply@techwikiplus.com}
-    password: ${MAIL_PASSWORD:techwikiplus}
+    username: ${SPRING_MAIL_USERNAME:noreply@techwikiplus.com}
+    password: ${SPRING_MAIL_PASSWORD:techwikiplus}
     properties:
       mail:
         smtp:
@@ -34,8 +52,23 @@ spring:
             enable: true
             required: true
           timeout: 5000
+          connection-timeout: 5000
+          write-timeout: 5000
 
+# JWT 설정
 jwt:
   secret: ${JWT_SECRET:techwikiplus-jwt-secret-key-for-authentication-2024}
-  access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:3600000} # 1 hour
-  refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:604800000} # 7 days
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+
+# 로깅 설정
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    me.helloc.techwikiplus: ${LOG_LEVEL_TECHWIKIPLUS:INFO}
+    org.springframework.web: ${LOG_LEVEL_SPRING_WEB:INFO}
+    org.springframework.security: ${LOG_LEVEL_SPRING_SECURITY:INFO}
+    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE_SQL:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+

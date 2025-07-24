@@ -45,7 +45,7 @@ class UserLoginUseCaseUnitTest {
                 userAuthenticator = userAuthenticator,
                 tokenProvider = tokenProvider,
                 refreshTokenStore = refreshTokenStore,
-                jwtProperties = jwtProperties,
+                tokenConfiguration = jwtProperties,
             )
     }
 

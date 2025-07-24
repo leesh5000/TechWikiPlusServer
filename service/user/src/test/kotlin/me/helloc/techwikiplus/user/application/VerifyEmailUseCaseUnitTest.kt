@@ -121,7 +121,7 @@ class VerifyEmailUseCaseUnitTest {
     }
 
     @Test
-    fun shouldNotThrowExceptionWhenUserAlreadyVerified() {
+    fun shouldThrowExceptionWhenUserAlreadyVerified() {
         // given
         val email = "test@example.com"
         val code = "123456"
@@ -144,15 +144,11 @@ class VerifyEmailUseCaseUnitTest {
         val verificationCode = VerificationCode(code)
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
 
-        // when
-        verifyEmailUseCase.verifyEmail(email, code)
-
-        // then
-        // 이미 인증된 사용자도 completeSignUp이 호출되어 상태가 유지됨
-        val updatedUser = userRepository.findByEmail(email)
-        assertThat(updatedUser).isNotNull
-        assertThat(updatedUser!!.status).isEqualTo(UserStatus.ACTIVE)
-        assertThat(updatedUser.email.verified).isTrue()
+        // when & then
+        assertThatThrownBy {
+            verifyEmailUseCase.verifyEmail(email, code)
+        }.isInstanceOf(CustomException.ValidationException.AlreadyVerifiedEmail::class.java)
+            .hasMessage("Email is already verified. Your input: $email")
     }
 
     @Test
@@ -186,7 +182,7 @@ class VerifyEmailUseCaseUnitTest {
         val verifiedUser = userRepository.findByEmail(email)
         assertThat(verifiedUser).isNotNull
         assertThat(verifiedUser!!.id).isEqualTo(userId)
-        assertThat(verifiedUser.email()).isEqualTo(email)
+        assertThat(verifiedUser.getEmailValue()).isEqualTo(email)
         assertThat(verifiedUser.nickname).isEqualTo(nickname)
         assertThat(verifiedUser.password).isEqualTo(password)
     }

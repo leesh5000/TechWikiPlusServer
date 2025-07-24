@@ -11,7 +11,8 @@ interface RefreshTokenStore {
 
     fun exists(refreshToken: String): Boolean
 
-    fun invalidate(userId: Long)
-
-    fun invalidateToken(refreshToken: String)
+    fun invalidate(
+        userId: Long? = null,
+        refreshToken: String? = null,
+    )
 }

@@ -43,7 +43,7 @@ class UserReaderUnitTest {
 
         // then
         assertThat(result).isEqualTo(existingUser)
-        assertThat(result.email()).isEqualTo(email)
+        assertThat(result.getEmailValue()).isEqualTo(email)
         assertThat(result.nickname).isEqualTo("testuser")
     }
 
@@ -92,7 +92,7 @@ class UserReaderUnitTest {
 
         // then
         assertThat(result).isEqualTo(user2)
-        assertThat(result.email()).isEqualTo(email2)
+        assertThat(result.getEmailValue()).isEqualTo(email2)
         assertThat(result.nickname).isEqualTo("user2")
     }
 

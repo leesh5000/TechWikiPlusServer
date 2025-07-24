@@ -519,7 +519,7 @@ class UserUnitTest : FunSpec({
                     updatedAt = LocalDateTime.now(),
                 )
 
-            user.email() shouldBe "test@example.com"
+            user.getEmailValue() shouldBe "test@example.com"
         }
     }
 })

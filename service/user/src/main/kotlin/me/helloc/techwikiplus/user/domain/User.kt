@@ -16,10 +16,8 @@ class User(
     val updatedAt: LocalDateTime,
 ) {
     companion object {
-        private val NICKNAME_REGEX = "^[a-zA-Z0-9가-힣]{2,20}$".toRegex()
-
         private fun validateNickname(nickname: String) {
-            if (!NICKNAME_REGEX.matches(nickname)) {
+            if (!DomainConstants.Nickname.PATTERN.matches(nickname)) {
                 throw InvalidNickname(nickname)
             }
         }
@@ -106,14 +104,18 @@ class User(
             throw CustomException.ValidationException.AlreadyVerifiedEmail(email.value)
         }
 
-        val verifiedUser: User = this.verifyEmail(clock)
-        return verifiedUser.copy(
+        return copy(
+            email = this.email.verify(),
             status = UserStatus.ACTIVE,
             clock = clock,
         )
     }
 
-    fun email(): String {
+    /**
+     * 사용자의 이메일 주소를 반환합니다.
+     * @return 이메일 주소 문자열
+     */
+    fun getEmailValue(): String {
         return email.value
     }
 }

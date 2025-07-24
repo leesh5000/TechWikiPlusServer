@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
+import me.helloc.techwikiplus.user.application.TokenResult
 import me.helloc.techwikiplus.user.application.UserLoginUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
@@ -33,7 +34,7 @@ class UserLoginControllerUnitTest {
             )
 
         val useCaseResult =
-            UserLoginUseCase.LoginResult(
+            TokenResult(
                 accessToken = "access-token-123",
                 refreshToken = "refresh-token-456",
                 userId = 1L,
@@ -68,7 +69,7 @@ class UserLoginControllerUnitTest {
             )
 
         val useCaseResult =
-            UserLoginUseCase.LoginResult(
+            TokenResult(
                 accessToken = "token",
                 refreshToken = "refresh",
                 userId = 123L,
@@ -103,14 +104,14 @@ class UserLoginControllerUnitTest {
             )
 
         val result1 =
-            UserLoginUseCase.LoginResult(
+            TokenResult(
                 accessToken = "access1",
                 refreshToken = "refresh1",
                 userId = 1L,
             )
 
         val result2 =
-            UserLoginUseCase.LoginResult(
+            TokenResult(
                 accessToken = "access2",
                 refreshToken = "refresh2",
                 userId = 2L,
@@ -189,7 +190,7 @@ class UserLoginControllerUnitTest {
             )
 
         val result =
-            UserLoginUseCase.LoginResult(
+            TokenResult(
                 accessToken = "token",
                 refreshToken = "refresh",
                 userId = 1L,
@@ -215,7 +216,7 @@ class UserLoginControllerUnitTest {
             )
 
         val useCaseResult =
-            UserLoginUseCase.LoginResult(
+            TokenResult(
                 accessToken = "very-long-access-token-with-many-characters",
                 refreshToken = "very-long-refresh-token-with-many-characters",
                 userId = 999999L,

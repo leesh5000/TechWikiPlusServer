@@ -3,6 +3,7 @@ package me.helloc.techwikiplus.user.infrastructure.security
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -26,7 +27,7 @@ class JwtAuthenticationFilter(
         if (token != null && tokenProvider.validateToken(token)) {
             // access 토큰인지 확인
             val tokenType = tokenProvider.getTokenType(token)
-            if (tokenType != "access") {
+            if (tokenType != TokenType.ACCESS) {
                 filterChain.doFilter(request, response)
                 return
             }

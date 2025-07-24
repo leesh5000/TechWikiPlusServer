@@ -1,105 +1,12 @@
 package me.helloc.techwikiplus.user.infrastructure.security
 
-import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.security.Keys
+import me.helloc.techwikiplus.user.domain.service.TokenGenerator
+import me.helloc.techwikiplus.user.domain.service.TokenParser
 import me.helloc.techwikiplus.user.domain.service.TokenProvider
-import org.springframework.stereotype.Component
-import java.util.Date
-import javax.crypto.SecretKey
+import me.helloc.techwikiplus.user.domain.service.TokenValidator
 
-@Component
 class JwtTokenProvider(
-    private val jwtProperties: JwtProperties,
-) : TokenProvider {
-    private val key: SecretKey by lazy {
-        Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray())
-    }
-
-    override fun createAccessToken(
-        email: String,
-        userId: Long,
-    ): String {
-        val now = Date()
-        val expiryDate = Date(now.time + jwtProperties.accessTokenExpiration)
-
-        return Jwts.builder()
-            .subject(email)
-            .claim("userId", userId)
-            .claim("type", "access")
-            .issuedAt(now)
-            .expiration(expiryDate)
-            .signWith(key)
-            .compact()
-    }
-
-    override fun createRefreshToken(
-        email: String,
-        userId: Long,
-    ): String {
-        val now = Date()
-        val expiryDate = Date(now.time + jwtProperties.refreshTokenExpiration)
-
-        return Jwts.builder()
-            .subject(email)
-            .claim("userId", userId)
-            .claim("type", "refresh")
-            .issuedAt(now)
-            .expiration(expiryDate)
-            .signWith(key)
-            .compact()
-    }
-
-    override fun validateToken(token: String): Boolean {
-        return try {
-            val claims = getClaims(token)
-            !claims.expiration.before(Date())
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    override fun getEmailFromToken(token: String): String {
-        return getClaims(token).subject
-    }
-
-    private fun getClaims(token: String): Claims {
-        return Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .payload
-    }
-
-    override fun getUserIdFromToken(token: String): Long {
-        val claims = getClaims(token)
-        return when (val userId = claims["userId"]) {
-            is Long -> userId
-            is Int -> userId.toLong()
-            is String -> userId.toLong()
-            else -> throw IllegalStateException("userId claim is not a valid numeric type")
-        }
-    }
-
-    override fun getTokenType(token: String): String {
-        return getClaims(token).get("type", String::class.java)
-    }
-
-    override fun createExpiredRefreshToken(
-        email: String,
-        userId: Long,
-    ): String {
-        val now = Date()
-        // 1초 전에 만료된 토큰 생성
-        val expiryDate = Date(now.time - 1000)
-
-        return Jwts.builder()
-            .subject(email)
-            .claim("userId", userId)
-            .claim("type", "refresh")
-            .issuedAt(Date(now.time - jwtProperties.refreshTokenExpiration))
-            .expiration(expiryDate)
-            .signWith(key)
-            .compact()
-    }
-}
+    private val tokenGenerator: TokenGenerator,
+    private val tokenValidator: TokenValidator,
+    private val tokenParser: TokenParser,
+) : TokenProvider, TokenGenerator by tokenGenerator, TokenValidator by tokenValidator, TokenParser by tokenParser

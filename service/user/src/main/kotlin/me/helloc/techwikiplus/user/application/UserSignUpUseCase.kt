@@ -1,53 +1,22 @@
 package me.helloc.techwikiplus.user.application
 
-import me.helloc.techwikiplus.user.domain.User
-import me.helloc.techwikiplus.user.domain.UserEmail
-import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.Clock
-import me.helloc.techwikiplus.user.domain.service.IdGenerator
-import me.helloc.techwikiplus.user.domain.service.MailSender
-import me.helloc.techwikiplus.user.domain.service.PasswordEncoder
-import me.helloc.techwikiplus.user.domain.service.PasswordValidator
-import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
-import me.helloc.techwikiplus.user.domain.service.UserWriter
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
+import me.helloc.techwikiplus.user.domain.service.EmailVerificationService
+import me.helloc.techwikiplus.user.domain.service.UserRegistrationService
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.time.Duration
 
 @Transactional
 @Component
 open class UserSignUpUseCase(
-    private val userWriter: UserWriter,
-    private val userDuplicateChecker: UserDuplicateChecker,
-    private val passwordValidator: PasswordValidator,
-    private val passwordEncoder: PasswordEncoder,
-    private val mailSender: MailSender,
-    private val verificationCodeStore: VerificationCodeStore,
-    private val idGenerator: IdGenerator,
+    private val userRegistrationService: UserRegistrationService,
+    private val emailVerificationService: EmailVerificationService,
 ) {
     fun signUp(
         email: String,
         nickname: String,
         password: String,
     ) {
-        userDuplicateChecker.validateUserEmailDuplicate(email)
-        userDuplicateChecker.validateUserNicknameDuplicate(nickname)
-        val user =
-            User.withPendingUser(
-                id = idGenerator.next(),
-                email = UserEmail(email, false),
-                nickname = nickname,
-                password =
-                    run {
-                        passwordValidator.validate(password)
-                        passwordEncoder.encode(password)
-                    },
-                clock = Clock.system,
-            )
-        userWriter.insertOrUpdate(user)
-        val verificationCode: VerificationCode = mailSender.sendVerificationEmail(email)
-        val ttl: Duration = Duration.ofMinutes(5)
-        verificationCodeStore.storeWithExpiry(email, verificationCode, ttl)
+        userRegistrationService.registerPendingUser(email, nickname, password)
+        emailVerificationService.sendVerificationEmail(email)
     }
 }
