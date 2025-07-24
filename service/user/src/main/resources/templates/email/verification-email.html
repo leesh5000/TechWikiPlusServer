@@ -2,34 +2,301 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4A90E2; color: white; padding: 20px; text-align: center; }
-        .content { background-color: #f4f4f4; padding: 30px; }
-        .code-box { background-color: white; padding: 20px; text-align: center; margin: 20px 0; border-radius: 5px; }
-        .code { font-size: 32px; font-weight: bold; color: #4A90E2; letter-spacing: 5px; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        /* 라이트 모드 (기본값) */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .header {
+            background-color: #f8f9fa;
+            padding: 40px 30px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .logo {
+            color: #1a1a1a;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .logo-icon::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .content {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+        }
+
+        h2 {
+            color: #1a1a1a;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 24px 0;
+        }
+
+        p {
+            color: #4b5563;
+            margin: 16px 0;
+            font-size: 16px;
+        }
+
+        .greeting {
+            color: #1a1a1a;
+            font-size: 16px;
+        }
+
+        .code-container {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 32px;
+            margin: 32px 0;
+            text-align: center;
+        }
+
+        .code-label {
+            color: #991b1b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 36px;
+            font-weight: 600;
+            color: #dc2626;
+            letter-spacing: 8px;
+            margin: 0;
+            user-select: all;
+        }
+
+        .validity-notice {
+            background-color: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .validity-notice p {
+            color: #d97706;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .security-warning {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .security-warning p {
+            color: #991b1b;
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .security-notice {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 24px;
+        }
+
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer p {
+            color: #9ca3af;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 32px 0;
+        }
+
+        /* 다크 모드 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: #d4d4d4;
+                background-color: #0a0a0a;
+            }
+
+            .container {
+                background-color: #0a0a0a;
+            }
+
+            .header {
+                background-color: #1e1e1e;
+                border-bottom-color: #2d2d2d;
+            }
+
+            .logo {
+                color: #e5e5e5;
+            }
+
+            .logo-icon {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            }
+
+            .content {
+                background-color: #141414;
+                border-color: #2d2d2d;
+            }
+
+            h2 {
+                color: #e5e5e5;
+            }
+
+            p {
+                color: #a1a1a1;
+            }
+
+            .greeting {
+                color: #d4d4d4;
+            }
+
+            .code-container {
+                background-color: #2d1e1e;
+                border-color: #4a2626;
+            }
+
+            .code-label {
+                color: #ef4444;
+            }
+
+            .code {
+                color: #ef4444;
+            }
+
+            .validity-notice {
+                background-color: #1e1e1e;
+                border-left-color: #f59e0b;
+            }
+
+            .validity-notice p {
+                color: #fbbf24;
+            }
+
+            .security-warning {
+                background-color: #2d1e1e;
+                border-color: #4a2626;
+            }
+
+            .security-warning p {
+                color: #fca5a5;
+            }
+
+            .security-notice {
+                color: #7c7c7c;
+            }
+
+            .footer {
+                background-color: #0a0a0a;
+                border-top-color: #2d2d2d;
+            }
+
+            .footer p {
+                color: #6b6b6b;
+            }
+
+            .divider {
+                background-color: #2d2d2d;
+            }
+        }
+
+        @media only screen and (max-width: 600px) {
+            .header, .content {
+                padding: 30px 20px;
+            }
+            .code {
+                font-size: 28px;
+                letter-spacing: 6px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>TechWiki+</h1>
-        </div>
-        <div class="content">
-            <h2>이메일 인증</h2>
-            <p>안녕하세요,</p>
-            <p>TechWiki+ | 회원가입을 위한 인증 코드입니다:</p>
-            <div class="code-box">
-                <div class="code" th:text="${code}"></div>
-            </div>
-            <p>이 코드는 5분간 유효합니다.</p>
-            <p>본인이 요청하지 않으셨다면 이 메일을 무시하셔도 됩니다.</p>
-        </div>
-        <div class="footer">
-            <p>© 2024 TechWiki+. All rights reserved.</p>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1 class="logo">
+            <span class="logo-icon"></span>
+            TechWiki+
+        </h1>
     </div>
+    <div class="content">
+        <h2>비밀번호 재설정</h2>
+        <p class="greeting">안녕하세요,</p>
+        <p>귀하의 TechWiki+ 계정에 대한 비밀번호 재설정이 요청되었습니다. 아래 인증 코드를 사용하여 새로운 비밀번호를 설정해 주세요.</p>
+
+        <div class="code-container">
+            <div class="code-label">비밀번호 재설정 코드</div>
+            <div class="code" th:text="${code}"></div>
+        </div>
+
+        <div class="validity-notice">
+            <p>⏱️ 이 코드는 10분간 유효합니다.</p>
+        </div>
+
+        <div class="security-warning">
+            <p>⚠️ 보안 경고: 본인이 요청하지 않으셨다면 즉시 계정 보안을 확인하고 비밀번호를 변경해 주세요.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="security-notice">
+            이 이메일은 TechWiki+ 비밀번호 재설정 요청에 따라 자동으로 발송되었습니다.<br>
+            문의사항이 있으시면 고객 지원팀에 연락해 주세요.
+        </p>
+    </div>
+    <div class="footer">
+        <p>© 2024 TechWiki+. All rights reserved.</p>
+    </div>
+</div>
 </body>
 </html>
