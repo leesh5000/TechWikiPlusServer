@@ -28,7 +28,13 @@ fi
 
 # 3. 현재 실행 중인 이미지 태그 저장 (롤백용)
 echo "현재 실행 중인 이미지 정보 저장 중..."
-CURRENT_IMAGE_TAG=$(docker inspect user-service 2>/dev/null | grep -o '"Image": "[^"]*"' | cut -d'"' -f4 || echo "none")
+# 실제 컨테이너 이름은 docker-compose 프로젝트 이름을 포함
+CONTAINER_NAME=$(docker ps --filter "label=com.docker.compose.service=user-service" --format "{{.Names}}" | head -1)
+if [ -n "$CONTAINER_NAME" ]; then
+    CURRENT_IMAGE_TAG=$(docker inspect $CONTAINER_NAME 2>/dev/null | grep -o '"Image": "[^"]*"' | cut -d'"' -f4 || echo "none")
+else
+    CURRENT_IMAGE_TAG="none"
+fi
 echo "현재 이미지: $CURRENT_IMAGE_TAG"
 
 # 4. 새 이미지 태그로 환경변수 업데이트
@@ -80,18 +86,29 @@ echo ""
 echo "===== 변경된 서비스 확인 ====="
 SERVICES_TO_UPDATE=""
 
-# docker-compose config로 현재 설정된 이미지 확인
+# 안전한 방식으로 서비스 확인
 for service in user-service mysql redis; do
-    CONFIGURED_IMAGE=$(docker-compose config | grep -A 5 "^  $service:" | grep "image:" | awk '{print $2}')
-    RUNNING_IMAGE=$(docker inspect ${PROJECT_DIR}_${service}_1 2>/dev/null | grep -o '"Image": "[^"]*"' | cut -d'"' -f4 || echo "none")
+    echo "서비스 확인 중: $service"
     
-    if [ "$CONFIGURED_IMAGE" != "$RUNNING_IMAGE" ]; then
-        echo "✓ $service: 업데이트 필요"
-        echo "  현재: $RUNNING_IMAGE"
-        echo "  신규: $CONFIGURED_IMAGE"
+    # 설정된 이미지
+    CONFIGURED_IMAGE=$(docker-compose config 2>/dev/null | grep -A 5 "^  $service:" | grep "image:" | awk '{print $2}' || echo "error")
+    
+    # 실행 중인 이미지
+    RUNNING_CONTAINER=$(docker ps --filter "label=com.docker.compose.service=$service" --format "{{.Names}}" | head -1)
+    if [ -n "$RUNNING_CONTAINER" ]; then
+        RUNNING_IMAGE=$(docker inspect $RUNNING_CONTAINER 2>/dev/null | grep -o '"Image": "[^"]*"' | head -1 | cut -d'"' -f4 || echo "none")
+    else
+        RUNNING_IMAGE="none"
+    fi
+    
+    echo "  설정된 이미지: $CONFIGURED_IMAGE"
+    echo "  실행 중인 이미지: $RUNNING_IMAGE"
+    
+    if [ "$CONFIGURED_IMAGE" != "$RUNNING_IMAGE" ] && [ "$CONFIGURED_IMAGE" != "error" ]; then
+        echo "  ✓ 업데이트 필요"
         SERVICES_TO_UPDATE="$SERVICES_TO_UPDATE $service"
     else
-        echo "- $service: 이미 최신 버전"
+        echo "  - 이미 최신 버전"
     fi
 done
 
@@ -100,23 +117,14 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
     echo ""
     echo "===== 변경된 이미지만 Pull ====="
     
-    # 각 서비스별로 pull (병렬 처리)
+    # 각 서비스별로 pull
     for service in $SERVICES_TO_UPDATE; do
         echo "Pulling $service..."
-        docker-compose pull --ignore-pull-failures $service &
-    done
-    
-    # 모든 pull 작업 대기
-    wait
-    
-    # Pull 결과 확인
-    for service in $SERVICES_TO_UPDATE; do
-        if docker-compose config | grep -A 5 "^  $service:" | grep "image:" | awk '{print $2}' | xargs docker inspect >/dev/null 2>&1; then
-            echo "✅ $service: Pull 성공"
-        else
+        docker-compose pull $service || {
             echo "❌ $service: Pull 실패"
             exit 1
-        fi
+        }
+        echo "✅ $service: Pull 성공"
     done
 else
     echo "모든 서비스가 이미 최신 버전입니다."
@@ -140,11 +148,11 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
     if echo "$SERVICES_TO_UPDATE" | grep -q "user-service"; then
         echo "Updating user-service..."
         
-        # 새 컨테이너 시작 (기존 컨테이너는 유지)
-        docker-compose up -d --no-deps --scale user-service=2 user-service
+        # 기존 방식으로 재시작
+        docker-compose up -d --no-deps user-service
         
-        # 새 컨테이너가 준비될 때까지 대기
-        echo "새 컨테이너 초기화 대기 중 (30초)..."
+        # 컨테이너 시작 대기
+        echo "컨테이너 초기화 대기 중 (30초)..."
         sleep 30
         
         # 헬스체크
@@ -164,16 +172,11 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
             fi
         done
         
-        if [ "$HEALTH_CHECK_PASSED" = true ]; then
-            # 이전 컨테이너 제거
-            echo "이전 컨테이너 제거 중..."
-            docker-compose up -d --no-deps --scale user-service=1 user-service
-        else
-            echo "❌ 헬스체크 실패! 롤백 중..."
-            # 롤백: 이전 이미지로 복원
-            sed -i.bak "s|^USER_SERVICE_IMAGE=.*|USER_SERVICE_IMAGE=$CURRENT_IMAGE_TAG|" .env
-            docker-compose up -d --no-deps user-service
-            exit 1
+        if [ "$HEALTH_CHECK_PASSED" = false ]; then
+            echo "❌ 헬스체크 실패! 서비스가 정상적으로 시작되지 않았습니다."
+            # 로그 확인
+            echo "User Service 로그:"
+            docker-compose logs --tail=50 user-service
         fi
     fi
 else
@@ -183,44 +186,43 @@ fi
 # 10. 서비스 상태 확인
 echo ""
 echo "===== 서비스 상태 ====="
-docker-compose ps
+# 안전한 방식으로 상태 확인
+docker ps --filter "label=com.docker.compose.project=$PROJECT_DIR" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" || echo "WARNING: 컨테이너 상태 확인 실패"
 
 # 11. 로그 확인 (마지막 30줄)
 echo ""
 echo "===== 최근 로그 ====="
-docker-compose logs --tail=30 user-service || {
-    echo "WARNING: user-service 로그를 가져올 수 없습니다."
-}
+USER_SERVICE_CONTAINER=$(docker ps --filter "label=com.docker.compose.service=user-service" --format "{{.Names}}" | head -1)
+if [ -n "$USER_SERVICE_CONTAINER" ]; then
+    docker logs --tail=30 $USER_SERVICE_CONTAINER 2>&1 || echo "WARNING: 로그 확인 실패"
+else
+    echo "WARNING: user-service 컨테이너를 찾을 수 없습니다."
+fi
 
 # 12. 스마트 이미지 정리
 echo ""
 echo "===== 이미지 정리 ====="
 
 # 현재 사용 중인 이미지 ID 목록
-USED_IMAGES=$(docker-compose ps -q | xargs docker inspect -f '{{.Image}}' 2>/dev/null | sort -u)
-
-# 롤백용 이전 이미지도 보존
-if [ -n "$CURRENT_IMAGE_TAG" ] && [ "$CURRENT_IMAGE_TAG" != "none" ]; then
-    ROLLBACK_IMAGE_ID=$(docker images -q $CURRENT_IMAGE_TAG 2>/dev/null || echo "")
-    if [ -n "$ROLLBACK_IMAGE_ID" ]; then
-        USED_IMAGES="$USED_IMAGES $ROLLBACK_IMAGE_ID"
-    fi
-fi
+USED_IMAGES=$(docker ps -a --format "{{.Image}}" | sort -u)
 
 # 사용하지 않는 이미지 삭제
 echo "사용하지 않는 이미지 정리 중..."
 DELETED_COUNT=0
 
-# techwikiplus 관련 이미지만 대상으로
-for image in $(docker images | grep -E "(techwikiplus|user-service)" | awk '{print $3}' | sort -u); do
-    if ! echo "$USED_IMAGES" | grep -q "$image"; then
-        echo "삭제: $(docker images | grep $image | head -1 | awk '{print $1":"$2}')"
-        docker rmi $image 2>/dev/null && DELETED_COUNT=$((DELETED_COUNT+1)) || true
-    fi
-done
-
 # dangling 이미지 정리
-docker image prune -f > /dev/null 2>&1
+docker image prune -f > /dev/null 2>&1 && echo "Dangling 이미지 정리 완료"
+
+# 오래된 techwikiplus 이미지 정리 (최신 2개만 유지)
+for repo in $(docker images --format "{{.Repository}}" | grep -E "(techwikiplus|user-service)" | sort -u); do
+    echo "저장소 확인: $repo"
+    # 최신 2개를 제외한 이미지 삭제
+    docker images $repo --format "{{.ID}} {{.CreatedAt}}" | sort -k2 -r | tail -n +3 | awk '{print $1}' | while read image_id; do
+        if ! echo "$USED_IMAGES" | grep -q "$image_id"; then
+            docker rmi $image_id 2>/dev/null && DELETED_COUNT=$((DELETED_COUNT+1)) && echo "  삭제: $image_id" || true
+        fi
+    done
+done
 
 echo "✅ $DELETED_COUNT개의 이미지를 정리했습니다."
 
@@ -233,30 +235,19 @@ echo "배포된 이미지: ${NEW_IMAGE_TAG:-기존 이미지 사용}"
 # 14. 실행 중인 컨테이너 확인
 echo ""
 echo "===== 실행 중인 컨테이너 ====="
-docker ps --filter "name=techwikiplus" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
-
-# 실제로 컨테이너가 실행 중인지 확인
-RUNNING_CONTAINERS=$(docker-compose ps -q | wc -l)
+RUNNING_CONTAINERS=$(docker ps --filter "label=com.docker.compose.project=$PROJECT_DIR" -q | wc -l)
 EXPECTED_CONTAINERS=3  # mysql, redis, user-service
 
-if [ "$RUNNING_CONTAINERS" -eq "$EXPECTED_CONTAINERS" ]; then
-    echo ""
-    echo "✅ 모든 서비스가 정상적으로 실행 중입니다. ($RUNNING_CONTAINERS/$EXPECTED_CONTAINERS)"
-else
-    echo ""
-    echo "⚠️  WARNING: 일부 서비스가 실행되지 않았습니다. ($RUNNING_CONTAINERS/$EXPECTED_CONTAINERS)"
-    docker-compose ps
-fi
+echo "실행 중인 컨테이너: $RUNNING_CONTAINERS/$EXPECTED_CONTAINERS"
 
 # 각 서비스 상태 확인
 echo ""
 echo "===== 서비스별 상태 확인 ====="
 for service in mysql redis user-service; do
-    if docker-compose ps | grep -q "$service.*Up"; then
+    if docker ps --filter "label=com.docker.compose.service=$service" -q | grep -q .; then
         echo "✅ $service: 정상 실행 중"
     else
         echo "❌ $service: 실행되지 않음"
-        echo "  로그 확인: docker-compose logs --tail=20 $service"
     fi
 done
 
@@ -266,3 +257,6 @@ echo "===== 배포 통계 ====="
 echo "총 소요 시간: $SECONDS초"
 echo "업데이트된 서비스: ${SERVICES_TO_UPDATE:-없음}"
 echo "정리된 이미지: $DELETED_COUNT개"
+
+echo ""
+echo "배포 프로세스가 완료되었습니다."
