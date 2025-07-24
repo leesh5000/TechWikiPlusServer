@@ -100,11 +100,13 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY_NAME: techwikiplus/user-service  # 프로젝트에 맞게 변경
   PROJECT_DIRECTORY: techwikiplus-server  # EC2에서 사용할 프로젝트 디렉토리
+  HEALTH_CHECK_URL: http://localhost:9000/actuator/health  # 서비스 헬스체크 URL
 ```
 
 다른 프로젝트에서 사용 시:
 - `ECR_REPOSITORY_NAME`: 해당 프로젝트의 ECR 리포지토리 이름으로 변경
 - `PROJECT_DIRECTORY`: EC2에서 사용할 디렉토리 이름으로 변경
+- `HEALTH_CHECK_URL`: 서비스의 헬스체크 엔드포인트로 변경
 
 ## GitHub에서 Secrets 설정하기
 

@@ -12,6 +12,10 @@ env:
   # ECR 리포지토리 이름 - 프로젝트별로 변경 가능
   ECR_REPOSITORY_NAME: techwikiplus/server/user-service
   PROJECT_DIRECTORY: techwikiplus-server
+  # 헬스체크 설정
+  HEALTH_CHECK_URL: http://localhost:9000/actuator/health
+  HEALTH_CHECK_MAX_RETRIES: 10
+  HEALTH_CHECK_RETRY_DELAY: 5
 
 jobs:
   lint:
@@ -221,6 +225,22 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
           # Docker Compose 실행 디렉토리로 이동
           cd ~/${{ env.PROJECT_DIRECTORY }}
+          
+          # Docker 및 Docker Compose 버전 확인
+          echo "===== Docker 환경 확인 ====="
+          docker --version
+          docker-compose --version
+          
+          # 현재 디렉토리와 파일 확인
+          echo "\n===== 현재 디렉토리 확인 ====="
+          pwd
+          ls -la
+          
+          # docker-compose.yml 파일 확인
+          if [ ! -f docker-compose.yml ]; then
+            echo "ERROR: docker-compose.yml 파일이 없습니다!"
+            exit 1
+          fi
 
           # 최신 이미지 태그로 환경변수 업데이트
           # .env 파일에서 USER_SERVICE_IMAGE 라인만 업데이트
@@ -241,28 +261,98 @@ jobs:
           fi
 
           # 기존 컨테이너 정지 및 제거
+          echo "기존 컨테이너 정지 중..."
           docker-compose down || true
 
+          # ECR 로그인
+          echo "ECR 로그인 중..."
+          # 이미지 태그에서 ECR 레지스트리 URL 추출
+          ECR_REGISTRY=$(echo "$FIRST_TAG" | cut -d'/' -f1)
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY || {
+            echo "ERROR: ECR 로그인 실패. EC2 IAM 역할을 확인하세요."
+            echo "IAM 역할에 AmazonEC2ContainerRegistryReadOnly 권한이 필요합니다."
+            exit 1
+          }
+
           # 새 이미지로 컨테이너 시작
-          docker-compose up -d
+          echo "새 컨테이너 시작 중..."
+          echo "Docker Compose 명령: docker-compose up -d"
+          
+          # 환경변수 확인
+          echo "\n===== 환경변수 확인 ====="
+          echo "USER_SERVICE_IMAGE: $(grep USER_SERVICE_IMAGE .env | cut -d'=' -f2)"
+          
+          docker-compose up -d || {
+            echo "ERROR: Docker Compose 시작 실패"
+            echo "\n===== Docker Compose 에러 로그 ====="
+            docker-compose logs
+            echo "\n===== Docker 이벤트 ====="
+            docker events --since 5m --until now
+            exit 1
+          }
 
           # 서비스 시작 대기
           echo "서비스 시작 대기 중..."
           sleep 30
 
           # 서비스 상태 확인
+          echo "===== 실행 중인 컨테이너 확인 ====="
+          docker ps
+          
+          echo "\n===== Docker Compose 상태 ====="
           docker-compose ps
+          
+          # 컨테이너가 실행 중인지 확인
+          RUNNING_CONTAINERS=$(docker-compose ps -q | wc -l)
+          if [ "$RUNNING_CONTAINERS" -eq "0" ]; then
+            echo "ERROR: 실행 중인 컨테이너가 없습니다!"
+            echo "\n===== Docker Compose 로그 ====="
+            docker-compose logs
+            exit 1
+          fi
 
-          # 로그 확인 (마지막 50줄)
-          docker-compose logs --tail=50 user-service
+          # 로그 확인 (마지막 100줄)
+          echo "\n===== 서비스 로그 (최근 100줄) ====="
+          docker-compose logs --tail=100 user-service || echo "로그를 가져올 수 없습니다."
 
-          # 헬스체크 (옵션)
-          curl -f http://localhost:9000/actuator/health || echo "헬스체크 엔드포인트가 없거나 아직 준비되지 않았습니다."
+          # 헬스체크
+          echo "\n===== 헬스체크 ====="
+          echo "헬스체크 URL: ${{ env.HEALTH_CHECK_URL }}"
+          MAX_RETRIES=${{ env.HEALTH_CHECK_MAX_RETRIES }}
+          RETRY_DELAY=${{ env.HEALTH_CHECK_RETRY_DELAY }}
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if curl -f ${{ env.HEALTH_CHECK_URL }} 2>/dev/null; then
+              echo "\n✅ 헬스체크 성공!"
+              break
+            else
+              echo "헬스체크 실패... 재시도 중 ($((RETRY_COUNT+1))/$MAX_RETRIES)"
+              sleep $RETRY_DELAY
+              RETRY_COUNT=$((RETRY_COUNT+1))
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "\nWARNING: 헬스체크가 계속 실패합니다. 서비스 로그를 확인하세요."
+            echo "시도한 URL: ${{ env.HEALTH_CHECK_URL }}"
+          fi
 
           # 오래된 이미지 정리
-          docker image prune -af --filter "until=24h"
+          echo "\n오래된 이미지 정리 중..."
+          docker image prune -af --filter "until=24h" || true
 
-          echo "배포가 완료되었습니다!"
+          # 최종 상태 확인
+          echo "\n===== 최종 배포 상태 ====="
+          docker ps --filter "name=techwikiplus"
+          
+          # 실제로 user-service가 실행 중인지 확인
+          if docker ps | grep -q "user-service"; then
+            echo "\n✅ 배포가 성공적으로 완료되었습니다!"
+          else
+            echo "\n❌ ERROR: user-service 컨테이너가 실행되지 않았습니다!"
+            exit 1
+          fi
         ENDSSH
 
     - name: 배포 성공 알림
