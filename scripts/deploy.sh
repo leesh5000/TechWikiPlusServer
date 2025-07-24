@@ -112,22 +112,55 @@ for service in user-service mysql redis; do
     fi
 done
 
-# 8. 선택적 이미지 Pull
-if [ -n "$SERVICES_TO_UPDATE" ]; then
-    echo ""
-    echo "===== 변경된 이미지만 Pull ====="
+# 8. 이미지 Pull (항상 최신 버전 확인)
+echo ""
+echo "===== 이미지 Pull (최신 버전 확인) ====="
+
+# 강제로 최신 이미지 pull (pull_policy: always와 함께 작동)
+if [ -n "$NEW_IMAGE_TAG" ]; then
+    echo "새 이미지 태그가 지정되었습니다. 모든 서비스의 최신 이미지를 확인합니다."
     
-    # 각 서비스별로 pull
-    for service in $SERVICES_TO_UPDATE; do
-        echo "Pulling $service..."
-        docker-compose pull $service || {
-            echo "❌ $service: Pull 실패"
-            exit 1
-        }
-        echo "✅ $service: Pull 성공"
+    # user-service는 항상 pull 시도 (최신 버전 확인)
+    echo "user-service 최신 이미지 확인 중..."
+    RETRY_COUNT=0
+    MAX_RETRIES=3
+    PULL_SUCCESS=false
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        if docker-compose pull user-service; then
+            echo "✅ user-service: 최신 이미지 pull 성공"
+            PULL_SUCCESS=true
+            break
+        else
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            echo "❌ user-service: Pull 실패 (시도 $RETRY_COUNT/$MAX_RETRIES)"
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "10초 후 재시도..."
+                sleep 10
+            fi
+        fi
     done
+    
+    if [ "$PULL_SUCCESS" = false ]; then
+        echo "❌ user-service 이미지 pull 최종 실패"
+        exit 1
+    fi
+    
+    # 다른 서비스들도 변경사항이 있으면 pull
+    if [ -n "$SERVICES_TO_UPDATE" ]; then
+        for service in mysql redis; do
+            if echo "$SERVICES_TO_UPDATE" | grep -q "$service"; then
+                echo "$service 이미지 pull 중..."
+                docker-compose pull $service || {
+                    echo "❌ $service: Pull 실패"
+                    exit 1
+                }
+                echo "✅ $service: Pull 성공"
+            fi
+        done
+    fi
 else
-    echo "모든 서비스가 이미 최신 버전입니다."
+    echo "이미지 태그가 지정되지 않았습니다. 기존 이미지를 사용합니다."
 fi
 
 # 9. Rolling Update (무중단 배포)
@@ -148,8 +181,8 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
     if echo "$SERVICES_TO_UPDATE" | grep -q "user-service"; then
         echo "Updating user-service..."
         
-        # 기존 방식으로 재시작
-        docker-compose up -d --no-deps user-service
+        # 최신 이미지로 재시작 (--pull always 옵션 사용)
+        docker-compose up -d --no-deps --pull always user-service
         
         # 컨테이너 시작 대기
         echo "컨테이너 초기화 대기 중 (30초)..."

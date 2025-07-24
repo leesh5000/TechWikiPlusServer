@@ -74,8 +74,8 @@ services:
     
     # Pull 정책
     # 로컬: --build 플래그 사용 (docker-compose up --build)
-    # 프로덕션: 태그가 업데이트되면 자동으로 pull
-    pull_policy: missing
+    # 프로덕션: 항상 최신 이미지를 pull
+    pull_policy: always
     
     depends_on:
       mysql:
