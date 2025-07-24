@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class ResendVerificationCodeController(val facade: ResendVerificationCodeUseCase) {
-    @GetMapping("/api/v1/users/signup/verify/resend", consumes = ["application/x-www-form-urlencoded"])
+    @GetMapping("/api/v1/users/signup/verify/resend")
     fun resendVerificationCode(
         @RequestParam(name = "email", required = true) email: String,
     ): ResponseEntity<Void> {

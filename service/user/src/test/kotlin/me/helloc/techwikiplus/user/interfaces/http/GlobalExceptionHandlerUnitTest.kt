@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
@@ -22,6 +23,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("유효성 검증 예외가 400 상태 코드로 처리되어야 한다")
     fun shouldHandleValidationExceptionWith400Status() {
         // given
         val exception = CustomException.ValidationException.InvalidEmail("invalid-email")
@@ -39,6 +41,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("인증 예외가 401 상태 코드로 처리되어야 한다")
     fun shouldHandleAuthenticationExceptionWith401Status() {
         // given
         val exception = CustomException.AuthenticationException.InvalidCredentials()
@@ -53,6 +56,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("리소스를 찾을 수 없는 예외가 404 상태 코드로 처리되어야 한다")
     fun shouldHandleNotFoundExceptionWith404Status() {
         // given
         val exception = CustomException.NotFoundException.UserEmailNotFoundException("test@example.com")
@@ -67,6 +71,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("충돌 예외가 409 상태 코드로 처리되어야 한다")
     fun shouldHandleConflictExceptionWith409Status() {
         // given
         val exception = CustomException.ConflictException.DuplicateEmail("duplicate@example.com")
@@ -81,6 +86,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("요청 제한 초과 예외가 429 상태 코드로 처리되어야 한다")
     fun shouldHandleRateLimitExceptionWith429Status() {
         // given
         val exception = CustomException.ResendRateLimitExceeded("Too many requests")
@@ -95,6 +101,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("일반적인 예외가 500 상태 코드로 처리되어야 한다")
     fun shouldHandleGenericExceptionWith500Status() {
         // given
         val exception = RuntimeException("Unexpected error")
@@ -111,6 +118,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("에러 응답에 ISO 형식의 타임스탬프가 포함되어야 한다")
     fun shouldIncludeTimestampInISOFormat() {
         // given
         val exception = CustomException.ValidationException.InvalidPassword("weak")
@@ -123,6 +131,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("다양한 요청 경로가 에러 응답에 올바르게 포함되어야 한다")
     fun shouldHandleDifferentRequestPaths() {
         // given
         val exception = CustomException.ConflictException.DuplicateNickname("existinguser")
@@ -136,6 +145,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("모든 인증 예외 타입이 동일한 401 상태 코드로 처리되어야 한다")
     fun shouldHandleAllAuthenticationExceptionTypes() {
         // given
         val exceptions =
@@ -156,6 +166,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("예외 메시지가 null인 경우 기본 메시지로 처리되어야 한다")
     fun shouldHandleNullExceptionMessage() {
         // given
         val exception =
@@ -171,6 +182,7 @@ class GlobalExceptionHandlerUnitTest {
     }
 
     @Test
+    @DisplayName("필수 요청 파라미터 누락 예외가 400 상태 코드로 처리되어야 한다")
     fun shouldHandleMissingServletRequestParameterException() {
         // given
         val exception = MissingServletRequestParameterException("email", "String")

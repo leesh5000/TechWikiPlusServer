@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.user.application.VerifyEmailUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
@@ -22,6 +23,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("이메일 인증 성공 시 200 OK 상태 코드 반환")
     fun shouldVerifyEmailSuccessfullyAndReturnOkStatus() {
         // given
         val request =
@@ -44,6 +46,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("UseCase에 올바른 파라미터 전달")
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
         val request =
@@ -63,6 +66,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("숫자로만 구성된 인증 코드 처리")
     fun shouldHandleNumericVerificationCode() {
         // given
         val request =
@@ -83,6 +87,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("영숫자 혼합 인증 코드 처리")
     fun shouldHandleAlphanumericVerificationCode() {
         // given
         val request =
@@ -102,6 +107,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("인증 코드가 만료되었을 때 예외 전파")
     fun shouldPropagateExceptionWhenVerificationCodeExpired() {
         // given
         val request =
@@ -126,6 +132,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("유효하지 않은 인증 코드일 때 예외 전파")
     fun shouldPropagateExceptionWhenInvalidVerificationCode() {
         // given
         val request =
@@ -150,6 +157,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("비어있는 필드 처리")
     fun shouldHandleEmptyFields() {
         // given
         val request =
@@ -169,6 +177,7 @@ class VerifyEmailControllerUnitTest {
     }
 
     @Test
+    @DisplayName("성공 시 비어있는 응답 본문 반환")
     fun shouldReturnEmptyResponseBodyOnSuccess() {
         // given
         val request =

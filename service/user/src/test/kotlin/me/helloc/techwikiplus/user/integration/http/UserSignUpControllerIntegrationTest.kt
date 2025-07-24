@@ -12,7 +12,7 @@ import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 
@@ -20,7 +20,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
     @Autowired
     private lateinit var userRepository: UserRepository
 
-    @MockBean
+    @MockitoBean
     private lateinit var mailSender: MailSender
 
     @Autowired

@@ -5,6 +5,7 @@ import me.helloc.techwikiplus.user.application.UserLoginUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.doThrow
@@ -25,6 +26,7 @@ class UserLoginControllerUnitTest {
     }
 
     @Test
+    @DisplayName("로그인 성공 시 토큰 반환")
     fun shouldLoginSuccessfullyAndReturnTokens() {
         // given
         val request =
@@ -60,6 +62,7 @@ class UserLoginControllerUnitTest {
     }
 
     @Test
+    @DisplayName("UseCase에 올바른 파라미터 전달")
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
         val request =
@@ -89,6 +92,7 @@ class UserLoginControllerUnitTest {
     }
 
     @Test
+    @DisplayName("서로 다른 사용자에게 다른 토큰 반환")
     fun shouldReturnDifferentTokensForDifferentUsers() {
         // given
         val request1 =
@@ -133,6 +137,7 @@ class UserLoginControllerUnitTest {
     }
 
     @Test
+    @DisplayName("사용자를 찾을 수 없을 때 예외 전파")
     fun shouldPropagateExceptionWhenUserNotFound() {
         // given
         val request =
@@ -157,6 +162,7 @@ class UserLoginControllerUnitTest {
     }
 
     @Test
+    @DisplayName("잘못된 자격 증명일 때 예외 전파")
     fun shouldPropagateExceptionWhenInvalidCredentials() {
         // given
         val request =
@@ -181,6 +187,7 @@ class UserLoginControllerUnitTest {
     }
 
     @Test
+    @DisplayName("비어있는 이메일과 비밀번호 처리")
     fun shouldHandleEmptyEmailAndPassword() {
         // given
         val request =
@@ -207,6 +214,7 @@ class UserLoginControllerUnitTest {
     }
 
     @Test
+    @DisplayName("응답 구조 유지")
     fun shouldMaintainResponseStructure() {
         // given
         val request =

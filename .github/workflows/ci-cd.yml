@@ -21,7 +21,7 @@ jobs:
   lint:
     name: 코드 스타일 검사
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 코드 체크아웃
       uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
   test:
     name: 테스트 실행
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 코드 체크아웃
       uses: actions/checkout@v4
@@ -83,13 +83,15 @@ jobs:
       if: always()
       with:
         name: test-reports
-        path: service/user/build/reports/tests/
+        path: |
+          service/user/build/reports/tests/
+          common/snowflake/build/reports/tests/
 
   build:
     name: 빌드
     needs: [lint, test]
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 코드 체크아웃
       uses: actions/checkout@v4
@@ -129,7 +131,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     environment: AWS
-    
+
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
 
@@ -196,7 +198,7 @@ jobs:
     if: github.ref == 'refs/heads/develop' && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true))
     runs-on: ubuntu-latest
     environment: staging
-    
+
     steps:
     - name: 코드 체크아웃
       uses: actions/checkout@v4
@@ -247,21 +249,21 @@ jobs:
         # 배포 스크립트 전송
         echo "📤 배포 스크립트 전송 중..."
         scp -o StrictHostKeyChecking=no scripts/deploy.sh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/${{ env.PROJECT_DIRECTORY }}/
-        
+
         # 이미지 태그 처리
         IMAGE_TAGS="${{ needs.docker-build.outputs.image-tag }}"
         # 첫 번째 태그 추출 (latest가 아닌 실제 태그)
         FIRST_TAG=$(echo "$IMAGE_TAGS" | tr ',' '\n' | grep -v 'latest' | head -1 | xargs)
         echo "🎯 배포할 이미지: $FIRST_TAG"
         echo ""
-        
+
         # 배포 스크립트 실행 - 모든 출력을 그대로 표시
         echo "🚀 배포 시작..."
         echo "================================================================================="
         ssh -tt -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && chmod +x deploy.sh && HEALTH_CHECK_URL='${{ env.HEALTH_CHECK_URL }}' HEALTH_CHECK_MAX_RETRIES='${{ env.HEALTH_CHECK_MAX_RETRIES }}' HEALTH_CHECK_RETRY_DELAY='${{ env.HEALTH_CHECK_RETRY_DELAY }}' PROJECT_DIRECTORY='${{ env.PROJECT_DIRECTORY }}' ./deploy.sh '$FIRST_TAG' 2>&1"
         DEPLOY_EXIT_CODE=$?
         echo "================================================================================="
-        
+
         if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
           echo ""
           echo "❌ 배포 스크립트가 실패했습니다. (Exit code: $DEPLOY_EXIT_CODE)"

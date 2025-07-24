@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.user.application.ResendVerificationCodeUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
@@ -23,6 +24,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("인증 코드 재전송 성공 시 202 Accepted 상태 코드 반환")
     fun shouldResendVerificationCodeSuccessfullyAndReturnAcceptedStatus() {
         // given
         val email = "test@example.com"
@@ -38,6 +40,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("UseCase에 올바른 이메일 전달")
     fun shouldCallUseCaseWithCorrectEmail() {
         // given
         val email = "user@domain.com"
@@ -50,6 +53,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("특수문자가 포함된 이메일 처리")
     fun shouldHandleEmailWithSpecialCharacters() {
         // given
         val email = "test+user@example.com"
@@ -63,6 +67,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("서브도메인이 포함된 이메일 처리")
     fun shouldHandleEmailWithSubdomain() {
         // given
         val email = "user@mail.example.com"
@@ -75,6 +80,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("사용자를 찾을 수 없을 때 예외 전파")
     fun shouldPropagateExceptionWhenUserNotFound() {
         // given
         val email = "nonexistent@example.com"
@@ -92,6 +98,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("전송 제한을 초과했을 때 예외 전파")
     fun shouldPropagateExceptionWhenRateLimitExceeded() {
         // given
         val email = "test@example.com"
@@ -109,6 +116,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("비어있는 이메일 처리")
     fun shouldHandleEmptyEmail() {
         // given
         val email = ""
@@ -121,6 +129,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("성공 시 비어있는 응답 본문 반환")
     fun shouldReturnEmptyResponseBodyOnSuccess() {
         // given
         val email = "test@example.com"
@@ -134,6 +143,7 @@ class ResendVerificationCodeControllerUnitTest {
     }
 
     @Test
+    @DisplayName("다중 재전송 요청 처리")
     fun shouldHandleMultipleResendRequests() {
         // given
         val email1 = "user1@example.com"
