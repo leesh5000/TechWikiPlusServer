@@ -8,6 +8,8 @@ set -e  # 에러 발생 시 스크립트 중단
 echo "===== 배포 시작 ====="
 echo "시간: $(date)"
 echo "디렉토리: $(pwd)"
+echo "사용자: $(whoami)"
+echo "호스트: $(hostname)"
 
 # 1. 작업 디렉토리 확인
 # 환경변수 설정
@@ -42,6 +44,16 @@ if [ ! -f "docker-compose.yml" ]; then
     exit 1
 fi
 
+# 시스템 상태 확인
+echo ""
+echo "===== 시스템 상태 확인 ====="
+echo "Docker 버전: $(docker --version)"
+echo "Docker Compose 버전: $(docker-compose --version)"
+echo "디스크 사용량:"
+df -h | grep -E '^/dev/' | head -5
+echo "메모리 사용량:"
+free -h
+
 # 5. ECR 로그인 (IAM 역할 사용)
 echo "ECR 로그인 중..."
 if [ -n "$IMAGE_TAG" ]; then
@@ -61,16 +73,66 @@ echo "오래된 이미지 정리 중..."
 docker image prune -af --filter "until=24h" || true
 
 # 8. 최신 이미지 pull 및 컨테이너 시작
+echo ""
+echo "===== Docker 이미지 Pull ====="
+echo "현재 환경변수:"
+grep -E "^(USER_SERVICE_IMAGE|MYSQL_|REDIS_)" .env | head -5
+
+echo ""
 echo "최신 이미지 pull 중..."
 docker-compose pull || {
-    echo "ERROR: Docker 이미지 pull 실패"
+    echo ""
+    echo "❌ ERROR: Docker 이미지 pull 실패"
+    echo "오류 원인:"
+    echo "1. ECR 로그인 실패 - IAM 역할 확인"
+    echo "2. 이미지 URL 오타 - .env 파일 확인"
+    echo "3. 네트워크 문제 - 인터넷 연결 확인"
+    echo ""
+    echo "Docker 이미지 상태:"
+    docker images | grep -E "(user-service|mysql|redis)" || echo "관련 이미지 없음"
     exit 1
 }
 
+echo ""
+echo "===== Docker Compose 실행 ====="
 echo "새 컨테이너 시작 중..."
+
+# Docker Compose 실행 전 검증
+docker-compose config > /dev/null 2>&1 || {
+    echo "ERROR: docker-compose.yml 파일 검증 실패"
+    docker-compose config
+    exit 1
+}
+
 docker-compose up -d || {
-    echo "ERROR: Docker Compose 시작 실패"
-    docker-compose logs
+    echo ""
+    echo "❌ ERROR: Docker Compose 시작 실패"
+    echo ""
+    echo "===== 상세 오류 정보 ====="
+    
+    echo "\n1. Docker Compose 상태:"
+    docker-compose ps -a
+    
+    echo "\n2. 각 서비스 로그:"
+    echo "\n--- MySQL 로그 ---"
+    docker-compose logs --tail=30 mysql || echo "MySQL 로그 없음"
+    
+    echo "\n--- Redis 로그 ---"
+    docker-compose logs --tail=30 redis || echo "Redis 로그 없음"
+    
+    echo "\n--- User Service 로그 ---"
+    docker-compose logs --tail=50 user-service || echo "User Service 로그 없음"
+    
+    echo "\n3. Docker 이벤트 (최근 2분):"
+    docker events --since 2m --until now || echo "Docker 이벤트 없음"
+    
+    echo "\n4. 가능한 오류 원인:"
+    echo "- 포트 충돌: 이미 사용 중인 포트"
+    echo "- 메모리 부족: 컨테이너 시작에 필요한 메모리 부족"
+    echo "- 볼륨 문제: Docker 볼륨 마운트 실패"
+    echo "- 환경변수 오류: .env 파일의 필수 환경변수 누락"
+    echo "- 의존성 문제: depends_on으로 지정된 서비스 시작 실패"
+    
     exit 1
 }
 
@@ -84,7 +146,11 @@ docker-compose ps
 
 # 11. 로그 확인 (마지막 50줄)
 echo "===== 최근 로그 ====="
-docker-compose logs --tail=50 user-service
+docker-compose logs --tail=50 user-service || {
+    echo "WARNING: user-service 로그를 가져올 수 없습니다."
+    echo "컨테이너 상태 확인:"
+    docker ps -a | grep user-service
+}
 
 # 12. 헬스체크
 echo "===== 헬스체크 ====="
@@ -123,13 +189,49 @@ docker ps --filter "name=techwikiplus"
 
 # 실제로 컨테이너가 실행 중인지 확인
 RUNNING_CONTAINERS=$(docker-compose ps -q | wc -l)
+EXPECTED_CONTAINERS=3  # mysql, redis, user-service
+
 if [ "$RUNNING_CONTAINERS" -eq "0" ]; then
     echo ""
     echo "❌ ERROR: 실행 중인 컨테이너가 없습니다!"
-    echo "Docker Compose 로그 확인:"
-    docker-compose logs
+    echo ""
+    echo "===== 상세 진단 정보 ====="
+    echo "1. 모든 컨테이너 상태:"
+    docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+    
+    echo "\n2. Docker Compose 로그:"
+    docker-compose logs --tail=100
+    
+    echo "\n3. Docker 네트워크:"
+    docker network ls | grep techwikiplus
+    
+    echo "\n4. Docker 볼륨:"
+    docker volume ls | grep techwikiplus
+    
     exit 1
+elif [ "$RUNNING_CONTAINERS" -lt "$EXPECTED_CONTAINERS" ]; then
+    echo ""
+    echo "⚠️  WARNING: 예상보다 적은 컨테이너가 실행 중입니다."
+    echo "예상: $EXPECTED_CONTAINERS개, 실제: $RUNNING_CONTAINERS개"
+    echo ""
+    echo "실행 중인 컨테이너:"
+    docker-compose ps
+    echo ""
+    echo "중지된 컨테이너:"
+    docker-compose ps -a | grep -E "Exit|Created"
 fi
 
 echo ""
 echo "✅ $RUNNING_CONTAINERS개의 컨테이너가 실행 중입니다."
+
+# 각 서비스 상태 확인
+echo ""
+echo "===== 서비스별 상태 확인 ====="
+for service in mysql redis user-service; do
+    if docker-compose ps | grep -q "$service.*Up"; then
+        echo "✅ $service: 정상 실행 중"
+    else
+        echo "❌ $service: 실행되지 않음"
+        echo "  로그 확인: docker-compose logs --tail=20 $service"
+    fi
+done

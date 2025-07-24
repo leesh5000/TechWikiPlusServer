@@ -66,16 +66,16 @@ services:
     
     # 환경에 따른 이미지 설정
     # 로컬: USER_SERVICE_IMAGE=techwikiplus/user-service:latest
-    # 프로덕션: USER_SERVICE_IMAGE=<ECR_REGISTRY>/techwikiplus/user-service:<TAG>
+    # 프로덕션: USER_SERVICE_IMAGE=<ECR_REGISTRY>/techwikiplus/user-service:latest
     image: ${USER_SERVICE_IMAGE:-techwikiplus/user-service:latest}
     
     container_name: techwikiplus-user-service
     restart: unless-stopped
     
-    # Pull 정책은 환경변수를 지원하지 않으므로 기본값 사용
+    # Pull 정책
     # 로컬: --build 플래그 사용 (docker-compose up --build)
-    # 프로덕션: 그냥 실행 (docker-compose up)
-    pull_policy: build
+    # 프로덕션: 태그가 업데이트되면 자동으로 pull
+    pull_policy: missing
     
     depends_on:
       mysql:
