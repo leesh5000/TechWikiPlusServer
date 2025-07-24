@@ -14,7 +14,12 @@ import org.springframework.mail.javamail.JavaMailSender
 open class MailSenderConfig(
     private val mailProperties: MailProperties,
 ) {
-    @Bean
+    /**
+     * 커스텀 MailSender 빈을 생성합니다.
+     * Spring Boot의 기본 mailSender 빈과 이름 충돌을 피하기 위해 customMailSender로 명명합니다.
+     * spring.mail.type 프로퍼티에 따라 SmtpMailSender 또는 ConsoleMailSender를 반환합니다.
+     */
+    @Bean(name = ["customMailSender"])
     open fun mailSender(
         javaMailSender: JavaMailSender,
         emailTemplateGenerator: EmailTemplateGenerator,
@@ -25,3 +30,4 @@ open class MailSenderConfig(
         }
     }
 }
+
