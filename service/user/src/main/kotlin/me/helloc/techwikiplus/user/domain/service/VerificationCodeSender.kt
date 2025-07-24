@@ -5,11 +5,11 @@ import me.helloc.techwikiplus.user.domain.VerificationCode
 import org.springframework.stereotype.Service
 
 @Service
-class EmailVerificationService(
+class VerificationCodeSender(
     private val mailSender: MailSender,
     private val verificationCodeStore: VerificationCodeStore,
 ) {
-    fun sendVerificationEmail(email: String): VerificationCode {
+    fun sendMail(email: String): VerificationCode {
         val verificationCode = mailSender.sendVerificationEmail(email)
         verificationCodeStore.storeWithExpiry(email, verificationCode, DomainConstants.EmailVerification.CODE_TTL)
         return verificationCode

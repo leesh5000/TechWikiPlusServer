@@ -15,7 +15,7 @@ class VerifyEmailController(
     fun verifyEmail(
         @RequestBody request: UserSignUpVerifyRequest,
     ): ResponseEntity<Void> {
-        facade.verifyEmail(
+        facade.verify(
             email = request.email,
             code = request.code,
         )

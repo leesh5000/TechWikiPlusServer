@@ -13,6 +13,7 @@ import me.helloc.techwikiplus.user.infrastructure.verificationcode.fake.FakeVeri
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
@@ -38,7 +39,8 @@ class VerifyEmailUseCaseUnitTest {
     }
 
     @Test
-    fun shouldVerifyEmailSuccessfully() {
+    @DisplayName("인증에 성공하면 사용자 상태를 활성화로 변경")
+    fun shouldVerifySuccessfully() {
         // given
         val email = "test@example.com"
         val code = "123456"
@@ -60,7 +62,7 @@ class VerifyEmailUseCaseUnitTest {
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
 
         // when
-        verifyEmailUseCase.verifyEmail(email, code)
+        verifyEmailUseCase.verify(email, code)
 
         // then
         val verifiedUser = userRepository.findByEmail(email)
@@ -71,6 +73,7 @@ class VerifyEmailUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("인증 코드를 찾을 수 없을 때 예외 발생")
     fun shouldThrowExceptionWhenVerificationCodeNotFound() {
         // given
         val email = "test@example.com"
@@ -80,12 +83,13 @@ class VerifyEmailUseCaseUnitTest {
 
         // when & then
         assertThatThrownBy {
-            verifyEmailUseCase.verifyEmail(email, code)
+            verifyEmailUseCase.verify(email, code)
         }.isInstanceOf(CustomException.AuthenticationException.ExpiredEmailVerification::class.java)
             .hasMessage("Email verification expired for email: $email. Please request a new verification code.")
     }
 
     @Test
+    @DisplayName("인증 코드가 틀렸을 때 예외 발생")
     fun shouldThrowExceptionWhenVerificationCodeIsIncorrect() {
         // given
         val email = "test@example.com"
@@ -98,12 +102,13 @@ class VerifyEmailUseCaseUnitTest {
 
         // when & then
         assertThatThrownBy {
-            verifyEmailUseCase.verifyEmail(email, wrongCode)
+            verifyEmailUseCase.verify(email, wrongCode)
         }.isInstanceOf(CustomException.AuthenticationException.InvalidVerificationCode::class.java)
             .hasMessage("Invalid verification code: $wrongCode. Please check the code and try again.")
     }
 
     @Test
+    @DisplayName("사용자를 찾을 수 없을 때 예외 발생")
     fun shouldThrowExceptionWhenUserNotFound() {
         // given
         val email = "nonexistent@example.com"
@@ -115,12 +120,13 @@ class VerifyEmailUseCaseUnitTest {
 
         // when & then
         assertThatThrownBy {
-            verifyEmailUseCase.verifyEmail(email, code)
+            verifyEmailUseCase.verify(email, code)
         }.isInstanceOf(CustomException.NotFoundException.UserEmailNotFoundException::class.java)
             .hasMessage("User not found with email: $email")
     }
 
     @Test
+    @DisplayName("이미 인증된 사용자일 때 예외 발생")
     fun shouldThrowExceptionWhenUserAlreadyVerified() {
         // given
         val email = "test@example.com"
@@ -146,12 +152,13 @@ class VerifyEmailUseCaseUnitTest {
 
         // when & then
         assertThatThrownBy {
-            verifyEmailUseCase.verifyEmail(email, code)
+            verifyEmailUseCase.verify(email, code)
         }.isInstanceOf(CustomException.ValidationException.AlreadyVerifiedEmail::class.java)
             .hasMessage("Email is already verified. Your input: $email")
     }
 
     @Test
+    @DisplayName("인증 후 사용자 정보 유지")
     fun shouldMaintainUserInformationAfterVerification() {
         // given
         val email = "test@example.com"
@@ -176,7 +183,7 @@ class VerifyEmailUseCaseUnitTest {
         verificationCodeStore.storeWithExpiry(email, verificationCode, Duration.ofMinutes(5))
 
         // when
-        verifyEmailUseCase.verifyEmail(email, code)
+        verifyEmailUseCase.verify(email, code)
 
         // then
         val verifiedUser = userRepository.findByEmail(email)

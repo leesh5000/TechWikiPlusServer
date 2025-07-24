@@ -9,6 +9,7 @@ import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePassw
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -25,7 +26,8 @@ class UserAuthenticatorUnitTest {
     }
 
     @Test
-    fun `authenticate should return user when password is valid and user is active`() {
+    @DisplayName("비밀번호가 유효하고 사용자가 활성 상태일 때 사용자 반환")
+    fun `비밀번호가 유효하고 사용자가 활성 상태일 때 사용자 반환`() {
         // given
         val rawPassword = "password123"
         val encodedPassword = passwordEncoder.encode(rawPassword)
@@ -48,7 +50,8 @@ class UserAuthenticatorUnitTest {
     }
 
     @Test
-    fun `authenticate should throw InvalidCredentials when password does not match`() {
+    @DisplayName("비밀번호가 일치하지 않을 때 InvalidCredentials 예외 발생")
+    fun `비밀번호가 일치하지 않을 때 InvalidCredentials 예외 발생`() {
         // given
         val wrongPassword = "wrongpassword"
         val activeUser =
@@ -69,7 +72,8 @@ class UserAuthenticatorUnitTest {
     }
 
     @Test
-    fun `authenticate should throw EmailNotVerified when user status is PENDING`() {
+    @DisplayName("사용자 상태가 PENDING일 때 EmailNotVerified 예외 발생")
+    fun `사용자 상태가 PENDING일 때 EmailNotVerified 예외 발생`() {
         // given
         val rawPassword = "password123"
         val pendingUser =
@@ -90,7 +94,8 @@ class UserAuthenticatorUnitTest {
     }
 
     @Test
-    fun `authenticate should throw AccountBanned when user status is BANNED`() {
+    @DisplayName("사용자 상태가 BANNED일 때 AccountBanned 예외 발생")
+    fun `사용자 상태가 BANNED일 때 AccountBanned 예외 발생`() {
         // given
         val rawPassword = "password123"
         val bannedUser =
@@ -111,7 +116,8 @@ class UserAuthenticatorUnitTest {
     }
 
     @Test
-    fun `authenticate should throw AccountDormant when user status is DORMANT`() {
+    @DisplayName("사용자 상태가 DORMANT일 때 AccountDormant 예외 발생")
+    fun `사용자 상태가 DORMANT일 때 AccountDormant 예외 발생`() {
         // given
         val rawPassword = "password123"
         val dormantUser =
@@ -132,7 +138,8 @@ class UserAuthenticatorUnitTest {
     }
 
     @Test
-    fun `authenticate should throw AccountDeleted when user status is DELETED`() {
+    @DisplayName("사용자 상태가 DELETED일 때 AccountDeleted 예외 발생")
+    fun `사용자 상태가 DELETED일 때 AccountDeleted 예외 발생`() {
         // given
         val rawPassword = "password123"
         val deletedUser =
@@ -153,7 +160,8 @@ class UserAuthenticatorUnitTest {
     }
 
     @Test
-    fun `authenticate should validate password first before checking user status`() {
+    @DisplayName("사용자 상태 확인 전에 비밀번호 검증을 먼저 수행")
+    fun `사용자 상태 확인 전에 비밀번호 검증을 먼저 수행`() {
         // given
         val wrongPassword = "wrongpassword"
         val pendingUser =

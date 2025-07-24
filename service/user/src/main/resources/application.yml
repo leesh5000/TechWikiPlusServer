@@ -8,7 +8,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # Docker Compose 환경에서는 서비스명으로 접근
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/techwikiplus?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:13306/techwikiplus?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true}
     username: ${SPRING_DATASOURCE_USERNAME:techwikiplus}
     password: ${SPRING_DATASOURCE_PASSWORD:techwikiplus}
     hikari:
@@ -22,6 +22,7 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    database-platform: org.hibernate.dialect.MySQLDialect
     properties:
       hibernate:
         format_sql: false
@@ -30,7 +31,7 @@ spring:
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+      port: ${SPRING_DATA_REDIS_PORT:16379}
       password: ${SPRING_DATA_REDIS_PASSWORD:techwikiplus}
       timeout: 2000ms
       lettuce:
@@ -42,8 +43,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${SPRING_MAIL_USERNAME:noreply@techwikiplus.com}
-    password: ${SPRING_MAIL_PASSWORD:techwikiplus}
+    username: ${SPRING_MAIL_USERNAME:dev.helloc@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD:yvbzmidehyrdxyli}
     properties:
       mail:
         smtp:

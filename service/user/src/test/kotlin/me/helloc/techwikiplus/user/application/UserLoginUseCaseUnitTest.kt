@@ -15,6 +15,7 @@ import me.helloc.techwikiplus.user.infrastructure.security.fake.FakeTokenProvide
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
 class UserLoginUseCaseUnitTest {
@@ -50,6 +51,7 @@ class UserLoginUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("유효한 자격 증명으로 로그인 성공")
     fun shouldLoginSuccessfullyWithValidCredentials() {
         // given
         val email = "test@example.com"
@@ -93,6 +95,7 @@ class UserLoginUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("사용자를 찾을 수 없을 때 예외 발생")
     fun shouldThrowExceptionWhenUserNotFound() {
         // given
         val email = "nonexistent@example.com"
@@ -106,6 +109,7 @@ class UserLoginUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("비밀번호가 틀렸을 때 예외 발생")
     fun shouldThrowExceptionWhenPasswordIsIncorrect() {
         // given
         val email = "test@example.com"
@@ -134,6 +138,7 @@ class UserLoginUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("사용자가 대기 상태일 때 예외 발생")
     fun shouldThrowExceptionWhenUserIsPending() {
         // given
         val email = "pending@example.com"
@@ -159,6 +164,7 @@ class UserLoginUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("로그인할 때마다 다른 토큰 생성")
     fun shouldGenerateDifferentTokensForEachLogin() {
         // given
         val email = "test@example.com"
@@ -188,6 +194,7 @@ class UserLoginUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("로그인 결과에 올바른 사용자 ID 반환")
     fun shouldReturnCorrectUserIdInLoginResult() {
         // given
         val users =

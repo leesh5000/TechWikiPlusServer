@@ -1,10 +1,10 @@
 package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.exception.CustomException
-import me.helloc.techwikiplus.user.domain.service.EmailVerificationService
 import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
-import me.helloc.techwikiplus.user.domain.service.UserRegistrationService
+import me.helloc.techwikiplus.user.domain.service.UserRegister
 import me.helloc.techwikiplus.user.domain.service.UserWriter
+import me.helloc.techwikiplus.user.domain.service.VerificationCodeSender
 import me.helloc.techwikiplus.user.infrastructure.id.fake.FakeIdGenerator
 import me.helloc.techwikiplus.user.infrastructure.mail.fake.FakeMailSender
 import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePasswordEncoder
@@ -14,6 +14,7 @@ import me.helloc.techwikiplus.user.infrastructure.verificationcode.fake.FakeVeri
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
 class UserSignUpUseCaseUnitTest {
@@ -37,27 +38,28 @@ class UserSignUpUseCaseUnitTest {
         mailSender = FakeMailSender()
         verificationCodeStore = FakeVerificationCodeStore()
         idGenerator = FakeIdGenerator()
-        val userRegistrationService =
-            UserRegistrationService(
+        val userRegister =
+            UserRegister(
                 userWriter = userWriter,
                 userDuplicateChecker = userDuplicateChecker,
                 passwordValidator = passwordValidator,
                 passwordEncoder = passwordEncoder,
                 idGenerator = idGenerator,
             )
-        val emailVerificationService =
-            EmailVerificationService(
+        val verificationCodeSender =
+            VerificationCodeSender(
                 mailSender = mailSender,
                 verificationCodeStore = verificationCodeStore,
             )
         userSignUpUseCase =
             UserSignUpUseCase(
-                userRegistrationService = userRegistrationService,
-                emailVerificationService = emailVerificationService,
+                userRegister = userRegister,
+                verificationCodeSender = verificationCodeSender,
             )
     }
 
     @Test
+    @DisplayName("유효한 정보로 회원가입 성공")
     fun shouldSignUpUserSuccessfully() {
         // given
         val email = "test@example.com"
@@ -90,6 +92,7 @@ class UserSignUpUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("이미 존재하는 이메일로 회원가입 시 예외 발생")
     fun shouldThrowExceptionWhenEmailAlreadyExists() {
         // given
         val email = "existing@example.com"
@@ -110,6 +113,7 @@ class UserSignUpUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("이미 존재하는 닉네임으로 회원가입 시 예외 발생")
     fun shouldThrowExceptionWhenNicknameAlreadyExists() {
         // given
         val email = "newuser@example.com"
@@ -130,6 +134,7 @@ class UserSignUpUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("유효하지 않은 비밀번호로 회원가입 시 예외 발생")
     fun shouldThrowExceptionWhenPasswordIsInvalid() {
         // given
         val email = "test@example.com"
@@ -150,6 +155,7 @@ class UserSignUpUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("인증 코드를 올바른 TTL과 함께 저장")
     fun shouldStoreVerificationCodeWithCorrectTTL() {
         // given
         val email = "test@example.com"
@@ -166,6 +172,7 @@ class UserSignUpUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("고유한 사용자 ID 생성")
     fun shouldGenerateUniqueUserIds() {
         // given
         val users =

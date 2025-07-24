@@ -13,6 +13,7 @@ import me.helloc.techwikiplus.user.infrastructure.verificationcode.fake.FakeVeri
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
@@ -38,6 +39,7 @@ class ResendVerificationCodeUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("인증 코드를 성공적으로 재전송해야 한다")
     fun shouldResendVerificationCodeSuccessfully() {
         // given
         val email = "pending@example.com"
@@ -68,6 +70,7 @@ class ResendVerificationCodeUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("기존 인증 코드를 덮어써야 한다")
     fun shouldOverwriteExistingVerificationCode() {
         // given
         val email = "pending@example.com"
@@ -99,6 +102,7 @@ class ResendVerificationCodeUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("사용자를 찾을 수 없을 때 예외를 발생시켜야 한다")
     fun shouldThrowExceptionWhenUserNotFound() {
         // given
         val email = "nonexistent@example.com"
@@ -117,6 +121,7 @@ class ResendVerificationCodeUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("이미 인증된 사용자일 때 예외를 발생시켜야 한다")
     fun shouldThrowExceptionWhenUserAlreadyVerified() {
         // given
         val email = "verified@example.com"
@@ -149,6 +154,7 @@ class ResendVerificationCodeUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("서로 다른 사용자들에게 여러 코드를 전송할 수 있어야 한다")
     fun shouldSendMultipleCodesForDifferentUsers() {
         // given
         val users =
@@ -193,6 +199,7 @@ class ResendVerificationCodeUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("인증 코드에 올바른 TTL을 설정해야 한다")
     fun shouldSetCorrectTTLForVerificationCode() {
         // given
         val email = "pending@example.com"

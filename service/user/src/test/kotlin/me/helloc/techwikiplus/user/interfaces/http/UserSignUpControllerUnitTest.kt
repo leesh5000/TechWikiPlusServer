@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.user.application.UserSignUpUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
@@ -23,6 +24,7 @@ class UserSignUpControllerUnitTest {
     }
 
     @Test
+    @DisplayName("회원가입 성공 시 202 Accepted 상태 코드 반환")
     fun shouldSignUpSuccessfullyAndReturnAcceptedStatus() {
         // given
         val request =
@@ -48,6 +50,7 @@ class UserSignUpControllerUnitTest {
     }
 
     @Test
+    @DisplayName("UseCase에 올바른 파라미터 전달")
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
         val request =
@@ -69,6 +72,7 @@ class UserSignUpControllerUnitTest {
     }
 
     @Test
+    @DisplayName("Location 헤더에 인증 엔드포인트 포함")
     fun shouldReturnLocationHeaderWithVerifyEndpoint() {
         // given
         val request =
@@ -87,6 +91,7 @@ class UserSignUpControllerUnitTest {
     }
 
     @Test
+    @DisplayName("UseCase에서 예외 발생 시 예외 전파")
     fun shouldPropagateExceptionWhenUseCaseThrowsException() {
         // given
         val request =
@@ -113,6 +118,7 @@ class UserSignUpControllerUnitTest {
     }
 
     @Test
+    @DisplayName("비어있는 요청 필드 처리")
     fun shouldHandleEmptyRequestFields() {
         // given
         val request =
@@ -134,6 +140,7 @@ class UserSignUpControllerUnitTest {
     }
 
     @Test
+    @DisplayName("닉네임에 특수문자 포함 시 처리")
     fun shouldHandleSpecialCharactersInNickname() {
         // given
         val request =

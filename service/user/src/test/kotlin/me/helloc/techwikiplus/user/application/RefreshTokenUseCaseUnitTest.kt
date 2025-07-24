@@ -16,6 +16,7 @@ import me.helloc.techwikiplus.user.infrastructure.security.fake.FakeTokenProvide
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
@@ -46,6 +47,7 @@ class RefreshTokenUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("유효한 리프레시 토큰으로 새로운 토큰들을 생성해야 한다")
     fun shouldCreateNewTokensWithValidRefreshToken() {
         // given
         val email = "test@example.com"
@@ -90,6 +92,7 @@ class RefreshTokenUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("유효하지 않은 리프레시 토큰일 때 예외를 발생시켜야 한다")
     fun shouldThrowExceptionWhenRefreshTokenIsInvalid() {
         // given
         val invalidToken = "invalid.refresh.token"
@@ -102,6 +105,7 @@ class RefreshTokenUseCaseUnitTest {
     }
 
     @Test
+    @DisplayName("액세스 토큰을 리프레시 토큰으로 사용할 때 예외를 발생시켜야 한다")
     fun shouldThrowExceptionWhenAccessTokenIsUsedAsRefreshToken() {
         // given
         val email = "test@example.com"

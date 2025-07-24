@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 
-class JavaMailSender(
+class SmtpMailSender(
     private val mailSender: JavaMailSender,
     private val emailTemplateGenerator: EmailTemplateGenerator,
 ) : MailSender {
     @Value("\${spring.mail.username}")
     private lateinit var from: String
-    private val log = LoggerFactory.getLogger(JavaMailSender::class.java)
+    private val log = LoggerFactory.getLogger(SmtpMailSender::class.java)
 
     override fun sendVerificationEmail(email: String): VerificationCode {
         val code = VerificationCode.generate()

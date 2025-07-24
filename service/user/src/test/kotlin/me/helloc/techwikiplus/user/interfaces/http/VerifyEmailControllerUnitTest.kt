@@ -9,7 +9,6 @@ import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 
 class VerifyEmailControllerUnitTest {
@@ -38,7 +37,7 @@ class VerifyEmailControllerUnitTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isNull()
 
-        verify(verifyEmailUseCase).verifyEmail(
+        verify(verifyEmailUseCase).verify(
             email = request.email,
             code = request.code,
         )
@@ -57,7 +56,7 @@ class VerifyEmailControllerUnitTest {
         controller.verifyEmail(request)
 
         // then
-        verify(verifyEmailUseCase, times(1)).verifyEmail(
+        verify(verifyEmailUseCase, times(1)).verify(
             email = "user@domain.com",
             code = "ABCD1234",
         )
@@ -77,7 +76,7 @@ class VerifyEmailControllerUnitTest {
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        verify(verifyEmailUseCase).verifyEmail(
+        verify(verifyEmailUseCase).verify(
             email = request.email,
             code = request.code,
         )
@@ -96,7 +95,7 @@ class VerifyEmailControllerUnitTest {
         controller.verifyEmail(request)
 
         // then
-        verify(verifyEmailUseCase).verifyEmail(
+        verify(verifyEmailUseCase).verify(
             email = request.email,
             code = request.code,
         )
@@ -112,7 +111,7 @@ class VerifyEmailControllerUnitTest {
             )
 
         val exception = CustomException.AuthenticationException.ExpiredEmailVerification("test@example.com")
-        doThrow(exception).`when`(verifyEmailUseCase).verifyEmail(
+        doThrow(exception).`when`(verifyEmailUseCase).verify(
             email = request.email,
             code = request.code,
         )
@@ -136,7 +135,7 @@ class VerifyEmailControllerUnitTest {
             )
 
         val exception = CustomException.AuthenticationException.InvalidVerificationCode("WRONG")
-        doThrow(exception).`when`(verifyEmailUseCase).verifyEmail(
+        doThrow(exception).`when`(verifyEmailUseCase).verify(
             email = request.email,
             code = request.code,
         )
@@ -163,7 +162,7 @@ class VerifyEmailControllerUnitTest {
         controller.verifyEmail(request)
 
         // then
-        verify(verifyEmailUseCase).verifyEmail(
+        verify(verifyEmailUseCase).verify(
             email = "",
             code = "",
         )

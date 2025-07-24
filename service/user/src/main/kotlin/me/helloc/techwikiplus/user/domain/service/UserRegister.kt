@@ -5,7 +5,7 @@ import me.helloc.techwikiplus.user.domain.UserEmail
 import org.springframework.stereotype.Service
 
 @Service
-class UserRegistrationService(
+class UserRegister(
     private val userWriter: UserWriter,
     private val userDuplicateChecker: UserDuplicateChecker,
     private val passwordValidator: PasswordValidator,

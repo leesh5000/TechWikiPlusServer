@@ -13,7 +13,7 @@ class VerifyEmailUseCase(
     private val userReader: UserReader,
     private val userWriter: UserWriter,
 ) {
-    fun verifyEmail(
+    fun verify(
         email: String,
         code: String,
     ) {

@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.user.interfaces.http
 
 import jakarta.servlet.http.HttpServletRequest
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -12,6 +13,7 @@ import java.time.format.DateTimeFormatter
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     private val formatter =
         DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -63,6 +65,7 @@ class GlobalExceptionHandler {
         ex: Exception,
         request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
+        log.error("Unexpected error occurred: ${ex.message}", ex)
         val now: Instant = Instant.now()
         val errorResponse =
             ErrorResponse(

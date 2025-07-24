@@ -7,6 +7,7 @@ import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -23,6 +24,7 @@ class UserWriterUnitTest {
     }
 
     @Test
+    @DisplayName("새로운 사용자를 삽입해야 한다")
     fun `insertOrUpdate should insert new user`() {
         // given
         val newUser =
@@ -46,6 +48,7 @@ class UserWriterUnitTest {
     }
 
     @Test
+    @DisplayName("기존 사용자를 업데이트해야 한다")
     fun `insertOrUpdate should update existing user`() {
         // given
         val existingUser =
@@ -77,6 +80,7 @@ class UserWriterUnitTest {
     }
 
     @Test
+    @DisplayName("여러 사용자를 처리할 수 있어야 한다")
     fun `insertOrUpdate should handle multiple users`() {
         // given
         val user1 =
@@ -110,6 +114,7 @@ class UserWriterUnitTest {
     }
 
     @Test
+    @DisplayName("사용자 상태를 올바르게 업데이트해야 한다")
     fun `insertOrUpdate should correctly update user status`() {
         // given
         val pendingUser =
@@ -139,6 +144,7 @@ class UserWriterUnitTest {
     }
 
     @Test
+    @DisplayName("이메일이 변경될 때 이메일 인덱스를 업데이트해야 한다")
     fun `insertOrUpdate should update email index when email changes`() {
         // given
         val originalEmail = "original@example.com"
