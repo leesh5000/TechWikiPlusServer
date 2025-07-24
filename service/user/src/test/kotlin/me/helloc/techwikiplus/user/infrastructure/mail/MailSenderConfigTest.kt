@@ -1,12 +1,12 @@
 package me.helloc.techwikiplus.user.infrastructure.mail
 
-import org.mockito.Mockito.mock
 import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator
 import me.helloc.techwikiplus.user.infrastructure.mail.console.ConsoleMailSender
 import me.helloc.techwikiplus.user.infrastructure.mail.java.SmtpMailSender
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
 import org.springframework.mail.javamail.JavaMailSender
 
 class MailSenderConfigTest {
@@ -69,4 +69,3 @@ class MailSenderConfigTest {
         assertThat(mailSender).isInstanceOf(ConsoleMailSender::class.java)
     }
 }
-
