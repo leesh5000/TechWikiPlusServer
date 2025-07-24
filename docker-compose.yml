@@ -63,26 +63,26 @@ services:
         # - 사용하지 않는 레이어 스킵
         # - 향상된 캐시 메커니즘
         DOCKER_BUILDKIT: 1
-    
+
     # 환경에 따른 이미지 설정
     # 로컬: USER_SERVICE_IMAGE=techwikiplus/user-service:latest
     # 프로덕션: USER_SERVICE_IMAGE=<ECR_REGISTRY>/techwikiplus/user-service:latest
     image: ${USER_SERVICE_IMAGE:-techwikiplus/user-service:latest}
-    
+
     container_name: techwikiplus-user-service
     restart: unless-stopped
-    
+
     # Pull 정책
     # 로컬: --build 플래그 사용 (docker-compose up --build)
     # 프로덕션: 항상 최신 이미지를 pull
     pull_policy: always
-    
+
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    
+
     environment:
       # 데이터베이스 설정
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-techwikiplus}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
@@ -115,13 +115,13 @@ services:
 
       # JVM 옵션
       JAVA_OPTS: ${JAVA_OPTS:--Xms512m -Xmx1024m}
-    
+
     ports:
       - "${USER_SERVICE_PORT:-9000}:9000"
-    
+
     networks:
       - techwikiplus-network
-    
+
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "9000"]
       interval: 30s

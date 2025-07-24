@@ -11,7 +11,7 @@ env:
   AWS_REGION: ap-northeast-2
   # ECR 리포지토리 이름 - 프로젝트별로 변경 가능
   ECR_REPOSITORY_NAME: techwikiplus/server/user-service
-  PROJECT_DIRECTORY: techwikiplus-server
+  PROJECT_DIRECTORY: techwikiplus/server/user-service
   # 헬스체크 설정
   HEALTH_CHECK_URL: http://localhost:9000/actuator/health
   HEALTH_CHECK_MAX_RETRIES: 10
