@@ -404,10 +404,19 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-    - name: EC2로 docker-compose.yml 전송
+    - name: EC2로 docker-compose 파일 전송
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "mkdir -p ~/${{ env.PROJECT_DIRECTORY }}"
-        scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/${{ env.PROJECT_DIRECTORY }}/
+        echo "Creating directory structure on EC2..."
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "mkdir -p ~/${{ env.PROJECT_DIRECTORY }}/docker/compose"
+        
+        echo "Copying docker-compose files..."
+        # Find and copy each yml file individually to avoid wildcard expansion issues
+        for file in docker/compose/*.yml; do
+          if [ -f "$file" ]; then
+            echo "Copying $file..."
+            scp -o StrictHostKeyChecking=no "$file" ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/${{ env.PROJECT_DIRECTORY }}/docker/compose/
+          fi
+        done
 
     - name: 배포 스크립트 전송 및 실행
       id: deploy
@@ -456,9 +465,9 @@ jobs:
         echo "✅ 배포가 성공적으로 완료되었습니다!"
         echo ""
         echo "간단 상태 확인:"
-        CONTAINER_STATUS=$(ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose ps --format json" | jq -r '.[] | select(.Service == "user-service") | .State')
+        CONTAINER_STATUS=$(ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml ps --format json" | jq -r '.[] | select(.Service == "user-service") | .State')
         echo "container_status=$CONTAINER_STATUS" >> $GITHUB_OUTPUT
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose ps"
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml ps"
 
     - name: Job Summary 생성
       if: always()
