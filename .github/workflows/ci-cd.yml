@@ -38,15 +38,17 @@ jobs:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          ~/.gradle/build-cache
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
         restore-keys: |
+          ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           ${{ runner.os }}-gradle-
 
     - name: Gradle 실행 권한 부여
       run: chmod +x gradlew
 
     - name: 코드 스타일 검사 (ktlint)
-      run: ./gradlew ktlintCheck
+      run: ./gradlew ktlintCheck --build-cache --parallel --daemon
 
     - name: Job Summary 생성
       if: always()
@@ -81,9 +83,21 @@ jobs:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          ~/.gradle/build-cache
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
         restore-keys: |
+          ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           ${{ runner.os }}-gradle-
+
+    - name: 테스트 결과 캐시 설정
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/build/test-results
+          **/build/reports/tests
+        key: ${{ runner.os }}-test-results-${{ hashFiles('**/src/test/**/*.kt', '**/src/main/**/*.kt') }}
+        restore-keys: |
+          ${{ runner.os }}-test-results-
 
     - name: Gradle 실행 권한 부여
       run: chmod +x gradlew
@@ -92,7 +106,7 @@ jobs:
       id: test
       run: |
         set +e
-        ./gradlew test
+        ./gradlew test --build-cache --parallel --daemon --max-workers=2
         TEST_EXIT_CODE=$?
         echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
         exit $TEST_EXIT_CODE
@@ -139,6 +153,11 @@ jobs:
     name: 빌드
     needs: [lint, test]
     runs-on: ubuntu-latest
+    # 실패 빠른 처리: lint나 test 중 하나라도 실패하면 즉시 중단
+    if: |
+      always() && 
+      !contains(needs.*.result, 'failure') && 
+      !contains(needs.*.result, 'cancelled')
 
     steps:
     - name: 코드 체크아웃
@@ -156,8 +175,10 @@ jobs:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          ~/.gradle/build-cache
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
         restore-keys: |
+          ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           ${{ runner.os }}-gradle-
 
     - name: Gradle 실행 권한 부여
@@ -167,7 +188,7 @@ jobs:
       id: build
       run: |
         set +e
-        ./gradlew :service:user:build -x test
+        ./gradlew :service:user:build -x test --build-cache --parallel --daemon
         BUILD_EXIT_CODE=$?
         echo "build_exit_code=$BUILD_EXIT_CODE" >> $GITHUB_OUTPUT
         
@@ -254,7 +275,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./service/user/Dockerfile
+        file: ./docker/dockerfiles/user-service.dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -272,6 +293,9 @@ jobs:
           BUILDKIT_INLINE_CACHE=1
         # 플랫폼 지정으로 빌드 속도 향상
         platforms: linux/amd64
+        # SBOM 생성 비활성화로 빌드 속도 향상
+        provenance: false
+        sbom: false
 
     - name: Job Summary 생성
       if: always()
