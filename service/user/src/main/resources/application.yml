@@ -66,11 +66,11 @@ jwt:
 # 로깅 설정
 logging:
   level:
-    root: ${LOG_LEVEL_ROOT:INFO}
-    me.helloc.techwikiplus: ${LOG_LEVEL_TECHWIKIPLUS:INFO}
-    org.springframework.web: ${LOG_LEVEL_SPRING_WEB:INFO}
-    org.springframework.security: ${LOG_LEVEL_SPRING_SECURITY:INFO}
-    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE_SQL:WARN}
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    me.helloc.techwikiplus: ${LOGGING_LEVEL_TECHWIKIPLUS:INFO}
+    org.springframework.web: ${LOGGING_LEVEL_SPRING_WEB:INFO}
+    org.springframework.security: ${LOGGING_LEVEL_SPRING_SECURITY:INFO}
+    org.hibernate.SQL: ${LOGGING_LEVEL_HIBERNATE_SQL:WARN}
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
@@ -87,6 +87,8 @@ management:
       probes:
         enabled: true
   health:
+    mail:
+      enabled: ${MANAGEMENT_HEALTH_MAIL_ENABLED:false}
     livenessstate:
       enabled: true
     readinessstate:
