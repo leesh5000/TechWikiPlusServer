@@ -31,7 +31,7 @@ docker-compose --version
 
 ```bash
 # 프로젝트 루트 디렉토리에서
-cp .env.example .env
+cp docs/.env.example .env
 ```
 
 `.env` 파일을 열어 필수 환경 변수를 설정합니다:
@@ -100,23 +100,29 @@ docker inspect techwikiplus-user-service --format='{{.State.Health.Status}}'
 | `JWT_SECRET` | JWT 토큰 서명용 비밀키 (최소 32자) | `openssl rand -base64 32` 출력값 |
 | `MAIL_USERNAME` | SMTP 이메일 주소 | `noreply@example.com` |
 | `MAIL_PASSWORD` | SMTP 이메일 비밀번호 | Gmail 앱 비밀번호 |
+| `MYSQL_PASSWORD` | MySQL 사용자 비밀번호 | 안전한 비밀번호 |
+| `REDIS_PASSWORD` | Redis 비밀번호 | 안전한 비밀번호 |
 
 #### 선택적 환경 변수
 
 | 변수명 | 기본값 | 설명 |
 |--------|--------|------|
-| `SPRING_PROFILES_ACTIVE` | `docker` | Spring 프로파일 |
-| `SPRING_MAIL_TYPE` | `smtp` | 메일 전송 방식 (`smtp` 또는 `console`) |
-| `SPRING_MAIL_HOST` | `localhost` | SMTP 서버 호스트 |
-| `SPRING_MAIL_PORT` | `1025` | SMTP 서버 포트 |
-| `MYSQL_ROOT_PASSWORD` | `rootpassword` | MySQL root 비밀번호 |
-| `MYSQL_PASSWORD` | `techwikipassword` | MySQL 사용자 비밀번호 |
-| `REDIS_PASSWORD` | `techwikipassword` | Redis 비밀번호 |
+| `USER_SERVICE_IMAGE` | `techwikiplus/user-service:latest` | User Service Docker 이미지 |
+| `SPRING_JPA_HIBERNATE_DDL_AUTO` | `update` | JPA DDL 자동 생성 모드 |
+| `SPRING_MAIL_TYPE` | `console` | 메일 전송 방식 (`smtp` 또는 `console`) |
+| `SPRING_MAIL_HOST` | `smtp.gmail.com` | SMTP 서버 호스트 |
+| `SPRING_MAIL_PORT` | `587` | SMTP 서버 포트 |
+| `MYSQL_ROOT_PASSWORD` | - | MySQL root 비밀번호 |
 | `USER_SERVICE_PORT` | `9000` | User Service 포트 |
 | `MYSQL_PORT` | `13306` | MySQL 외부 포트 |
 | `REDIS_PORT` | `16379` | Redis 외부 포트 |
-| `LOG_LEVEL_ROOT` | `INFO` | 루트 로깅 레벨 |
-| `LOG_LEVEL_TECHWIKIPLUS` | `INFO` | 애플리케이션 로깅 레벨 |
+| `LOGGING_LEVEL_ROOT` | `INFO` | 루트 로깅 레벨 |
+| `LOGGING_LEVEL_TECHWIKIPLUS` | `INFO` | 애플리케이션 로깅 레벨 |
+| `LOGGING_LEVEL_SPRING_WEB` | `INFO` | Spring Web 로깅 레벨 |
+| `LOGGING_LEVEL_SPRING_SECURITY` | `INFO` | Spring Security 로깅 레벨 |
+| `LOGGING_LEVEL_HIBERNATE_SQL` | `WARN` | Hibernate SQL 로깅 레벨 |
+| `MANAGEMENT_HEALTH_MAIL_ENABLED` | `false` | 메일 서버 헬스 체크 활성화 |
+| `CORS_ALLOWED_ORIGINS` | `*` | CORS 허용 Origin |
 
 ### 볼륨 구성
 
@@ -361,7 +367,23 @@ export SPRING_MAIL_TYPE=console
 export SPRING_MAIL_TYPE=smtp
 ```
 
-### 3. 컨테이너 내부 접속
+### 3. 로깅 레벨 설정
+
+애플리케이션의 로깅 레벨을 환경에 따라 조정할 수 있습니다:
+
+```bash
+# 개발 환경: 상세한 로그
+export LOGGING_LEVEL_ROOT=INFO
+export LOGGING_LEVEL_TECHWIKIPLUS=DEBUG
+export LOGGING_LEVEL_HIBERNATE_SQL=DEBUG
+
+# 프로덕션 환경: 최소한의 로그
+export LOGGING_LEVEL_ROOT=WARN
+export LOGGING_LEVEL_TECHWIKIPLUS=INFO
+export LOGGING_LEVEL_HIBERNATE_SQL=WARN
+```
+
+### 4. 컨테이너 내부 접속
 
 ```bash
 # User Service 컨테이너 쉘 접속
@@ -371,7 +393,7 @@ docker exec -it techwikiplus-user-service sh
 docker exec -it techwikiplus-mysql mysql -u techwikiplus -p
 ```
 
-### 4. 실시간 로그 모니터링
+### 5. 실시간 로그 모니터링
 
 ```bash
 # 여러 서비스 로그 동시 모니터링
