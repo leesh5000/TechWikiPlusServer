@@ -52,22 +52,9 @@ services:
       start_period: 10s
 
   user-service:
-    # 빌드 설정 (로컬 개발 시 사용)
-    # 프로덕션에서는 이미 빌드된 이미지를 사용하므로 build 섹션은 무시됨
-    build:
-      context: .
-      dockerfile: service/user/Dockerfile
-      args:
-        # Docker BuildKit 활성화 - 빌드 성능 최적화
-        # - 멀티스테이지 빌드 병렬 처리
-        # - 사용하지 않는 레이어 스킵
-        # - 향상된 캐시 메커니즘
-        DOCKER_BUILDKIT: 1
 
-    # 환경에 따른 이미지 설정
-    # 로컬: USER_SERVICE_IMAGE=techwikiplus/user-service:latest
     # 프로덕션: USER_SERVICE_IMAGE=<ECR_REGISTRY>/techwikiplus/user-service:latest
-    image: ${USER_SERVICE_IMAGE:-techwikiplus/user-service:latest}
+    image: ${USER_SERVICE_IMAGE}
 
     container_name: techwikiplus-user-service
     restart: unless-stopped
