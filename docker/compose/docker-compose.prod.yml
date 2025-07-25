@@ -1,0 +1,92 @@
+# Production Docker Compose configuration
+# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  user-service:
+    # 프로덕션 이미지 사용 (ECR)
+    image: ${USER_SERVICE_IMAGE}
+
+    container_name: techwikiplus-user-service
+    restart: unless-stopped
+
+    # 항상 최신 이미지 pull
+    pull_policy: always
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    environment:
+      # 데이터베이스 설정
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+
+      # JPA 설정 (프로덕션: validate)
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: false
+
+      # Redis 설정
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      # JWT 설정 (프로덕션: 환경변수 필수)
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION}
+
+      # 메일 설정 (프로덕션: SMTP)
+      SPRING_MAIL_TYPE: smtp
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: true
+
+      # 로깅 설정 (프로덕션: INFO 레벨)
+      LOGGING_LEVEL_ROOT: ${LOGGING_LEVEL_ROOT:-WARN}
+      LOGGING_LEVEL_TECHWIKIPLUS: ${LOGGING_LEVEL_TECHWIKIPLUS:-INFO}
+      LOGGING_LEVEL_SPRING_WEB: ${LOGGING_LEVEL_SPRING_WEB:-INFO}
+      LOGGING_LEVEL_SPRING_SECURITY: ${LOGGING_LEVEL_SPRING_SECURITY:-WARN}
+      LOGGING_LEVEL_HIBERNATE_SQL: ${LOGGING_LEVEL_HIBERNATE_SQL:-WARN}
+
+      # Actuator 설정 (프로덕션: 제한된 엔드포인트)
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics
+      MANAGEMENT_HEALTH_MAIL_ENABLED: true
+
+      # CORS 설정 (프로덕션: 특정 origin만 허용)
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: prod
+
+      # 추가 프로덕션 설정
+      SERVER_TOMCAT_ACCESS_LOG_ENABLED: true
+      SERVER_TOMCAT_ACCESS_LOG_PATTERN: "%h %l %u %t \"%r\" %s %b %D"
+
+    ports:
+      - "${USER_SERVICE_PORT:-9000}:9000"
+
+    networks:
+      - techwikiplus-network
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # 프로덕션 로깅 드라이버
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"

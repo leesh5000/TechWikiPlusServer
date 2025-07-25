@@ -1,0 +1,90 @@
+# Local development Docker Compose configuration
+# Usage: docker-compose -f docker-compose.base.yml -f docker-compose.local.yml up -d --build
+
+version: '3.8'
+
+services:
+  user-service:
+    # 로컬 빌드 설정
+    build:
+      context: ../..
+      dockerfile: docker/dockerfiles/user-service.dockerfile
+      args:
+        DOCKER_BUILDKIT: 1
+    
+    # 로컬 이미지 사용
+    image: techwikiplus/user-service:local
+    
+    container_name: techwikiplus-user-service
+    restart: unless-stopped
+    
+    # 로컬에서는 pull 하지 않음
+    pull_policy: never
+    
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    environment:
+      # 데이터베이스 설정
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-techwikiplus}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-techwikiplus}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-techwikiplus}
+      
+      # JPA 설정 (개발 환경: update)
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-true}
+      
+      # Redis 설정
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-techwikiplus}
+      
+      # JWT 설정 (개발용 기본값)
+      JWT_SECRET: ${JWT_SECRET:-techwikiplus-jwt-secret-key-for-authentication-2024}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600000} # 1시간
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000} # 7일
+      
+      # 메일 설정 (개발: 콘솔 출력)
+      SPRING_MAIL_TYPE: console
+      SPRING_MAIL_HOST: localhost
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: noreply@techwikiplus.com
+      SPRING_MAIL_PASSWORD: techwikiplus
+      
+      # 로깅 설정 (개발: DEBUG 레벨)
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_TECHWIKIPLUS: DEBUG
+      LOGGING_LEVEL_SPRING_WEB: DEBUG
+      LOGGING_LEVEL_SPRING_SECURITY: DEBUG
+      LOGGING_LEVEL_HIBERNATE_SQL: DEBUG
+      LOGGING_LEVEL_HIBERNATE_TYPE: TRACE
+      
+      # Actuator 설정
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "*"
+      MANAGEMENT_HEALTH_MAIL_ENABLED: false
+      
+      # CORS 설정 (개발: 모든 origin 허용)
+      CORS_ALLOWED_ORIGINS: "*"
+      
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: local
+    
+    ports:
+      - "${USER_SERVICE_PORT:-9000}:9000"
+    
+    networks:
+      - techwikiplus-network
+    
+    volumes:
+      # 핫 리로드를 위한 볼륨 마운트 (선택사항)
+      # - ./service/user/build/libs:/app
+    
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
