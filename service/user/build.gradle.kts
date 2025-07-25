@@ -1,3 +1,6 @@
+group = "me.helloc.techwikiplus"
+version = "0.0.1"
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -50,6 +53,10 @@ dependencies {
 
     // ArchUnit - 아키텍처 검증 도구
     testImplementation("com.tngtech.archunit:archunit-junit5:1.2.1")
+}
+
+springBoot {
+    buildInfo()
 }
 
 tasks.test {
