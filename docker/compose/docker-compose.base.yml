@@ -1,8 +1,6 @@
 # Base Docker Compose configuration
 # Contains common service definitions shared between environments
 
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0.32
