@@ -44,8 +44,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Local Development
 ```bash
 # Start infrastructure (MySQL, Redis) using docker-compose
-cd service/user
-docker-compose -f docker-compose-infra.yml up -d
+docker-compose -f docker/compose/docker-compose.base.yml up -d
 
 # Run the User Service
 ./gradlew :service:user:bootRun

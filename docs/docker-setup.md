@@ -29,46 +29,60 @@ docker-compose --version
 
 ### 1. 환경 변수 설정
 
+환경에 따라 적절한 환경 변수 파일을 복사하고 수정합니다:
+
+#### 로컬 개발 환경
 ```bash
-# 프로젝트 루트 디렉토리에서
-cp docs/.env.example .env
+# 로컬 개발용 환경 변수 복사
+cp docker/env/.env.local.example .env.local
+
+# 필요시 .env.local 파일 수정
 ```
 
-`.env` 파일을 열어 필수 환경 변수를 설정합니다:
+#### 프로덕션 환경
+```bash
+# 프로덕션용 환경 변수 복사
+cp docker/env/.env.prod.example .env.prod
 
-```env
-# JWT 비밀키 생성 (필수)
-JWT_SECRET=$(openssl rand -base64 32)
-
-# 이메일 설정 (필수)
-MAIL_USERNAME=your_email@gmail.com
-MAIL_PASSWORD=your_app_password
+# .env.prod 파일을 열어 필수 값 설정
+# - JWT_SECRET: 강력한 비밀키로 변경
+# - MAIL_USERNAME/PASSWORD: 실제 SMTP 계정 정보
+# - 데이터베이스 비밀번호 등
 ```
 
 ### 2. 애플리케이션 빌드 및 실행
 
-#### 방법 1: docker-build.sh 스크립트 사용 (권장)
-
-```bash
-# 빌드 스크립트 실행
-./docker-build.sh
-```
-
-#### 방법 2: Docker Compose 직접 실행
+#### 로컬 개발 환경
 
 ```bash
 # BuildKit 활성화 (TestContainers 실행을 위해 필요)
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
-# 모든 서비스 빌드 및 실행
-docker-compose up -d --build
+# 로컬 환경 실행 (빌드 포함) - 스크립트 사용 (권장)
+./docker/scripts/build-local.sh
+
+# 또는 직접 실행
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml --env-file .env.local up -d --build
 
 # 로그 확인
-docker-compose logs -f
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml logs -f
 
-# 특정 서비스 로그만 확인
-docker-compose logs -f user-service
+# 인프라만 실행하고 싶은 경우
+docker-compose -f docker/compose/docker-compose.base.yml up -d
+```
+
+#### 프로덕션 환경
+
+```bash
+# 프로덕션 환경 실행 - 스크립트 사용 (권장)
+./docker/scripts/build-prod.sh
+
+# 또는 직접 실행
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod up -d
+
+# 로그 확인
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml logs -f
 ```
 
 > **참고**: BuildKit은 Docker 18.09 이상에서 지원됩니다. TestContainers가 정상 작동하려면 BuildKit과 Docker 소켓 접근이 필요합니다.
@@ -137,59 +151,97 @@ Docker Compose는 다음 볼륨을 생성합니다:
 
 ## Docker Compose 명령어
 
+### 환경별 실행 방법
+
+프로젝트는 환경에 따라 다른 docker-compose 파일을 사용합니다:
+
+- `docker/compose/docker-compose.base.yml`: 공통 서비스 정의 (MySQL, Redis)
+- `docker/compose/docker-compose.local.yml`: 로컬 개발 환경
+- `docker/compose/docker-compose.prod.yml`: 프로덕션 환경
+
 ### 기본 명령어
 
+#### 로컬 개발 환경
 ```bash
 # 서비스 시작
-docker-compose up -d
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml --env-file .env.local up -d
 
 # 서비스 중지
-docker-compose down
-
-# 서비스 중지 및 볼륨 삭제
-docker-compose down -v
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml down
 
 # 서비스 재시작
-docker-compose restart
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml restart
 
-# 특정 서비스만 재시작
-docker-compose restart user-service
+# 빌드 포함 시작
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml --env-file .env.local up -d --build
+```
+
+#### 프로덕션 환경
+```bash
+# 서비스 시작
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod up -d
+
+# 서비스 중지
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml down
+
+# 서비스 재시작
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml restart
+```
+
+#### 인프라만 실행
+```bash
+# MySQL과 Redis만 실행
+docker-compose -f docker/compose/docker-compose.base.yml up -d
 ```
 
 ### 빌드 관련 명령어
 
 ```bash
-# 이미지 재빌드
-docker-compose build
+# 로컬 환경 이미지 재빌드
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml build
 
 # 캐시 없이 재빌드
-docker-compose build --no-cache
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml build --no-cache
 
 # 특정 서비스만 재빌드
-docker-compose build user-service
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml build user-service
 ```
 
 ### 로그 및 모니터링
 
 ```bash
-# 모든 서비스 로그
-docker-compose logs
+# 로컬 환경 로그
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml logs -f
 
-# 실시간 로그 스트리밍
-docker-compose logs -f
+# 프로덕션 환경 로그
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml logs -f
 
 # 최근 100줄만 표시
-docker-compose logs --tail=100
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml logs --tail=100
 
 # 특정 서비스 로그
-docker-compose logs user-service
+docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml logs -f user-service
 ```
 
-### 스케일링
+### 유용한 Alias 설정 (선택사항)
+
+`.bashrc` 또는 `.zshrc`에 추가하면 편리합니다:
 
 ```bash
-# User Service를 3개 인스턴스로 실행
-docker-compose up -d --scale user-service=3
+# 로컬 환경 alias
+alias dcl='docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml --env-file .env.local'
+
+# 프로덕션 환경 alias  
+alias dcp='docker-compose -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod'
+
+# 인프라 환경 alias
+alias dcb='docker-compose -f docker/compose/docker-compose.base.yml'
+
+# 사용 예시
+dcl up -d --build  # 로컬 환경 빌드 및 실행
+dcl logs -f        # 로컬 환경 로그
+dcp up -d          # 프로덕션 환경 실행
+dcb up -d          # 인프라만 실행
 ```
 
 ## 운영 환경 고려사항
