@@ -105,7 +105,7 @@ class VerificationCodeRedisStoreIntegrationTest : IntegrationTestSupport() {
             // given
             val email = "short-ttl@example.com"
             val code = VerificationCode.generate()
-            val ttl = Duration.ofSeconds(1)
+            val ttl = Duration.ofSeconds(2) // CI 환경에서의 타이밍 문제를 고려하여 2초로 증가
 
             // when
             verificationCodeStore.storeWithExpiry(email, code, ttl)
@@ -114,8 +114,8 @@ class VerificationCodeRedisStoreIntegrationTest : IntegrationTestSupport() {
             val retrievedCode = verificationCodeStore.retrieveOrThrows(email)
             assertThat(retrievedCode.value).isEqualTo(code.value)
 
-            // 2초 후 조회하면 만료되어 실패
-            Thread.sleep(2000)
+            // 3초 후 조회하면 만료되어 실패
+            Thread.sleep(3000)
             assertThatThrownBy { verificationCodeStore.retrieveOrThrows(email) }
                 .isInstanceOf(ExpiredEmailVerification::class.java)
                 .extracting("email")
@@ -159,12 +159,12 @@ class VerificationCodeRedisStoreIntegrationTest : IntegrationTestSupport() {
             // given
             val email = "expired@example.com"
             val code = VerificationCode.generate()
-            val ttl = Duration.ofMillis(100) // 0.1초
+            val ttl = Duration.ofMillis(500) // 0.5초
 
             verificationCodeStore.storeWithExpiry(email, code, ttl)
 
             // when
-            Thread.sleep(200) // 0.2초 대기
+            Thread.sleep(1000) // 1초 대기
 
             // then
             assertThatThrownBy { verificationCodeStore.retrieveOrThrows(email) }
