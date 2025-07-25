@@ -45,12 +45,14 @@ services:
       JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600000} # 1시간
       JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000} # 7일
 
-      # 메일 설정 (개발: 콘솔 출력)
-      SPRING_MAIL_TYPE: console
-      SPRING_MAIL_HOST: localhost
+      # 메일 설정 (개발: MailHog)
+      SPRING_MAIL_HOST: mailhog
       SPRING_MAIL_PORT: 1025
       SPRING_MAIL_USERNAME: noreply@techwikiplus.com
       SPRING_MAIL_PASSWORD: techwikiplus
+      SPRING_MAIL_SMTP_AUTH: false
+      SPRING_MAIL_SMTP_STARTTLS_ENABLE: false
+      SPRING_MAIL_SMTP_STARTTLS_REQUIRED: false
 
       # 로깅 설정 (개발: DEBUG 레벨)
       LOGGING_LEVEL_ROOT: INFO
@@ -66,9 +68,6 @@ services:
 
       # CORS 설정 (개발: 모든 origin 허용)
       CORS_ALLOWED_ORIGINS: "*"
-
-      # Spring Profile
-      SPRING_PROFILES_ACTIVE: local
 
     ports:
       - "${USER_SERVICE_PORT:-9000}:9000"

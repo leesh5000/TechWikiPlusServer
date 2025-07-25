@@ -78,8 +78,7 @@ cp docs/.env.example .env
 # - MYSQL_PASSWORD: MySQL 비밀번호
 # - REDIS_PASSWORD: Redis 비밀번호
 
-# 개발 환경에서는 콘솔 메일 전송 사용 가능
-# - SPRING_MAIL_TYPE=console
+# 개발 환경에서는 MailHog 사용 (http://localhost:8025)
 
 # 로깅 레벨 커스터마이징 (선택사항)
 # - LOGGING_LEVEL_ROOT=INFO

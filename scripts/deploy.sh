@@ -14,6 +14,10 @@ echo "호스트: $(hostname)"
 # 1. 작업 디렉토리 확인
 # 환경변수 설정
 PROJECT_DIR="${PROJECT_DIRECTORY:-techwikiplus-server}"
+PROJECT_NAME="techwikiplus-server-user-service"
+COMPOSE_BASE_FILE="docker/compose/docker-compose.base.yml"
+COMPOSE_PROD_FILE="docker/compose/docker-compose.prod.yml"
+ENV_FILE=".env.prod"
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/actuator/health}"
 HEALTH_CHECK_MAX_RETRIES="${HEALTH_CHECK_MAX_RETRIES:-10}"
 HEALTH_CHECK_RETRY_DELAY="${HEALTH_CHECK_RETRY_DELAY:-5}"
@@ -21,8 +25,8 @@ HEALTH_CHECK_RETRY_DELAY="${HEALTH_CHECK_RETRY_DELAY:-5}"
 cd ~/$PROJECT_DIR || { echo "$PROJECT_DIR 디렉토리가 없습니다. ec2-setup.sh를 먼저 실행하세요."; exit 1; }
 
 # 2. .env 파일 확인
-if [ ! -f ".env" ]; then
-    echo "ERROR: .env 파일이 없습니다. ec2-setup.sh를 실행하고 .env 파일을 설정하세요."
+if [ ! -f "$ENV_FILE" ]; then
+    echo "ERROR: $ENV_FILE 파일이 없습니다. ec2-setup.sh를 실행하고 $ENV_FILE 파일을 설정하세요."
     exit 1
 fi
 
@@ -49,15 +53,16 @@ if [ -n "$1" ]; then
     fi
     
     # .env 파일의 USER_SERVICE_IMAGE 업데이트
-    sed -i.bak "s|^USER_SERVICE_IMAGE=.*|USER_SERVICE_IMAGE=$NEW_IMAGE_TAG|" .env
+    sed -i.bak "s|^USER_SERVICE_IMAGE=.*|USER_SERVICE_IMAGE=$NEW_IMAGE_TAG|" $ENV_FILE
     echo "USER_SERVICE_IMAGE 업데이트 완료"
 else
     echo "WARNING: 이미지 태그가 제공되지 않았습니다. 기존 이미지를 사용합니다."
 fi
 
-# 5. docker-compose.yml 파일 확인
-if [ ! -f "docker-compose.yml" ]; then
-    echo "ERROR: docker-compose.yml 파일이 없습니다."
+# 5. docker-compose 파일 확인
+if [ ! -f "$COMPOSE_BASE_FILE" ] || [ ! -f "$COMPOSE_PROD_FILE" ]; then
+    echo "ERROR: docker-compose 파일이 없습니다."
+    echo "필요한 파일: $COMPOSE_BASE_FILE, $COMPOSE_PROD_FILE"
     exit 1
 fi
 
@@ -91,7 +96,7 @@ for service in user-service mysql redis; do
     echo "서비스 확인 중: $service"
     
     # 설정된 이미지 (docker-compose config로 확인)
-    CONFIGURED_IMAGE=$(docker-compose config 2>/dev/null | awk -v svc="$service" '/^services:/{in_services=1} in_services && $0 ~ "^  " svc ":"{in_service=1} in_service && /^    image:/{gsub(/^[ \t]+image:[ \t]*/, ""); print; exit}' || echo "error")
+    CONFIGURED_IMAGE=$(docker-compose -p $PROJECT_NAME -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE config 2>/dev/null | awk -v svc="$service" '/^services:/{in_services=1} in_services && $0 ~ "^  " svc ":"{in_service=1} in_service && /^    image:/{gsub(/^[ \t]+image:[ \t]*/, ""); print; exit}' || echo "error")
     
     # 실행 중인 이미지 확인
     RUNNING_CONTAINER=$(docker ps --filter "label=com.docker.compose.service=$service" --format "{{.Names}}" | head -1)
@@ -130,7 +135,7 @@ if [ -n "$NEW_IMAGE_TAG" ]; then
     PULL_SUCCESS=false
     
     while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        if docker-compose pull user-service; then
+        if docker-compose -p $PROJECT_NAME -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE pull user-service; then
             echo "✅ user-service: 최신 이미지 pull 성공"
             PULL_SUCCESS=true
             break
@@ -154,7 +159,7 @@ if [ -n "$NEW_IMAGE_TAG" ]; then
         for service in mysql redis; do
             if echo "$SERVICES_TO_UPDATE" | grep -q "$service"; then
                 echo "$service 이미지 pull 중..."
-                docker-compose pull $service || {
+                docker-compose -p $PROJECT_NAME -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE pull $service || {
                     echo "❌ $service: Pull 실패"
                     exit 1
                 }
@@ -175,7 +180,7 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
     for service in mysql redis; do
         if echo "$SERVICES_TO_UPDATE" | grep -q "$service"; then
             echo "Updating $service..."
-            docker-compose up -d --no-deps $service
+            docker-compose -p $PROJECT_NAME -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --no-deps $service
             sleep 5  # 데이터베이스 초기화 대기
         fi
     done
@@ -185,7 +190,7 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
         echo "Updating user-service..."
         
         # 최신 이미지로 재시작 (--pull always 옵션 사용)
-        docker-compose up -d --no-deps --pull always user-service
+        docker-compose -p $PROJECT_NAME -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --no-deps --pull always user-service
         
         # 컨테이너 시작 대기
         echo "컨테이너 초기화 대기 중 (30초)..."
@@ -247,7 +252,7 @@ fi
 echo ""
 echo "===== 서비스 상태 ====="
 # 안전한 방식으로 상태 확인
-docker ps --filter "label=com.docker.compose.project=$PROJECT_DIR" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" || echo "WARNING: 컨테이너 상태 확인 실패"
+docker ps --filter "label=com.docker.compose.project=$PROJECT_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" || echo "WARNING: 컨테이너 상태 확인 실패"
 
 # 11. 로그 확인 (마지막 30줄)
 echo ""
@@ -295,7 +300,7 @@ echo "배포된 이미지: ${NEW_IMAGE_TAG:-기존 이미지 사용}"
 # 14. 실행 중인 컨테이너 확인
 echo ""
 echo "===== 실행 중인 컨테이너 ====="
-RUNNING_CONTAINERS=$(docker ps --filter "label=com.docker.compose.project=$PROJECT_DIR" -q | wc -l)
+RUNNING_CONTAINERS=$(docker ps --filter "label=com.docker.compose.project=$PROJECT_NAME" -q | wc -l)
 EXPECTED_CONTAINERS=3  # mysql, redis, user-service
 
 echo "실행 중인 컨테이너: $RUNNING_CONTAINERS/$EXPECTED_CONTAINERS"

@@ -18,7 +18,6 @@ spring:
     open-in-view: false
 
   mail:
-    type: console  # 테스트 환경에서는 ConsoleMailSender를 기본으로 사용
     host: smtp.gmail.com
     port: 587
     username: test@example.com

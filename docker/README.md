@@ -40,59 +40,35 @@ cp docker/env/.env.prod.example .env.prod
 #### 시작
 ```bash
 # 빌드 및 실행
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  --env-file .env.local \
-  up -d --build
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml --env-file .env.local up -d --build
 
 # 빌드 없이 실행
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  --env-file .env.local \
-  up -d
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml --env-file .env.local up -d
 ```
 
 #### 종료
 ```bash
 # 종료
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  down
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml down
 
 # 종료 및 볼륨 삭제
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  down -v
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml down -v
 ```
-
+Expert software engineer that helps review my code based on best practices…
 ### 3. 프로덕션 환경
 
 #### 시작
 ```bash
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.prod.yml \
-  --env-file .env.prod \
-  up -d
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
 #### 종료
 ```bash
 # Graceful shutdown
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.prod.yml \
-  stop -t 10
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml stop -t 10
 
 # 컨테이너 제거
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.prod.yml \
-  down
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod down
 ```
 
 ### 4. 인프라만 실행 (MySQL + Redis)
@@ -100,22 +76,15 @@ docker compose -p techwikiplus-server-user-service \
 #### 시작
 ```bash
 # 로컬 환경 설정으로 실행
-docker compose -p techwikiplus-server-infra \
-  -f docker/compose/docker-compose.base.yml \
-  --env-file .env.local \
-  up -d
+docker compose -p techwikiplus-server-infra -f docker/compose/docker-compose.base.yml --env-file .env.local up -d
 
 # 또는 기본값으로 실행
-docker compose -p techwikiplus-server-infra \
-  -f docker/compose/docker-compose.base.yml \
-  up -d
+docker compose -p techwikiplus-server-infra -f docker/compose/docker-compose.base.yml up -d
 ```
 
 #### 종료
 ```bash
-docker compose -p techwikiplus-server-infra \
-  -f docker/compose/docker-compose.base.yml \
-  down
+docker compose -p techwikiplus-server-infra -f docker/compose/docker-compose.base.yml down
 ```
 
 ## 📋 유용한 명령어
@@ -123,31 +92,19 @@ docker compose -p techwikiplus-server-infra \
 ### 로그 확인
 ```bash
 # 전체 로그
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  logs -f
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml logs -f
 
 # 특정 서비스 로그
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  logs -f user-service
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml logs -f user-service
 ```
 
 ### 서비스 재시작
 ```bash
 # 전체 재시작
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  restart
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml restart
 
 # 특정 서비스만 재시작
-docker compose -p techwikiplus-server-user-service \
-  -f docker/compose/docker-compose.base.yml \
-  -f docker/compose/docker-compose.local.yml \
-  restart user-service
+docker compose -p techwikiplus-server-user-service -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.local.yml restart user-service
 ```
 
 ### 컨테이너 접속
@@ -160,6 +117,27 @@ docker exec -it techwikiplus-mysql mysql -u techwikiplus -p
 
 # Redis CLI
 docker exec -it techwikiplus-redis redis-cli -a ${REDIS_PASSWORD}
+```
+
+## 📧 MailHog 사용 가이드
+
+### MailHog란?
+MailHog는 개발 환경에서 이메일을 테스트하기 위한 이메일 캡처 서버입니다. 실제로 이메일을 전송하지 않고, 애플리케이션에서 발송하는 모든 이메일을 가로채서 웹 UI에서 확인할 수 있습니다.
+
+### 사용 방법
+1. Docker Compose로 서비스 시작 후 http://localhost:8025 접속
+2. 애플리케이션에서 이메일 발송 시 MailHog Web UI에서 즉시 확인 가능
+3. 발송된 이메일의 내용, 헤더, 원본 소스 등을 상세히 확인 가능
+
+### 애플리케이션 설정
+```yaml
+# application.yml 또는 환경변수
+spring:
+  mail:
+    host: localhost
+    port: 1025
+    username: noreply@techwikiplus.com
+    password: techwikiplus  # MailHog는 인증이 필요 없지만 설정 가능
 ```
 
 ### Docker 리소스 정리
@@ -232,9 +210,28 @@ docker system prune -a --volumes -f
    - Redis: 16379 → 다른 포트
    - User Service: 9000 → 다른 포트
 
+## 🛠️ 주요 구성 요소
+
+### 기반 서비스 (`docker-compose.base.yml`)
+- **MySQL 8.0.32**
+  - 포트: 13306
+  - 데이터베이스: techwikiplus
+  - 초기화 스크립트 자동 실행
+  
+- **Redis 7-alpine**
+  - 포트: 16379
+  - 메모리 제한: 256MB
+  - LRU 정책 적용
+
+- **MailHog**
+  - SMTP 포트: 1025
+  - Web UI 포트: 8025
+  - 개발 환경용 이메일 테스트 서버
+
 ## 🔗 서비스 접속 정보
 
 로컬 환경 기준:
 - User Service API: http://localhost:9000
 - MySQL: localhost:13306
 - Redis: localhost:16379
+- MailHog Web UI: http://localhost:8025

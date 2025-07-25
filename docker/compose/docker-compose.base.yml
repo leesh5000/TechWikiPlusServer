@@ -54,6 +54,22 @@ services:
       retries: 5
       start_period: 10s
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: techwikiplus-mailhog
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"  # SMTP port
+      - "${MAILHOG_WEB_PORT:-8025}:8025"   # Web UI port
+    networks:
+      - techwikiplus-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   mysql-data:
     driver: local

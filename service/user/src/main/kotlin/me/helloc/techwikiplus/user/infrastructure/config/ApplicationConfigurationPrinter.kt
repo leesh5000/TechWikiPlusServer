@@ -43,27 +43,44 @@ class ApplicationConfigurationPrinter(
                 val dbUrl = environment.getProperty("spring.datasource.url", "Not configured")
                 val sanitizedDbUrl = dbUrl.substringBefore("?")
                 appendLine("- URL: $sanitizedDbUrl")
-                appendLine("- Max Pool Size: ${environment.getProperty("spring.datasource.hikari.maximum-pool-size", "10")}")
+                appendLine("- Username: ${environment.getProperty("spring.datasource.username", "Not configured")}")
+                appendLine("- Password: ${maskPassword(environment.getProperty("spring.datasource.password", ""))}")
+                appendLine(
+                    "- Max Pool Size: ${environment.getProperty("spring.datasource.hikari.maximum-pool-size", "10")}",
+                )
                 appendLine("- Min Idle: ${environment.getProperty("spring.datasource.hikari.minimum-idle", "10")}")
                 appendLine()
 
                 appendLine("[Redis Configuration]")
                 appendLine("- Host: ${environment.getProperty("spring.data.redis.host", "localhost")}")
                 appendLine("- Port: ${environment.getProperty("spring.data.redis.port", "6379")}")
-                appendLine("- Password: ****")
+                appendLine("- Password: ${maskPassword(environment.getProperty("spring.data.redis.password", ""))}")
                 appendLine()
 
                 appendLine("[Security Configuration]")
-                appendLine("- JWT Secret: ****")
+                appendLine("- JWT Secret: ${maskPassword(jwtProperties.secret)}")
                 appendLine("- JWT Access Token Expiration: ${formatDuration(jwtProperties.accessTokenExpiration)}")
                 appendLine("- JWT Refresh Token Expiration: ${formatDuration(jwtProperties.refreshTokenExpiration)}")
                 appendLine()
 
                 appendLine("[Mail Configuration]")
-                appendLine("- Type: ${environment.getProperty("spring.mail.type", "smtp")}")
                 appendLine("- Host: ${environment.getProperty("spring.mail.host", "Not configured")}")
                 appendLine("- Port: ${environment.getProperty("spring.mail.port", "587")}")
                 appendLine("- Username: ${maskEmail(environment.getProperty("spring.mail.username", ""))}")
+                appendLine("- Password: ${maskPassword(environment.getProperty("spring.mail.password", ""))}")
+                appendLine("- SMTP Auth: ${environment.getProperty("spring.mail.properties.mail.smtp.auth", "false")}")
+                appendLine(
+                    "- STARTTLS Enable: ${environment.getProperty(
+                        "spring.mail.properties.mail.smtp.starttls.enable",
+                        "false",
+                    )}",
+                )
+                appendLine(
+                    "- STARTTLS Required: ${environment.getProperty(
+                        "spring.mail.properties.mail.smtp.starttls.required",
+                        "false",
+                    )}",
+                )
                 appendLine()
 
                 appendLine("[CORS Configuration]")
@@ -74,7 +91,9 @@ class ApplicationConfigurationPrinter(
 
                 appendLine("[Logging Configuration]")
                 appendLine("- Root Level: ${environment.getProperty("logging.level.root", "INFO")}")
-                appendLine("- Application Level: ${environment.getProperty("logging.level.me.helloc.techwikiplus", "INFO")}")
+                appendLine(
+                    "- Application Level: ${environment.getProperty("logging.level.me.helloc.techwikiplus", "INFO")}",
+                )
                 appendLine()
 
                 appendLine("[Environment]")
@@ -116,5 +135,19 @@ class ApplicationConfigurationPrinter(
             }
 
         return "$maskedUsername@$domain"
+    }
+
+    private fun maskPassword(password: String): String {
+        if (password.isEmpty()) return "****"
+
+        return when {
+            password.length <= 4 -> "*".repeat(password.length)
+            else -> {
+                val firstTwo = password.take(2)
+                val lastOne = password.takeLast(1)
+                val middleLength = password.length - 3
+                "$firstTwo${"*".repeat(middleLength)}$lastOne"
+            }
+        }
     }
 }

@@ -41,18 +41,17 @@ spring:
           min-idle: 0
 
   mail:
-    type: ${SPRING_MAIL_TYPE:console}
     host: ${SPRING_MAIL_HOST:localhost}
     port: ${SPRING_MAIL_PORT:1025}
-    username: ${SPRING_MAIL_USERNAME:-hello}
-    password: ${SPRING_MAIL_PASSWORD:-hello}
+    username: ${SPRING_MAIL_USERNAME:techwikiplus}
+    password: ${SPRING_MAIL_PASSWORD:techwikiplus}
     properties:
       mail:
         smtp:
-          auth: true
+          auth: ${SPRING_MAIL_SMTP_AUTH:false}
           starttls:
-            enable: true
-            required: true
+            enable: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:false}
+            required: ${SPRING_MAIL_SMTP_STARTTLS_REQUIRED:false}
           timeout: 5000
           connection-timeout: 5000
           write-timeout: 5000

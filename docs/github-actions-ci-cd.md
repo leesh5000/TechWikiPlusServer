@@ -45,7 +45,8 @@
 #### 6. **deploy-production** - 프로덕션 배포
 - main 브랜치에서만 실행
 - AWS environment 사용
-- EC2로 docker-compose.yml 전송 및 실행
+- EC2로 docker-compose 파일들 (base.yml, prod.yml) 전송 및 실행
+- 다중 compose 파일 사용: `-f docker-compose.base.yml -f docker-compose.prod.yml`
 - **Job Summary**: 
   - 배포 성공/실패 상태
   - 배포 시간 및 배포자 정보
@@ -101,6 +102,7 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY_NAME: techwikiplus/server/user-service
   PROJECT_DIRECTORY: techwikiplus-server
+  PROJECT_NAME: techwikiplus-server-user-service  # Docker Compose 프로젝트 이름
   # 헬스체크 설정 - 서비스별로 변경 가능
   HEALTH_CHECK_URL: http://localhost:9000/actuator/health
   HEALTH_CHECK_MAX_RETRIES: 10
@@ -111,6 +113,7 @@ env:
 - `AWS_REGION`: AWS 리전 설정
 - `ECR_REPOSITORY_NAME`: ECR 리포지토리 이름
 - `PROJECT_DIRECTORY`: EC2에서 사용할 프로젝트 디렉토리
+- `PROJECT_NAME`: Docker Compose 프로젝트 이름 (컨테이너 구분용)
 - `HEALTH_CHECK_URL`: 서비스 헬스체크 URL (기본값: http://localhost:9000/actuator/health)
 - `HEALTH_CHECK_MAX_RETRIES`: 헬스체크 최대 재시도 횟수
 - `HEALTH_CHECK_RETRY_DELAY`: 헬스체크 재시도 간격(초)
@@ -132,12 +135,21 @@ env:
 ### 프로덕션 배포 (main 브랜치)
 1. Docker 이미지가 ECR에 여러 태그로 푸시됨 (브랜치명, 날짜-커밋해시, latest)
 2. SSH로 EC2 접속
-3. docker-compose.yml 및 deploy.sh 파일 전송
+3. docker-compose 파일들 및 deploy.sh 파일 전송:
+   - `docker/compose/docker-compose.base.yml`
+   - `docker/compose/docker-compose.prod.yml`
+   - `scripts/deploy.sh`
 4. deploy.sh 스크립트 실행:
    - 실제 태그(날짜-커밋해시) 사용
    - ECR에서 해당 태그의 이미지 pull
-   - .env 파일의 이미지 태그 업데이트
-   - Docker Compose로 새 버전 배포
+   - .env.prod 파일의 이미지 태그 업데이트
+   - Docker Compose로 새 버전 배포 (다중 파일 사용):
+     ```bash
+     docker compose -p techwikiplus-server-user-service \
+       -f docker/compose/docker-compose.base.yml \
+       -f docker/compose/docker-compose.prod.yml \
+       --env-file .env.prod up -d
+     ```
    - 헬스체크 및 로그 확인
 
 ### 스테이징 배포 (develop 브랜치)
@@ -153,10 +165,10 @@ env:
 
 ## 중요 사항
 
-### Docker 이미지 태귶 정책
-- **빌드**: 모든 태귶 (브랜치명, 날짜-커밋해시, latest) 생성
-- **배포**: 날짜-커밋해시 형식의 실제 태귶 사용 (예: 20250124-abc1234)
-- **Pull Policy**: `pull_policy: missing`로 설정하여 필요한 경우만 pull
+### Docker 이미지 태그 정책
+- **빌드**: 모든 태그 (브랜치명, 날짜-커밋해시, latest) 생성
+- **배포**: 날짜-커밋해시 형식의 실제 태그 사용 (예: 20250124-abc1234)
+- **Pull Policy**: `pull_policy: always`로 설정하여 항상 최신 이미지 확인
 
 ### 배포 실패 시 디버깅
 배포 실패 시 다음 정보가 자동으로 수집됩니다:

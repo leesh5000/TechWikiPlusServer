@@ -118,10 +118,8 @@ Follow the Kotlin style guide in `docs/kotlin-style-guide.md`:
   - `REDIS_PASSWORD`
   
 #### Mail Configuration
-- `spring.mail.type`: Choose mail sender implementation
-  - `smtp`: Real email sending via SMTP (production)
-  - `console`: Log to console without sending (development/test)
-- Default ports changed: 587 → 1025 for local development
+- SMTP mail sending configuration
+- Default ports changed: 587 → 1025 for local development with MailHog
 
 ### Database Setup
 

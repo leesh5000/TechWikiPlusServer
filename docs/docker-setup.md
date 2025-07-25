@@ -123,7 +123,6 @@ docker inspect techwikiplus-user-service --format='{{.State.Health.Status}}'
 |--------|--------|------|
 | `USER_SERVICE_IMAGE` | `techwikiplus/user-service:latest` | User Service Docker 이미지 |
 | `SPRING_JPA_HIBERNATE_DDL_AUTO` | `update` | JPA DDL 자동 생성 모드 |
-| `SPRING_MAIL_TYPE` | `console` | 메일 전송 방식 (`smtp` 또는 `console`) |
 | `SPRING_MAIL_HOST` | `smtp.gmail.com` | SMTP 서버 호스트 |
 | `SPRING_MAIL_PORT` | `587` | SMTP 서버 포트 |
 | `MYSQL_ROOT_PASSWORD` | - | MySQL root 비밀번호 |
@@ -409,15 +408,7 @@ export SPRING_PROFILES_ACTIVE=local
 
 ### 2. 메일 전송 설정
 
-개발/테스트 환경에서는 실제 이메일을 보내지 않고 콘솔에 로그로 출력할 수 있습니다:
-
-```bash
-# 개발 환경: 콘솔에 로그 출력
-export SPRING_MAIL_TYPE=console
-
-# 프로덕션 환경: 실제 이메일 발송
-export SPRING_MAIL_TYPE=smtp
-```
+개발/테스트 환경에서는 MailHog를 사용하여 이메일을 캡처하고 확인할 수 있습니다. MailHog는 `docker-compose.base.yml`에 포함되어 있으며 http://localhost:8025 에서 웹 UI로 접근할 수 있습니다.
 
 ### 3. 로깅 레벨 설정
 

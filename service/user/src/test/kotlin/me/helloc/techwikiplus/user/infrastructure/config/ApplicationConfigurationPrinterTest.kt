@@ -54,7 +54,6 @@ class ApplicationConfigurationPrinterTest : BehaviorSpec({
         mockEnvironment.setProperty("spring.datasource.hikari.minimum-idle", "10")
         mockEnvironment.setProperty("spring.data.redis.host", "localhost")
         mockEnvironment.setProperty("spring.data.redis.port", "16379")
-        mockEnvironment.setProperty("spring.mail.type", "console")
         mockEnvironment.setProperty("spring.mail.host", "smtp.gmail.com")
         mockEnvironment.setProperty("spring.mail.port", "1025")
         mockEnvironment.setProperty("spring.mail.username", "test@example.com")
