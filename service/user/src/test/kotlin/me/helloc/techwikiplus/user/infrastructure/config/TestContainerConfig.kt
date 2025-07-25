@@ -10,6 +10,14 @@ import org.testcontainers.utility.DockerImageName
 @TestConfiguration
 open class TestContainerConfig {
     companion object {
+        init {
+            // CI 환경 감지 및 설정
+            val isCI = System.getenv("CI") != null || System.getenv("GITHUB_ACTIONS") != null
+            if (isCI) {
+                System.setProperty("testcontainers.reuse.enable", "false")
+                System.setProperty("testcontainers.startup.timeout", "300")
+            }
+        }
         // MySQL 컨테이너 - 여러 테스트에서 재사용하여 성능 향상
         @JvmStatic
         val mysqlContainer: MySQLContainer<*> =
@@ -18,6 +26,8 @@ open class TestContainerConfig {
                 .withUsername("techwikiplus")
                 .withPassword("techwikiplus")
                 .withReuse(true)
+                .withStartupTimeoutSeconds(300) // CI 환경을 위한 타임아웃 증가
+                .withCommand("--default-authentication-plugin=mysql_native_password")
                 .apply { start() }
 
         // Redis 컨테이너 - 여러 테스트에서 재사용하여 성능 향상
@@ -27,6 +37,7 @@ open class TestContainerConfig {
                 DockerImageName.parse("redis:7-alpine"),
             )
                 .withReuse(true)
+                .withStartupTimeoutSeconds(300) // CI 환경을 위한 타임아웃 증가
                 .apply { start() }
 
         // Spring의 동적 프로퍼티 설정 - 컨테이너의 실제 포트를 애플리케이션에 주입

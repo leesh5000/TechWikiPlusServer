@@ -76,6 +76,11 @@ jobs:
   test:
     name: 테스트 실행
     runs-on: ubuntu-latest
+    
+    # TestContainers를 위한 환경 변수 설정
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: true
+      TESTCONTAINERS_CHECKS_DISABLE: true
 
     steps:
     - name: 코드 체크아웃
@@ -112,11 +117,29 @@ jobs:
     - name: Gradle 실행 권한 부여
       run: chmod +x gradlew
 
+    - name: Docker 환경 확인
+      run: |
+        echo "Docker 버전 확인:"
+        docker --version
+        echo ""
+        echo "Docker 정보:"
+        docker info
+        echo ""
+        echo "사용 가능한 메모리:"
+        free -h
+
     - name: 테스트 실행
       id: test
       run: |
         set +e
-        ./gradlew test --build-cache --parallel --daemon --max-workers=2
+        # JVM 메모리 설정 및 TestContainers 타임아웃 증가
+        export GRADLE_OPTS="-Xmx2g -Xms512m -XX:MaxMetaspaceSize=512m"
+        export TESTCONTAINERS_REUSE_ENABLE=false
+        
+        # TestContainers 로깅 활성화
+        export TESTCONTAINERS_TRACE=true
+        
+        ./gradlew test --build-cache --parallel --daemon --max-workers=2 --info
         TEST_EXIT_CODE=$?
         echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
         exit $TEST_EXIT_CODE
