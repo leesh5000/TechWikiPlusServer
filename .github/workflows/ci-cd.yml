@@ -48,14 +48,24 @@ jobs:
       run: chmod +x gradlew
 
     - name: 코드 스타일 검사 (ktlint)
-      run: ./gradlew ktlintCheck --build-cache --parallel --daemon
+      id: ktlint
+      run: |
+        # Exit code를 캡처하기 위해 set +e 사용
+        set +e
+        ./gradlew ktlintCheck --build-cache --parallel --daemon
+        KTLINT_EXIT_CODE=$?
+        # GitHub Output에 exit code 저장
+        echo "ktlint_exit_code=$KTLINT_EXIT_CODE" >> $GITHUB_OUTPUT
+        # ktlint가 실패하면 workflow도 실패하도록 exit code 반환
+        exit $KTLINT_EXIT_CODE
 
     - name: Job Summary 생성
       if: always()
       run: |
         echo "## 🎨 코드 스타일 검사 결과" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        if [ $? -eq 0 ]; then
+        # 이전 step의 output에서 ktlint exit code 확인
+        if [ "${{ steps.ktlint.outputs.ktlint_exit_code }}" == "0" ]; then
           echo "✅ **ktlint 검사 통과**" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **ktlint 검사 실패**" >> $GITHUB_STEP_SUMMARY

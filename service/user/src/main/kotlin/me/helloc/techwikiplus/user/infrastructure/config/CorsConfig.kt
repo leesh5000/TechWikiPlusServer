@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.cors.CorsConfiguration
@@ -17,6 +18,7 @@ data class CorsProperties(
 )
 
 @Configuration
+@EnableConfigurationProperties(CorsProperties::class)
 open class CorsConfig(
     private val corsProperties: CorsProperties,
 ) {
