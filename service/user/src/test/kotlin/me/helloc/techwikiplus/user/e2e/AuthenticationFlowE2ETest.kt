@@ -141,7 +141,8 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
                 val verifyRequest =
                     VerifyEmailController.UserSignUpVerifyRequest(
                         email = testEmail,
-                        code = "999999", // 잘못된 코드
+                        // 잘못된 코드
+                        code = "999999",
                     )
 
                 val verifyResponse: ResponseEntity<String> =
@@ -274,7 +275,8 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
             measureTimeMillis {
                 val refreshRequest =
                     RefreshTokenController.RefreshTokenRequest(
-                        refreshToken = refreshToken!!, // 이전 토큰
+                        // 이전 토큰
+                        refreshToken = refreshToken!!,
                     )
 
                 val refreshResponse: ResponseEntity<String> =

@@ -77,7 +77,8 @@ class GlobalExceptionHandler {
                     when {
                         errorMessage.contains("Unrecognized character escape") -> {
                             val invalidChar = errorMessage.substringAfter("escape '").substringBefore("' (code")
-                            "Invalid JSON format: Character '$invalidChar' cannot be escaped. Please check your JSON syntax."
+                            "Invalid JSON format: Character '$invalidChar' cannot be escaped. " +
+                                "Please check your JSON syntax."
                         }
                         errorMessage.contains("Unexpected character") -> {
                             "Invalid JSON format: Unexpected character found. Please check your JSON syntax."
