@@ -100,7 +100,9 @@ object OpenApiGenerator {
                         val pathSegments = path.split("/").filter { it.isNotEmpty() }
                         val domain =
                             pathSegments.find { it != "api" && !it.startsWith("v") }
-                                ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } ?: "Default"
+                                ?.replaceFirstChar { char ->
+                                    if (char.isLowerCase()) char.titlecase() else char.toString()
+                                } ?: "Default"
                         tagsArray.add(domain)
                     }
                     methodNode.set<ArrayNode>("tags", tagsArray)
