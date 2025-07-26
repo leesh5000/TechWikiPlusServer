@@ -143,12 +143,12 @@ jobs:
         TEST_EXIT_CODE=$?
         echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
         exit $TEST_EXIT_CODE
-    
+
     - name: API 문서 생성
       if: success()
       run: |
         echo "=== API 문서 생성 시작 ==="
-        
+
         # REST Docs 스니펫 확인
         echo "REST Docs 스니펫 확인:"
         if [ -d "service/user/build/generated-snippets" ]; then
@@ -157,17 +157,17 @@ jobs:
         else
           echo "⚠️ Snippets 디렉토리가 존재하지 않습니다!"
         fi
-        
+
         # 빌드 디렉토리 상태 확인
         echo ""
         echo "빌드 디렉토리 구조:"
         ls -la service/user/build/ || echo "빌드 디렉토리가 없습니다."
-        
+
         # OpenAPI 스펙 생성
         echo ""
         echo "OpenAPI 스펙 생성 실행:"
         ./gradlew :service:user:openapi3 :service:user:copyOpenApiSpec --build-cache --daemon --info
-        
+
         # 생성된 파일 확인
         echo ""
         echo "생성된 API 문서 확인:"
@@ -177,7 +177,7 @@ jobs:
         else
           echo "❌ OpenAPI 스펙이 생성되지 않았습니다."
         fi
-        
+
         echo "✅ API 문서 생성 완료" >> $GITHUB_STEP_SUMMARY
 
     - name: 테스트 리포트 업로드
@@ -188,7 +188,7 @@ jobs:
         path: |
           service/user/build/reports/tests/
           common/snowflake/build/reports/tests/
-    
+
     - name: API 문서 업로드
       uses: actions/upload-artifact@v4
       if: success()
@@ -516,7 +516,7 @@ jobs:
         echo "✅ 배포가 성공적으로 완료되었습니다!"
         echo ""
         echo "간단 상태 확인:"
-        CONTAINER_STATUS=$(ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml ps --format json" | jq -r '.[] | select(.Service == "user-service") | .State')
+        CONTAINER_STATUS=$(ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod --format json" | jq -r '.[] | select(.Service == "user-service") | .State')
         echo "container_status=$CONTAINER_STATUS" >> $GITHUB_OUTPUT
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml ps"
 
