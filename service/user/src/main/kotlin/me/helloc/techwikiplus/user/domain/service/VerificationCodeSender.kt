@@ -2,9 +2,9 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.DomainConstants
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import org.springframework.stereotype.Service
+import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
 
-@Service
 class VerificationCodeSender(
     private val mailSender: MailSender,
     private val verificationCodeStore: VerificationCodeStore,

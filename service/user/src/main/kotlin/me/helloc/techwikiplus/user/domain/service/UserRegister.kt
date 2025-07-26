@@ -2,9 +2,11 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
-import org.springframework.stereotype.Service
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.IdGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordEncoder
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordValidator
 
-@Service
 class UserRegister(
     private val userWriter: UserWriter,
     private val userDuplicateChecker: UserDuplicateChecker,

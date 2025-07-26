@@ -2,9 +2,8 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateEmail
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateNickname
-import org.springframework.stereotype.Service
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
 
-@Service
 class UserDuplicateChecker(
     private val repository: UserRepository,
 ) {

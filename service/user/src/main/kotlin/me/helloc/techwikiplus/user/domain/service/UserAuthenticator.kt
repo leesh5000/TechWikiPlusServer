@@ -2,9 +2,8 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.exception.CustomException
-import org.springframework.stereotype.Service
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordEncoder
 
-@Service
 class UserAuthenticator(
     private val passwordEncoder: PasswordEncoder,
 ) {

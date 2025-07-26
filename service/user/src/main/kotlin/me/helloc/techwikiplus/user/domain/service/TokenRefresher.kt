@@ -2,10 +2,11 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.exception.CustomException
-import org.springframework.stereotype.Component
+import me.helloc.techwikiplus.user.domain.port.outbound.RefreshTokenStore
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenConfiguration
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
 import java.time.Duration
 
-@Component
 class TokenRefresher(
     private val tokenProvider: TokenProvider,
     private val refreshTokenStore: RefreshTokenStore,
