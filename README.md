@@ -99,6 +99,19 @@ cp docs/.env.example .env
 
 자세한 설정 방법은 [Docker 설정 가이드](docs/docker-setup.md)를 참조하세요.
 
+### 4. API 문서 확인
+
+```bash
+# API 문서 생성
+./gradlew :service:user:test
+./gradlew :service:user:openapi3
+./gradlew :service:user:copyOpenApiSpec
+
+# 서버 실행 후 다음 URL에서 API 문서 확인
+# Swagger UI: http://localhost:9000/swagger-ui.html
+# OpenAPI JSON: http://localhost:9000/docs/openapi3.json
+```
+
 ## 🚦 개발 현황
 
 현재 프로젝트는 **기획 단계**에 있습니다.

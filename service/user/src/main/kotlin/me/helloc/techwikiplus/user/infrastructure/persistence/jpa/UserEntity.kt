@@ -11,7 +11,7 @@ import me.helloc.techwikiplus.user.domain.UserStatus
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "user")
+@Table(name = "`user`")
 class UserEntity(
     @Id
     @Column(name = "id", length = 20, nullable = false)
