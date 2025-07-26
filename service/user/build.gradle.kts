@@ -75,6 +75,7 @@ dependencies {
 
 springBoot {
     buildInfo()
+    mainClass.set("me.helloc.techwikiplus.user.UserApplicationKt")
 }
 
 // REST Docs 출력 디렉토리 설정
