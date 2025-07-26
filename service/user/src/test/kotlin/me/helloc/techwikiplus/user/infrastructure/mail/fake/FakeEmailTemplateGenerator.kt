@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.mail.fake
 
-import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator
-import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator.EmailTemplateDetails
+import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator.EmailTemplateDetails
 
 class FakeEmailTemplateGenerator : EmailTemplateGenerator {
     override fun generateVerificationEmail(code: String): EmailTemplateDetails {

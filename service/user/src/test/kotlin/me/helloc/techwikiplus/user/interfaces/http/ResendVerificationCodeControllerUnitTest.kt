@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.application.ResendVerificationCodeUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.infrastructure.usecase.ResendVerificationCodeUseCaseWrapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -14,13 +14,13 @@ import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 
 class ResendVerificationCodeControllerUnitTest {
-    private lateinit var resendVerificationCodeUseCase: ResendVerificationCodeUseCase
+    private lateinit var resendVerificationCodeUseCaseWrapper: ResendVerificationCodeUseCaseWrapper
     private lateinit var controller: ResendVerificationCodeController
 
     @BeforeEach
     fun setUp() {
-        resendVerificationCodeUseCase = mock(ResendVerificationCodeUseCase::class.java)
-        controller = ResendVerificationCodeController(resendVerificationCodeUseCase)
+        resendVerificationCodeUseCaseWrapper = mock(ResendVerificationCodeUseCaseWrapper::class.java)
+        controller = ResendVerificationCodeController(resendVerificationCodeUseCaseWrapper)
     }
 
     @Test
@@ -36,7 +36,7 @@ class ResendVerificationCodeControllerUnitTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.ACCEPTED)
         assertThat(response.body).isNull()
 
-        verify(resendVerificationCodeUseCase).resendVerificationCode(email)
+        verify(resendVerificationCodeUseCaseWrapper).resendVerificationCode(email)
     }
 
     @Test
@@ -49,7 +49,7 @@ class ResendVerificationCodeControllerUnitTest {
         controller.resendVerificationCode(email)
 
         // then
-        verify(resendVerificationCodeUseCase, times(1)).resendVerificationCode("user@domain.com")
+        verify(resendVerificationCodeUseCaseWrapper, times(1)).resendVerificationCode("user@domain.com")
     }
 
     @Test
@@ -63,7 +63,7 @@ class ResendVerificationCodeControllerUnitTest {
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.ACCEPTED)
-        verify(resendVerificationCodeUseCase).resendVerificationCode(email)
+        verify(resendVerificationCodeUseCaseWrapper).resendVerificationCode(email)
     }
 
     @Test
@@ -76,7 +76,7 @@ class ResendVerificationCodeControllerUnitTest {
         controller.resendVerificationCode(email)
 
         // then
-        verify(resendVerificationCodeUseCase).resendVerificationCode(email)
+        verify(resendVerificationCodeUseCaseWrapper).resendVerificationCode(email)
     }
 
     @Test
@@ -86,7 +86,7 @@ class ResendVerificationCodeControllerUnitTest {
         val email = "nonexistent@example.com"
 
         val exception = CustomException.AuthenticationException.PendingUserNotFound(email)
-        doThrow(exception).`when`(resendVerificationCodeUseCase).resendVerificationCode(email)
+        doThrow(exception).`when`(resendVerificationCodeUseCaseWrapper).resendVerificationCode(email)
 
         // when & then
         try {
@@ -104,7 +104,7 @@ class ResendVerificationCodeControllerUnitTest {
         val email = "test@example.com"
 
         val exception = CustomException.ResendRateLimitExceeded("Too many requests. Please try again later.")
-        doThrow(exception).`when`(resendVerificationCodeUseCase).resendVerificationCode(email)
+        doThrow(exception).`when`(resendVerificationCodeUseCaseWrapper).resendVerificationCode(email)
 
         // when & then
         try {
@@ -125,7 +125,7 @@ class ResendVerificationCodeControllerUnitTest {
         controller.resendVerificationCode(email)
 
         // then
-        verify(resendVerificationCodeUseCase).resendVerificationCode("")
+        verify(resendVerificationCodeUseCaseWrapper).resendVerificationCode("")
     }
 
     @Test
@@ -155,7 +155,7 @@ class ResendVerificationCodeControllerUnitTest {
         controller.resendVerificationCode(email1)
 
         // then
-        verify(resendVerificationCodeUseCase, times(2)).resendVerificationCode(email1)
-        verify(resendVerificationCodeUseCase, times(1)).resendVerificationCode(email2)
+        verify(resendVerificationCodeUseCaseWrapper, times(2)).resendVerificationCode(email1)
+        verify(resendVerificationCodeUseCaseWrapper, times(1)).resendVerificationCode(email2)
     }
 }

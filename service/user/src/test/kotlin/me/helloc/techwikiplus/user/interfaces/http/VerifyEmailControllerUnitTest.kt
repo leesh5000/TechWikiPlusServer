@@ -1,7 +1,8 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.application.VerifyEmailUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.infrastructure.usecase.VerifyEmailUseCaseWrapper
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpVerifyRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -13,13 +14,13 @@ import org.mockito.Mockito.verify
 import org.springframework.http.HttpStatus
 
 class VerifyEmailControllerUnitTest {
-    private lateinit var verifyEmailUseCase: VerifyEmailUseCase
+    private lateinit var verifyEmailUseCaseWrapper: VerifyEmailUseCaseWrapper
     private lateinit var controller: VerifyEmailController
 
     @BeforeEach
     fun setUp() {
-        verifyEmailUseCase = mock(VerifyEmailUseCase::class.java)
-        controller = VerifyEmailController(verifyEmailUseCase)
+        verifyEmailUseCaseWrapper = mock(VerifyEmailUseCaseWrapper::class.java)
+        controller = VerifyEmailController(verifyEmailUseCaseWrapper)
     }
 
     @Test
@@ -27,7 +28,7 @@ class VerifyEmailControllerUnitTest {
     fun shouldVerifyEmailSuccessfullyAndReturnOkStatus() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "test@example.com",
                 code = "123456",
             )
@@ -39,7 +40,7 @@ class VerifyEmailControllerUnitTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isNull()
 
-        verify(verifyEmailUseCase).verify(
+        verify(verifyEmailUseCaseWrapper).verify(
             email = request.email,
             code = request.code,
         )
@@ -50,7 +51,7 @@ class VerifyEmailControllerUnitTest {
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "user@domain.com",
                 code = "ABCD1234",
             )
@@ -59,7 +60,7 @@ class VerifyEmailControllerUnitTest {
         controller.verifyEmail(request)
 
         // then
-        verify(verifyEmailUseCase, times(1)).verify(
+        verify(verifyEmailUseCaseWrapper, times(1)).verify(
             email = "user@domain.com",
             code = "ABCD1234",
         )
@@ -70,7 +71,7 @@ class VerifyEmailControllerUnitTest {
     fun shouldHandleNumericVerificationCode() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "test@example.com",
                 code = "999999",
             )
@@ -80,7 +81,7 @@ class VerifyEmailControllerUnitTest {
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        verify(verifyEmailUseCase).verify(
+        verify(verifyEmailUseCaseWrapper).verify(
             email = request.email,
             code = request.code,
         )
@@ -91,7 +92,7 @@ class VerifyEmailControllerUnitTest {
     fun shouldHandleAlphanumericVerificationCode() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "test@example.com",
                 code = "ABC123XYZ",
             )
@@ -100,7 +101,7 @@ class VerifyEmailControllerUnitTest {
         controller.verifyEmail(request)
 
         // then
-        verify(verifyEmailUseCase).verify(
+        verify(verifyEmailUseCaseWrapper).verify(
             email = request.email,
             code = request.code,
         )
@@ -111,13 +112,13 @@ class VerifyEmailControllerUnitTest {
     fun shouldPropagateExceptionWhenVerificationCodeExpired() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "test@example.com",
                 code = "123456",
             )
 
         val exception = CustomException.AuthenticationException.ExpiredEmailVerification("test@example.com")
-        doThrow(exception).`when`(verifyEmailUseCase).verify(
+        doThrow(exception).`when`(verifyEmailUseCaseWrapper).verify(
             email = request.email,
             code = request.code,
         )
@@ -136,13 +137,13 @@ class VerifyEmailControllerUnitTest {
     fun shouldPropagateExceptionWhenInvalidVerificationCode() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "test@example.com",
                 code = "WRONG",
             )
 
         val exception = CustomException.AuthenticationException.InvalidVerificationCode("WRONG")
-        doThrow(exception).`when`(verifyEmailUseCase).verify(
+        doThrow(exception).`when`(verifyEmailUseCaseWrapper).verify(
             email = request.email,
             code = request.code,
         )
@@ -161,7 +162,7 @@ class VerifyEmailControllerUnitTest {
     fun shouldHandleEmptyFields() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "",
                 code = "",
             )
@@ -170,7 +171,7 @@ class VerifyEmailControllerUnitTest {
         controller.verifyEmail(request)
 
         // then
-        verify(verifyEmailUseCase).verify(
+        verify(verifyEmailUseCaseWrapper).verify(
             email = "",
             code = "",
         )
@@ -181,7 +182,7 @@ class VerifyEmailControllerUnitTest {
     fun shouldReturnEmptyResponseBodyOnSuccess() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "test@example.com",
                 code = "123456",
             )

@@ -1,14 +1,16 @@
 package me.helloc.techwikiplus.user.e2e
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.MailSender
-import me.helloc.techwikiplus.user.domain.service.UserRepository
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
+import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
 import me.helloc.techwikiplus.user.integration.http.ControllerIntegrationTestSupport
-import me.helloc.techwikiplus.user.interfaces.http.RefreshTokenController
-import me.helloc.techwikiplus.user.interfaces.http.UserLoginController
-import me.helloc.techwikiplus.user.interfaces.http.UserSignUpController
-import me.helloc.techwikiplus.user.interfaces.http.VerifyEmailController
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.LoginRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.RefreshTokenRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpVerifyRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.response.LoginResponse
+import me.helloc.techwikiplus.user.interfaces.http.dto.response.RefreshTokenResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -81,7 +83,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
         val signupTime =
             measureTimeMillis {
                 val signupRequest =
-                    UserSignUpController.UserSignUpRequest(
+                    UserSignUpRequest(
                         email = testEmail,
                         nickname = testNickname,
                         password = testPassword,
@@ -116,7 +118,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
         val loginBeforeVerifyTime =
             measureTimeMillis {
                 val loginRequest =
-                    UserLoginController.LoginRequest(
+                    LoginRequest(
                         email = testEmail,
                         password = testPassword,
                     )
@@ -139,7 +141,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
         val verifyWithWrongCodeTime =
             measureTimeMillis {
                 val verifyRequest =
-                    VerifyEmailController.UserSignUpVerifyRequest(
+                    UserSignUpVerifyRequest(
                         email = testEmail,
                         // 잘못된 코드
                         code = "999999",
@@ -182,7 +184,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
         val verifyEmailTime =
             measureTimeMillis {
                 val verifyRequest =
-                    VerifyEmailController.UserSignUpVerifyRequest(
+                    UserSignUpVerifyRequest(
                         email = testEmail,
                         code = secondVerificationCode,
                     )
@@ -212,16 +214,16 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
         val loginTime =
             measureTimeMillis {
                 val loginRequest =
-                    UserLoginController.LoginRequest(
+                    LoginRequest(
                         email = testEmail,
                         password = testPassword,
                     )
 
-                val loginResponse: ResponseEntity<UserLoginController.LoginResponse> =
+                val loginResponse: ResponseEntity<LoginResponse> =
                     restTemplate.postForEntity(
                         "/api/v1/users/login",
                         createJsonHttpEntity(loginRequest),
-                        UserLoginController.LoginResponse::class.java,
+                        LoginResponse::class.java,
                     )
 
                 assertThat(loginResponse.statusCode).isEqualTo(HttpStatus.OK)
@@ -245,15 +247,15 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
         val refreshTokenTime =
             measureTimeMillis {
                 val refreshRequest =
-                    RefreshTokenController.RefreshTokenRequest(
+                    RefreshTokenRequest(
                         refreshToken = refreshToken!!,
                     )
 
-                val refreshResponse: ResponseEntity<RefreshTokenController.RefreshTokenResponse> =
+                val refreshResponse: ResponseEntity<RefreshTokenResponse> =
                     restTemplate.postForEntity(
                         "/api/v1/users/refresh",
                         createJsonHttpEntity(refreshRequest),
-                        RefreshTokenController.RefreshTokenResponse::class.java,
+                        RefreshTokenResponse::class.java,
                     )
 
                 assertThat(refreshResponse.statusCode).isEqualTo(HttpStatus.OK)
@@ -274,7 +276,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
         val oldRefreshTokenTime =
             measureTimeMillis {
                 val refreshRequest =
-                    RefreshTokenController.RefreshTokenRequest(
+                    RefreshTokenRequest(
                         // 이전 토큰
                         refreshToken = refreshToken!!,
                     )
@@ -306,7 +308,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
     fun `중복 이메일 회원가입 시나리오`() {
         // 첫 번째 회원가입
         val signupRequest =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "duplicate@example.com",
                 nickname = "firstuser",
                 password = "ValidPass123!",
@@ -322,7 +324,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
 
         // 같은 이메일로 두 번째 회원가입 시도
         val duplicateRequest =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "duplicate@example.com",
                 nickname = "seconduser",
                 password = "AnotherPass456!",
@@ -345,7 +347,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
     fun `인증 코드 재전송 rate limit 테스트`() {
         // 회원가입
         val signupRequest =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "ratelimit@example.com",
                 nickname = "ratelimituser",
                 password = "ValidPass123!",

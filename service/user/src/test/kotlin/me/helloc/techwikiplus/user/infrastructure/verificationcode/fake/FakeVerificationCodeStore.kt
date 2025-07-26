@@ -2,8 +2,8 @@ package me.helloc.techwikiplus.user.infrastructure.verificationcode.fake
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.ExpiredEmailVerification
-import me.helloc.techwikiplus.user.domain.service.Clock
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
 import java.time.Duration
 import java.time.LocalDateTime
 

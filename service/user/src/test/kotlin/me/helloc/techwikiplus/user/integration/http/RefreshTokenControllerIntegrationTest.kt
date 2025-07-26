@@ -4,13 +4,14 @@ import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.service.Clock
-import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
-import me.helloc.techwikiplus.user.domain.service.TokenProvider
-import me.helloc.techwikiplus.user.domain.service.UserRepository
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.RefreshTokenStore
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
 import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import me.helloc.techwikiplus.user.infrastructure.security.jwt.TestJwtTokenProvider
-import me.helloc.techwikiplus.user.interfaces.http.RefreshTokenController
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.RefreshTokenRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.response.RefreshTokenResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -104,16 +105,16 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     fun `유효한 refresh token으로 토큰 갱신 시 200 응답과 새로운 토큰들을 반환한다`() {
         // given
         val request =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 refreshToken = validRefreshToken,
             )
 
         // when
-        val response: ResponseEntity<RefreshTokenController.RefreshTokenResponse> =
+        val response: ResponseEntity<RefreshTokenResponse> =
             restTemplate.postForEntity(
                 "/api/v1/users/refresh",
                 createJsonHttpEntity(request),
-                RefreshTokenController.RefreshTokenResponse::class.java,
+                RefreshTokenResponse::class.java,
             )
 
         // then
@@ -142,7 +143,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     fun `유효하지 않은 refresh token으로 갱신 시 401 응답을 반환한다`() {
         // given
         val request =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 refreshToken = "invalid.refresh.token",
             )
 
@@ -166,7 +167,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     fun `access token을 refresh token으로 사용 시 401 응답을 반환한다`() {
         // given
         val request =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 // access token을 잘못 사용
                 refreshToken = validAccessToken,
             )
@@ -197,7 +198,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         refreshTokenStore.store(testUserId, expiredRefreshToken, ttl)
 
         val request =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 refreshToken = expiredRefreshToken,
             )
 
@@ -221,7 +222,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     fun `빈 refresh token으로 갱신 요청 시 400 응답을 반환한다`() {
         // given
         val request =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 refreshToken = "",
             )
 
@@ -241,16 +242,16 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
     fun `연속해서 refresh token을 사용해도 정상 동작한다`() {
         // given
         val request1 =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 refreshToken = validRefreshToken,
             )
 
         // when - 첫 번째 갱신
-        val response1: ResponseEntity<RefreshTokenController.RefreshTokenResponse> =
+        val response1: ResponseEntity<RefreshTokenResponse> =
             restTemplate.postForEntity(
                 "/api/v1/users/refresh",
                 createJsonHttpEntity(request1),
-                RefreshTokenController.RefreshTokenResponse::class.java,
+                RefreshTokenResponse::class.java,
             )
 
         assertThat(response1.statusCode).isEqualTo(HttpStatus.OK)
@@ -259,15 +260,15 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
 
         // when - 두 번째 갱신 (새로 받은 refresh token 사용)
         val request2 =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 refreshToken = newRefreshToken,
             )
 
-        val response2: ResponseEntity<RefreshTokenController.RefreshTokenResponse> =
+        val response2: ResponseEntity<RefreshTokenResponse> =
             restTemplate.postForEntity(
                 "/api/v1/users/refresh",
                 createJsonHttpEntity(request2),
-                RefreshTokenController.RefreshTokenResponse::class.java,
+                RefreshTokenResponse::class.java,
             )
 
         // then
@@ -304,7 +305,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         refreshTokenStore.store(uniqueUserId, uniqueRefreshToken, ttl)
 
         val request1 =
-            RefreshTokenController.RefreshTokenRequest(
+            RefreshTokenRequest(
                 refreshToken = uniqueRefreshToken,
             )
 
@@ -312,11 +313,11 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         assertThat(refreshTokenStore.exists(uniqueRefreshToken)).isTrue
 
         // when - 첫 번째 갱신
-        val response1: ResponseEntity<RefreshTokenController.RefreshTokenResponse> =
+        val response1: ResponseEntity<RefreshTokenResponse> =
             restTemplate.postForEntity(
                 "/api/v1/users/refresh",
                 createJsonHttpEntity(request1),
-                RefreshTokenController.RefreshTokenResponse::class.java,
+                RefreshTokenResponse::class.java,
             )
 
         assertThat(response1.statusCode).isEqualTo(HttpStatus.OK)

@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.id.fake
 
-import me.helloc.techwikiplus.user.domain.service.IdGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.IdGenerator
 
 class FakeIdGenerator(private var currentId: Long = 1L) : IdGenerator {
     override fun next(): Long {

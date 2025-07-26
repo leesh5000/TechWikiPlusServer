@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.persistence.fake
 
 import me.helloc.techwikiplus.user.domain.User
-import me.helloc.techwikiplus.user.domain.service.UserRepository
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
 
 class FakeUserRepository : UserRepository {
     private val users = mutableMapOf<Long, User>()

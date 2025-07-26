@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.refreshtoken.fake
 
-import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
+import me.helloc.techwikiplus.user.domain.port.outbound.RefreshTokenStore
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap

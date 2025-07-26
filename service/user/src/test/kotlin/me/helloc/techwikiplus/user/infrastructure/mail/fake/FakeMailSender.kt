@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.mail.fake
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.MailSender
+import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
 
 class FakeMailSender : MailSender {
     private val sentEmails = mutableListOf<SentEmail>()

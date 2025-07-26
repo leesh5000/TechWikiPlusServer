@@ -1,8 +1,9 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
 import me.helloc.techwikiplus.user.application.TokenResult
-import me.helloc.techwikiplus.user.application.UserLoginUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.infrastructure.usecase.UserLoginUseCaseWrapper
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.LoginRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -16,13 +17,13 @@ import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 
 class UserLoginControllerUnitTest {
-    private lateinit var userLoginUseCase: UserLoginUseCase
+    private lateinit var userLoginUseCaseWrapper: UserLoginUseCaseWrapper
     private lateinit var controller: UserLoginController
 
     @BeforeEach
     fun setUp() {
-        userLoginUseCase = mock(UserLoginUseCase::class.java)
-        controller = UserLoginController(userLoginUseCase)
+        userLoginUseCaseWrapper = mock(UserLoginUseCaseWrapper::class.java)
+        controller = UserLoginController(userLoginUseCaseWrapper)
     }
 
     @Test
@@ -30,7 +31,7 @@ class UserLoginControllerUnitTest {
     fun shouldLoginSuccessfullyAndReturnTokens() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "test@example.com",
                 password = "password123",
             )
@@ -42,7 +43,7 @@ class UserLoginControllerUnitTest {
                 userId = 1L,
             )
 
-        `when`(userLoginUseCase.login(request.email, request.password))
+        `when`(userLoginUseCaseWrapper.login(request.email, request.password))
             .thenReturn(useCaseResult)
 
         // when
@@ -55,7 +56,7 @@ class UserLoginControllerUnitTest {
         assertThat(response.body!!.refreshToken).isEqualTo("refresh-token-456")
         assertThat(response.body!!.userId).isEqualTo(1L)
 
-        verify(userLoginUseCase).login(
+        verify(userLoginUseCaseWrapper).login(
             email = request.email,
             password = request.password,
         )
@@ -66,7 +67,7 @@ class UserLoginControllerUnitTest {
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "user@domain.com",
                 password = "securePassword",
             )
@@ -78,14 +79,14 @@ class UserLoginControllerUnitTest {
                 userId = 123L,
             )
 
-        `when`(userLoginUseCase.login(anyString(), anyString()))
+        `when`(userLoginUseCaseWrapper.login(anyString(), anyString()))
             .thenReturn(useCaseResult)
 
         // when
         controller.login(request)
 
         // then
-        verify(userLoginUseCase, times(1)).login(
+        verify(userLoginUseCaseWrapper, times(1)).login(
             email = "user@domain.com",
             password = "securePassword",
         )
@@ -96,13 +97,13 @@ class UserLoginControllerUnitTest {
     fun shouldReturnDifferentTokensForDifferentUsers() {
         // given
         val request1 =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "user1@example.com",
                 password = "password1",
             )
 
         val request2 =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "user2@example.com",
                 password = "password2",
             )
@@ -121,9 +122,9 @@ class UserLoginControllerUnitTest {
                 userId = 2L,
             )
 
-        `when`(userLoginUseCase.login(request1.email, request1.password))
+        `when`(userLoginUseCaseWrapper.login(request1.email, request1.password))
             .thenReturn(result1)
-        `when`(userLoginUseCase.login(request2.email, request2.password))
+        `when`(userLoginUseCaseWrapper.login(request2.email, request2.password))
             .thenReturn(result2)
 
         // when
@@ -141,13 +142,13 @@ class UserLoginControllerUnitTest {
     fun shouldPropagateExceptionWhenUserNotFound() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "nonexistent@example.com",
                 password = "password123",
             )
 
         val exception = CustomException.NotFoundException.UserEmailNotFoundException("nonexistent@example.com")
-        doThrow(exception).`when`(userLoginUseCase).login(
+        doThrow(exception).`when`(userLoginUseCaseWrapper).login(
             email = request.email,
             password = request.password,
         )
@@ -166,13 +167,13 @@ class UserLoginControllerUnitTest {
     fun shouldPropagateExceptionWhenInvalidCredentials() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "test@example.com",
                 password = "wrongPassword",
             )
 
         val exception = CustomException.AuthenticationException.InvalidCredentials()
-        doThrow(exception).`when`(userLoginUseCase).login(
+        doThrow(exception).`when`(userLoginUseCaseWrapper).login(
             email = request.email,
             password = request.password,
         )
@@ -191,7 +192,7 @@ class UserLoginControllerUnitTest {
     fun shouldHandleEmptyEmailAndPassword() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "",
                 password = "",
             )
@@ -203,14 +204,14 @@ class UserLoginControllerUnitTest {
                 userId = 1L,
             )
 
-        `when`(userLoginUseCase.login("", ""))
+        `when`(userLoginUseCaseWrapper.login("", ""))
             .thenReturn(result)
 
         // when
         controller.login(request)
 
         // then
-        verify(userLoginUseCase).login("", "")
+        verify(userLoginUseCaseWrapper).login("", "")
     }
 
     @Test
@@ -218,7 +219,7 @@ class UserLoginControllerUnitTest {
     fun shouldMaintainResponseStructure() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "test@example.com",
                 password = "password123",
             )
@@ -230,7 +231,7 @@ class UserLoginControllerUnitTest {
                 userId = 999999L,
             )
 
-        `when`(userLoginUseCase.login(request.email, request.password))
+        `when`(userLoginUseCaseWrapper.login(request.email, request.password))
             .thenReturn(useCaseResult)
 
         // when

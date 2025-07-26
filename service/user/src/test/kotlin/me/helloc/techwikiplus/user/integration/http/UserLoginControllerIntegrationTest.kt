@@ -4,12 +4,13 @@ import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.service.Clock
-import me.helloc.techwikiplus.user.domain.service.PasswordEncoder
-import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
-import me.helloc.techwikiplus.user.domain.service.TokenProvider
-import me.helloc.techwikiplus.user.domain.service.UserRepository
-import me.helloc.techwikiplus.user.interfaces.http.UserLoginController
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordEncoder
+import me.helloc.techwikiplus.user.domain.port.outbound.RefreshTokenStore
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.LoginRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.response.LoginResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -55,17 +56,17 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
     fun `올바른 인증 정보로 로그인 시 200 응답과 JWT 토큰을 반환한다`() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = testEmail,
                 password = testPassword,
             )
 
         // when
-        val response: ResponseEntity<UserLoginController.LoginResponse> =
+        val response: ResponseEntity<LoginResponse> =
             restTemplate.postForEntity(
                 "/api/v1/users/login",
                 createJsonHttpEntity(request),
-                UserLoginController.LoginResponse::class.java,
+                LoginResponse::class.java,
             )
 
         // then
@@ -92,7 +93,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
     fun `잘못된 비밀번호로 로그인 시 401 응답을 반환한다`() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = testEmail,
                 password = "WrongPassword123!",
             )
@@ -117,7 +118,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
     fun `존재하지 않는 이메일로 로그인 시 401 응답을 반환한다`() {
         // given
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = "nonexistent@example.com",
                 password = testPassword,
             )
@@ -157,7 +158,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         userRepository.insertOrUpdate(unverifiedUser)
 
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = unverifiedEmail,
                 password = testPassword,
             )
@@ -196,7 +197,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         userRepository.insertOrUpdate(bannedUser)
 
         val request =
-            UserLoginController.LoginRequest(
+            LoginRequest(
                 email = bannedEmail,
                 password = testPassword,
             )

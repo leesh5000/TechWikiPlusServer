@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.clock.fake
 
-import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId

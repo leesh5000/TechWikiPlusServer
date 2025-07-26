@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.security.fake
 
 import me.helloc.techwikiplus.user.domain.TokenType
-import me.helloc.techwikiplus.user.domain.service.TokenProvider
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
 
 class FakeTokenProvider : TokenProvider {
     private val tokens = mutableMapOf<String, TokenData>()

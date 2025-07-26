@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake
 
-import me.helloc.techwikiplus.user.domain.service.PasswordValidator
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordValidator
 
 class FakePasswordValidator : PasswordValidator {
     override fun validate(password: String) {

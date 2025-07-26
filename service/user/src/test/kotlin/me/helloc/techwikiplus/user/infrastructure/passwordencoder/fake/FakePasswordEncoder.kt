@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake
 
-import me.helloc.techwikiplus.user.domain.service.PasswordEncoder
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordEncoder
 
 class FakePasswordEncoder : PasswordEncoder {
     override fun encode(password: String): String {

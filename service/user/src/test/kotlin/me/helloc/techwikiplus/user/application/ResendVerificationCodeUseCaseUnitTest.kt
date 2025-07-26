@@ -5,7 +5,7 @@ import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
 import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.exception.CustomException
-import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import me.helloc.techwikiplus.user.domain.service.PendingUserValidator
 import me.helloc.techwikiplus.user.infrastructure.mail.fake.FakeMailSender
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository

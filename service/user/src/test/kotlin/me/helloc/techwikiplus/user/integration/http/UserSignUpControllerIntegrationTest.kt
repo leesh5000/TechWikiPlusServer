@@ -1,10 +1,10 @@
 package me.helloc.techwikiplus.user.integration.http
 
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.service.MailSender
-import me.helloc.techwikiplus.user.domain.service.UserRepository
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
-import me.helloc.techwikiplus.user.interfaces.http.UserSignUpController
+import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,7 +38,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
     fun `회원가입 성공 시 202 응답을 반환한다`() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "test@example.com",
                 nickname = "testuser",
                 password = "ValidPass123!",
@@ -78,7 +78,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
         userRepository.insertOrUpdate(existingUser)
 
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = email,
                 nickname = "newuser",
                 password = "ValidPass123!",
@@ -108,7 +108,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
         userRepository.insertOrUpdate(existingUser)
 
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "new@example.com",
                 nickname = nickname,
                 password = "ValidPass123!",
@@ -134,7 +134,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
     fun `유효하지 않은 비밀번호로 회원가입 시 400 응답을 반환한다`() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "test@example.com",
                 nickname = "testuser",
                 // 너무 짧은 비밀번호
@@ -161,7 +161,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
     fun `유효하지 않은 이메일 형식으로 회원가입 시 400 응답을 반환한다`() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "invalid-email",
                 nickname = "testuser",
                 password = "ValidPass123!",
@@ -189,8 +189,8 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
             nickname = nickname,
             password = "encoded_password",
             status = UserStatus.ACTIVE,
-            createdAt = me.helloc.techwikiplus.user.domain.service.Clock.system.localDateTime(),
-            updatedAt = me.helloc.techwikiplus.user.domain.service.Clock.system.localDateTime(),
+            createdAt = me.helloc.techwikiplus.user.domain.port.outbound.Clock.system.localDateTime(),
+            updatedAt = me.helloc.techwikiplus.user.domain.port.outbound.Clock.system.localDateTime(),
         )
     }
 }

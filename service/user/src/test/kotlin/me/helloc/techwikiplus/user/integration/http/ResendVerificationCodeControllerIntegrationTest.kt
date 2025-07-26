@@ -4,10 +4,10 @@ import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.Clock
-import me.helloc.techwikiplus.user.domain.service.MailSender
-import me.helloc.techwikiplus.user.domain.service.UserRepository
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

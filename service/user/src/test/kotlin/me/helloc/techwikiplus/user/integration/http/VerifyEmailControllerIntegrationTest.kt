@@ -4,10 +4,10 @@ import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.Clock
-import me.helloc.techwikiplus.user.domain.service.UserRepository
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
-import me.helloc.techwikiplus.user.interfaces.http.VerifyEmailController
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpVerifyRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -54,7 +54,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
     fun `올바른 인증 코드로 이메일 인증 시 200 응답을 반환한다`() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = testEmail,
                 code = testCode,
             )
@@ -84,7 +84,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
     fun `잘못된 인증 코드로 인증 시 400 응답을 반환한다`() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = testEmail,
                 // 잘못된 코드
                 code = "999999",
@@ -114,7 +114,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
     fun `존재하지 않는 이메일로 인증 시 401 응답을 반환한다`() {
         // given
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = "nonexistent@example.com",
                 code = testCode,
             )
@@ -159,7 +159,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
         )
 
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = activeEmail,
                 code = testCode,
             )
@@ -200,7 +200,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
         // 이렇게 하면 Thread.sleep 없이도 만료된 것과 동일한 효과
 
         val request =
-            VerifyEmailController.UserSignUpVerifyRequest(
+            UserSignUpVerifyRequest(
                 email = expiredEmail,
                 code = testCode,
             )

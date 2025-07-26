@@ -1,7 +1,8 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.application.UserSignUpUseCase
 import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.infrastructure.usecase.UserSignUpUseCaseWrapper
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -14,13 +15,13 @@ import org.mockito.Mockito.`when`
 import org.springframework.http.HttpStatus
 
 class UserSignUpControllerUnitTest {
-    private lateinit var userSignUpUseCase: UserSignUpUseCase
+    private lateinit var userSignUpUseCaseWrapper: UserSignUpUseCaseWrapper
     private lateinit var controller: UserSignUpController
 
     @BeforeEach
     fun setUp() {
-        userSignUpUseCase = mock(UserSignUpUseCase::class.java)
-        controller = UserSignUpController(userSignUpUseCase)
+        userSignUpUseCaseWrapper = mock(UserSignUpUseCaseWrapper::class.java)
+        controller = UserSignUpController(userSignUpUseCaseWrapper)
     }
 
     @Test
@@ -28,7 +29,7 @@ class UserSignUpControllerUnitTest {
     fun shouldSignUpSuccessfullyAndReturnAcceptedStatus() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "test@example.com",
                 nickname = "testuser",
                 password = "ValidPass123!",
@@ -42,7 +43,7 @@ class UserSignUpControllerUnitTest {
         assertThat(response.headers["Location"]).containsExactly("/api/v1/users/signup/verify")
         assertThat(response.body).isNull()
 
-        verify(userSignUpUseCase).signUp(
+        verify(userSignUpUseCaseWrapper).signUp(
             email = request.email,
             nickname = request.nickname,
             password = request.password,
@@ -54,7 +55,7 @@ class UserSignUpControllerUnitTest {
     fun shouldCallUseCaseWithCorrectParameters() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "user@domain.com",
                 nickname = "newuser",
                 password = "Password123!",
@@ -64,7 +65,7 @@ class UserSignUpControllerUnitTest {
         controller.signUp(request)
 
         // then
-        verify(userSignUpUseCase, times(1)).signUp(
+        verify(userSignUpUseCaseWrapper, times(1)).signUp(
             email = "user@domain.com",
             nickname = "newuser",
             password = "Password123!",
@@ -76,7 +77,7 @@ class UserSignUpControllerUnitTest {
     fun shouldReturnLocationHeaderWithVerifyEndpoint() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "test@example.com",
                 nickname = "testuser",
                 password = "ValidPass123!",
@@ -95,14 +96,14 @@ class UserSignUpControllerUnitTest {
     fun shouldPropagateExceptionWhenUseCaseThrowsException() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "duplicate@example.com",
                 nickname = "testuser",
                 password = "ValidPass123!",
             )
 
         val exception = CustomException.ConflictException.DuplicateEmail("duplicate@example.com")
-        doThrow(exception).`when`(userSignUpUseCase).signUp(
+        doThrow(exception).`when`(userSignUpUseCaseWrapper).signUp(
             email = request.email,
             nickname = request.nickname,
             password = request.password,
@@ -122,7 +123,7 @@ class UserSignUpControllerUnitTest {
     fun shouldHandleEmptyRequestFields() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "",
                 nickname = "",
                 password = "",
@@ -132,7 +133,7 @@ class UserSignUpControllerUnitTest {
         controller.signUp(request)
 
         // then
-        verify(userSignUpUseCase).signUp(
+        verify(userSignUpUseCaseWrapper).signUp(
             email = "",
             nickname = "",
             password = "",
@@ -144,7 +145,7 @@ class UserSignUpControllerUnitTest {
     fun shouldHandleSpecialCharactersInNickname() {
         // given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpRequest(
                 email = "test@example.com",
                 nickname = "test_user-123",
                 password = "ValidPass123!",
@@ -154,7 +155,7 @@ class UserSignUpControllerUnitTest {
         controller.signUp(request)
 
         // then
-        verify(userSignUpUseCase).signUp(
+        verify(userSignUpUseCaseWrapper).signUp(
             email = request.email,
             nickname = request.nickname,
             password = request.password,

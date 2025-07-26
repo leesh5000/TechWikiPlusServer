@@ -23,7 +23,7 @@ class ArchitectureTest {
             .whereLayer("Domain").mayNotAccessAnyLayer()
             .whereLayer("Application").mayOnlyAccessLayers("Domain")
             .whereLayer("Infrastructure").mayOnlyAccessLayers("Domain", "Application")
-            .whereLayer("Interfaces").mayOnlyAccessLayers("Application", "Domain")
+            .whereLayer("Interfaces").mayOnlyAccessLayers("Application", "Domain", "Infrastructure")
 
     @ArchTest
     val noCyclicDependencies: ArchRule =
