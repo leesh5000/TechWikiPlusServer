@@ -153,6 +153,6 @@ tasks.register<Sync>("copyOpenApiSpec") {
     }
 
     into("src/main/resources/static/docs")
-    
+
     // Sync 태스크는 대상 디렉토리를 자동으로 생성합니다
 }
