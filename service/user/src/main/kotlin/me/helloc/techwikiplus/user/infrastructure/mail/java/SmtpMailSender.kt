@@ -6,16 +6,14 @@ import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator.E
 import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
 import me.helloc.techwikiplus.user.infrastructure.exception.MailDeliveryException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 
 class SmtpMailSender(
     private val mailSender: JavaMailSender,
     private val emailTemplateGenerator: EmailTemplateGenerator,
+    private val from: String,
 ) : MailSender {
-    @Value("\${spring.mail.username}")
-    private lateinit var from: String
     private val log = LoggerFactory.getLogger(SmtpMailSender::class.java)
 
     override fun sendVerificationEmail(email: String): VerificationCode {

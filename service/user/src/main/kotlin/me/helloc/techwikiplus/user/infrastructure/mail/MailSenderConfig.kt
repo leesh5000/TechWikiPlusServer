@@ -3,6 +3,7 @@ package me.helloc.techwikiplus.user.infrastructure.mail
 import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator
 import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
 import me.helloc.techwikiplus.user.infrastructure.mail.java.SmtpMailSender
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,7 +21,8 @@ open class MailSenderConfig {
     open fun mailSender(
         javaMailSender: JavaMailSender,
         emailTemplateGenerator: EmailTemplateGenerator,
+        @Value("\${spring.mail.username}") from: String,
     ): MailSender {
-        return SmtpMailSender(javaMailSender, emailTemplateGenerator)
+        return SmtpMailSender(javaMailSender, emailTemplateGenerator, from)
     }
 }
