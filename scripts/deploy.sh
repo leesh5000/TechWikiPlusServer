@@ -202,13 +202,30 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
     if echo "$SERVICES_TO_UPDATE" | grep -q "user-service"; then
         echo "Updating user-service..."
 
-        # 기존 컨테이너 중지 및 제거 (이름 충돌 방지)
-        echo "기존 user-service 컨테이너 중지 중..."
-        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE stop user-service || true
-        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE rm -f user-service || true
+        # 기존 컨테이너를 down으로 완전히 제거
+        echo "기존 user-service 컨테이너 완전 제거 중..."
+        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE down user-service || true
 
-        # 최신 이미지로 재시작
-        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --no-deps user-service
+        # 포트 해제 대기
+        echo "포트 해제 대기 중..."
+        PORT_RELEASED=false
+        for i in {1..10}; do
+            if ! nc -zv localhost 9000 2>/dev/null; then
+                echo "포트 9000이 해제되었습니다."
+                PORT_RELEASED=true
+                break
+            fi
+            echo "대기 중... ($i/10)"
+            sleep 2
+        done
+
+        if [ "$PORT_RELEASED" = false ]; then
+            echo "WARNING: 포트 9000이 여전히 사용 중입니다. 강제로 진행합니다."
+        fi
+
+        # 새 컨테이너 시작 (--force-recreate 옵션 추가)
+        echo "새 user-service 컨테이너 시작 중..."
+        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --force-recreate --no-deps user-service
 
         # 컨테이너 시작 대기
         echo "컨테이너 초기화 대기 중 (30초)..."
