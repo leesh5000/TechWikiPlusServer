@@ -103,26 +103,26 @@ tasks.register("openapi3") {
     doLast {
         val openApiDir = file("$buildDir/api-spec")
         openApiDir.mkdirs()
-        
+
         // restdocs-api-spec snippet files 읽기
         val snippetsDir = file("$buildDir/generated-snippets")
-        
+
         if (snippetsDir.exists() && snippetsDir.listFiles()?.isNotEmpty() == true) {
             println("REST Docs 스니펫을 찾았습니다. OpenAPI 스펙을 생성합니다...")
-            
+
             // 간단하게 Jackson으로 resource.json 파일들을 읽어서 OpenAPI 스펙 생성
             val mapper = com.fasterxml.jackson.databind.ObjectMapper()
             val openApiSpec = mapper.createObjectNode()
-            
+
             // OpenAPI 기본 정보
             openApiSpec.put("openapi", "3.0.1")
-            
+
             val infoNode = mapper.createObjectNode()
             infoNode.put("title", "TechWikiPlus User Service API")
             infoNode.put("description", "사용자 인증 및 관리 서비스 API")
             infoNode.put("version", "v1")
             openApiSpec.set<com.fasterxml.jackson.databind.node.ObjectNode>("info", infoNode)
-            
+
             // 서버 정보
             val serversArray = mapper.createArrayNode()
             val serverNode = mapper.createObjectNode()
@@ -130,59 +130,65 @@ tasks.register("openapi3") {
             serverNode.put("description", "Local development server")
             serversArray.add(serverNode)
             openApiSpec.set<com.fasterxml.jackson.databind.node.ArrayNode>("servers", serversArray)
-            
+
             // paths 노드
             val pathsNode = mapper.createObjectNode()
-            
+
             // components 노드
             val componentsNode = mapper.createObjectNode()
             val schemasNode = mapper.createObjectNode()
-            
+
             // 에러 응답 스키마 추가
             val errorResponseSchema = mapper.createObjectNode()
             errorResponseSchema.put("type", "object")
             val errorPropertiesNode = mapper.createObjectNode()
-            
-            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("errorCode", 
+
+            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                "errorCode",
                 mapper.createObjectNode().apply {
                     put("type", "string")
                     put("description", "에러 코드")
-                }
+                },
             )
-            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("message", 
+            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                "message",
                 mapper.createObjectNode().apply {
                     put("type", "string")
                     put("description", "에러 메시지")
-                }
+                },
             )
-            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("timestamp", 
+            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                "timestamp",
                 mapper.createObjectNode().apply {
                     put("type", "string")
                     put("description", "에러 발생 시간")
-                }
+                },
             )
-            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("path", 
+            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                "path",
                 mapper.createObjectNode().apply {
                     put("type", "string")
                     put("description", "요청 경로")
-                }
+                },
             )
-            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("localizedMessage", 
+            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                "localizedMessage",
                 mapper.createObjectNode().apply {
                     put("type", "string")
                     put("description", "현지화된 메시지")
-                }
+                },
             )
-            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("details", 
+            errorPropertiesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                "details",
                 mapper.createObjectNode().apply {
                     put("type", "object")
                     put("description", "추가 에러 정보")
-                }
+                },
             )
-            
+
             errorResponseSchema.set<com.fasterxml.jackson.databind.node.ObjectNode>("properties", errorPropertiesNode)
             schemasNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("ErrorResponse", errorResponseSchema)
-            
+
             // 모든 resource.json 파일 처리
             snippetsDir.walk()
                 .filter { it.name == "resource.json" }
@@ -191,22 +197,23 @@ tasks.register("openapi3") {
                         val resource = mapper.readTree(resourceFile)
                         val path = resource.path("request").path("path").asText()
                         val method = resource.path("request").path("method").asText().lowercase()
-                        
+
                         // path가 없으면 생성
-                        val pathNode = pathsNode.path(path) as? com.fasterxml.jackson.databind.node.ObjectNode 
-                            ?: mapper.createObjectNode()
-                        
+                        val pathNode =
+                            pathsNode.path(path) as? com.fasterxml.jackson.databind.node.ObjectNode
+                                ?: mapper.createObjectNode()
+
                         // method 노드 생성
                         val methodNode = mapper.createObjectNode()
                         methodNode.put("summary", resource.path("summary").asText())
                         methodNode.put("description", resource.path("description").asText())
                         methodNode.put("operationId", resource.path("operationId").asText())
-                        
+
                         // tags
                         val tagsArray = mapper.createArrayNode()
                         tagsArray.add("User")
                         methodNode.set<com.fasterxml.jackson.databind.node.ArrayNode>("tags", tagsArray)
-                        
+
                         // request body
                         val requestFields = resource.path("request").path("requestFields")
                         if (requestFields.size() > 0) {
@@ -216,10 +223,10 @@ tasks.register("openapi3") {
                             val jsonContentNode = mapper.createObjectNode()
                             val schemaNode = mapper.createObjectNode()
                             schemaNode.put("type", "object")
-                            
+
                             val propertiesNode = mapper.createObjectNode()
                             val requiredArray = mapper.createArrayNode()
-                            
+
                             requestFields.forEach { field ->
                                 val fieldName = field.path("path").asText()
                                 val fieldNode = mapper.createObjectNode()
@@ -230,21 +237,36 @@ tasks.register("openapi3") {
                                     requiredArray.add(fieldName)
                                 }
                             }
-                            
+
                             schemaNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("properties", propertiesNode)
                             schemaNode.set<com.fasterxml.jackson.databind.node.ArrayNode>("required", requiredArray)
                             jsonContentNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("schema", schemaNode)
-                            contentNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("application/json", jsonContentNode)
+                            contentNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                                "application/json",
+                                jsonContentNode,
+                            )
                             requestBodyNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("content", contentNode)
-                            methodNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("requestBody", requestBodyNode)
+                            methodNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                                "requestBody",
+                                requestBodyNode,
+                            )
                         }
-                        
+
                         // responses
                         val responsesNode = mapper.createObjectNode()
                         val statusCode = resource.path("response").path("status").asText()
                         val responseNode = mapper.createObjectNode()
-                        responseNode.put("description", if (statusCode == "202") "요청 성공" else if (statusCode.startsWith("4")) "요청 실패" else "서버 오류")
-                        
+                        responseNode.put(
+                            "description",
+                            if (statusCode == "202") {
+                                "요청 성공"
+                            } else if (statusCode.startsWith("4")) {
+                                "요청 실패"
+                            } else {
+                                "서버 오류"
+                            },
+                        )
+
                         // response headers
                         val responseHeaders = resource.path("response").path("headers")
                         if (responseHeaders.size() > 0) {
@@ -255,11 +277,14 @@ tasks.register("openapi3") {
                                 val schemaNode = mapper.createObjectNode()
                                 schemaNode.put("type", header.path("type").asText().lowercase())
                                 headerNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("schema", schemaNode)
-                                headersNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(header.path("name").asText(), headerNode)
+                                headersNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                                    header.path("name").asText(),
+                                    headerNode,
+                                )
                             }
                             responseNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("headers", headersNode)
                         }
-                        
+
                         // response body for error cases
                         if (statusCode.startsWith("4") || statusCode.startsWith("5")) {
                             val contentNode = mapper.createObjectNode()
@@ -267,26 +292,29 @@ tasks.register("openapi3") {
                             val schemaNode = mapper.createObjectNode()
                             schemaNode.put("\$ref", "#/components/schemas/ErrorResponse")
                             jsonContentNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("schema", schemaNode)
-                            contentNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("application/json", jsonContentNode)
+                            contentNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(
+                                "application/json",
+                                jsonContentNode,
+                            )
                             responseNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("content", contentNode)
                         }
-                        
+
                         responsesNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(statusCode, responseNode)
                         methodNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("responses", responsesNode)
-                        
+
                         pathNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(method, methodNode)
                         pathsNode.set<com.fasterxml.jackson.databind.node.ObjectNode>(path, pathNode)
-                        
+
                         println("처리된 API: $method $path")
                     } catch (e: Exception) {
                         println("Error processing resource file ${resourceFile.path}: ${e.message}")
                     }
                 }
-            
+
             openApiSpec.set<com.fasterxml.jackson.databind.node.ObjectNode>("paths", pathsNode)
             componentsNode.set<com.fasterxml.jackson.databind.node.ObjectNode>("schemas", schemasNode)
             openApiSpec.set<com.fasterxml.jackson.databind.node.ObjectNode>("components", componentsNode)
-            
+
             val openApiFile = file("$openApiDir/openapi3.json")
             openApiFile.writeText(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(openApiSpec))
             println("OpenAPI 스펙이 생성되었습니다: $openApiFile")
