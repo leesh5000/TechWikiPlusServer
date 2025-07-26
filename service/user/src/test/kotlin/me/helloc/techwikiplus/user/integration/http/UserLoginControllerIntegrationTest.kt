@@ -110,7 +110,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_004")
         assertThat(errorResponse.message).contains("Invalid email or password")
     }
 
@@ -135,7 +135,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("NOT_FOUND")
+        assertThat(errorResponse.errorCode).isEqualTo("USER_101")
         assertThat(errorResponse.message).contains("User not found")
     }
 
@@ -175,7 +175,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_006")
         assertThat(errorResponse.message).contains("Email not verified")
     }
 
@@ -214,7 +214,7 @@ class UserLoginControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
-        assertThat(errorResponse.message).contains("Your account has been banned")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_009")
+        assertThat(errorResponse.message).contains("Account has been banned")
     }
 }

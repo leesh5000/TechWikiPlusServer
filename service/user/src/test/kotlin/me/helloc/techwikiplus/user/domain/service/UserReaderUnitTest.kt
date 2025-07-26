@@ -55,7 +55,7 @@ class UserReaderUnitTest {
         // when & then
         assertThatThrownBy { userReader.readByEmailOrThrows(nonExistentEmail) }
             .isInstanceOf(UserEmailNotFoundException::class.java)
-            .hasMessage("User not found with email: $nonExistentEmail")
+            .hasMessage("User not found. Details: User not found with email: $nonExistentEmail")
     }
 
     @Test

@@ -102,7 +102,7 @@ class RefreshTokenUseCaseUnitTest {
         assertThatThrownBy {
             refreshTokenUseCase.refresh(invalidToken)
         }.isInstanceOf(InvalidTokenException::class.java)
-            .hasMessage("Invalid refresh token")
+            .hasMessage("Invalid token. Details: Invalid refresh token")
     }
 
     @Test
@@ -135,6 +135,6 @@ class RefreshTokenUseCaseUnitTest {
         assertThatThrownBy {
             refreshTokenUseCase.refresh(accessToken)
         }.isInstanceOf(InvalidTokenTypeException::class.java)
-            .hasMessage("Expected refresh token but received access token")
+            .hasMessage("Invalid token type. Details: Expected refresh token but received access token")
     }
 }

@@ -52,7 +52,7 @@ class UserDuplicateCheckerUnitTest {
         // when & then
         assertThatThrownBy { userDuplicateChecker.validateUserEmailDuplicate(email) }
             .isInstanceOf(DuplicateEmailException::class.java)
-            .hasMessage("Email already exists. Your input: $email")
+            .hasMessage("Email already exists. Details: Your input: $email")
     }
 
     @Test
@@ -83,7 +83,7 @@ class UserDuplicateCheckerUnitTest {
         // when & then
         assertThatThrownBy { userDuplicateChecker.validateUserNicknameDuplicate(nickname) }
             .isInstanceOf(DuplicateNicknameException::class.java)
-            .hasMessage("Nickname already exists. Your input: $nickname")
+            .hasMessage("Nickname already exists. Details: Your input: $nickname")
     }
 
     @Test

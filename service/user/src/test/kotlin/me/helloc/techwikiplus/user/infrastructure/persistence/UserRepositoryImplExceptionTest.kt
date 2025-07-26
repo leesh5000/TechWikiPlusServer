@@ -22,7 +22,7 @@ class UserRepositoryImplExceptionTest {
 
     @BeforeEach
     fun setUp() {
-        jpaRepository = mock()
+        jpaRepository = mock(UserJpaRepository::class.java)
         repository = UserRepositoryImpl(jpaRepository)
     }
 

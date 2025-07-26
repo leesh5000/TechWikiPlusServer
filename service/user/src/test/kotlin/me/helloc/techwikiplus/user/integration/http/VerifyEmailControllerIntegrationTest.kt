@@ -102,7 +102,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_003")
         assertThat(errorResponse.message).contains("Invalid verification code")
 
         // 사용자 상태가 변경되지 않았는지 확인
@@ -131,7 +131,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_001")
         assertThat(errorResponse.message).contains("Email verification expired")
     }
 
@@ -176,7 +176,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("VALIDATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("USER_004")
         assertThat(errorResponse.message).contains("Email is already verified")
     }
 
@@ -217,7 +217,7 @@ class VerifyEmailControllerIntegrationTest : ControllerIntegrationTestSupport() 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_001")
         assertThat(errorResponse.message).contains("Email verification expired")
     }
 }

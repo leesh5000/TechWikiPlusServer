@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.ResponseBody
 @Controller
 @RequestMapping("/test/exception-handler")
 class TestControllerForExceptionHandler {
-
     @PostMapping("/login")
     @ResponseBody
     fun login(

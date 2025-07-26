@@ -154,7 +154,7 @@ class VerifyEmailControllerUnitTest {
             controller.verifyEmail(request)
             assertThat(false).isTrue() // should not reach here
         } catch (e: InvalidVerificationCodeException) {
-            assertThat(e.code).isEqualTo("WRONG")
+            assertThat(e.invalidCode).isEqualTo("WRONG")
         }
     }
 

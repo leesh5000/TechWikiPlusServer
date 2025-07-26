@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.user.application.exception
+package me.helloc.techwikiplus.user.interfaces.exception
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -218,15 +218,3 @@ class ApplicationExceptionHandlerTest : FunSpec({
         }
     }
 })
-
-// 보상 트랜잭션 실패 예외
-class CompensationFailedException(
-    val mainResult: Any?,
-    cause: Throwable,
-) : RuntimeException("보상 트랜잭션 실패", cause)
-
-// 재시도 횟수 초과 예외
-class RetryExhaustedException(
-    val attempts: Int,
-    cause: Throwable,
-) : RuntimeException("최대 재시도 횟수($attempts) 초과", cause)

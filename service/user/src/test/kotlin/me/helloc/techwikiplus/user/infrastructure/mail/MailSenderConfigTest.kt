@@ -19,7 +19,7 @@ class MailSenderConfigTest {
         val config = MailSenderConfig()
 
         // When
-        val mailSender = config.mailSender(javaMailSender, emailTemplateGenerator)
+        val mailSender = config.mailSender(javaMailSender, emailTemplateGenerator, "test@example.com")
 
         // Then
         assertThat(mailSender).isInstanceOf(SmtpMailSender::class.java)

@@ -38,7 +38,7 @@ class GlobalExceptionHandlerTest {
             messageSource.getMessage(
                 "error.user.001",
                 null,
-                "Invalid email format",
+                "User 001",
                 Locale.KOREA,
             ),
         ).thenReturn("올바르지 않은 이메일 형식입니다")
@@ -61,7 +61,7 @@ class GlobalExceptionHandlerTest {
             messageSource.getMessage(
                 "error.user.001",
                 null,
-                "Invalid email format",
+                "User 001",
                 Locale.ENGLISH,
             ),
         ).thenReturn("Invalid email format")
@@ -102,7 +102,7 @@ class GlobalExceptionHandlerTest {
 
         // then
         assertThat(response.statusCodeValue).isEqualTo(500)
-        assertThat(response.body?.message).isEqualTo("Database connection failed")
+        assertThat(response.body?.message).isEqualTo("Data access error during: Database connection failed")
         assertThat(response.body?.details).isNotNull
         assertThat(response.body?.details?.get("cause")).isEqualTo("Connection refused")
         assertThat(response.body?.details?.get("retryable")).isEqualTo(false)
@@ -176,7 +176,7 @@ class GlobalExceptionHandlerTest {
             messageSource.getMessage(
                 "error.user.001",
                 null,
-                "Invalid email format",
+                "User 001",
                 Locale.ENGLISH,
             ),
         ).thenReturn("Invalid email format")

@@ -1,0 +1,155 @@
+Calculating task graph as no cached configuration is available for tasks: :service:user:test --tests *IntegrationTest*
+> Task :common:snowflake:processResources NO-SOURCE
+> Task :common:snowflake:checkKotlinGradlePluginConfigurationErrors
+> Task :service:user:checkKotlinGradlePluginConfigurationErrors
+> Task :service:user:processTestResources UP-TO-DATE
+> Task :common:snowflake:kaptGenerateStubsKotlin UP-TO-DATE
+> Task :service:user:bootBuildInfo
+> Task :common:snowflake:kaptKotlin SKIPPED
+> Task :service:user:processResources UP-TO-DATE
+> Task :common:snowflake:compileKotlin UP-TO-DATE
+> Task :common:snowflake:compileJava NO-SOURCE
+> Task :common:snowflake:classes UP-TO-DATE
+> Task :common:snowflake:jar UP-TO-DATE
+> Task :service:user:kaptGenerateStubsKotlin UP-TO-DATE
+> Task :service:user:kaptKotlin UP-TO-DATE
+> Task :service:user:compileKotlin UP-TO-DATE
+> Task :service:user:compileJava NO-SOURCE
+> Task :service:user:classes
+> Task :service:user:kaptGenerateStubsTestKotlin UP-TO-DATE
+> Task :service:user:kaptTestKotlin
+> Task :service:user:compileTestKotlin UP-TO-DATE
+> Task :service:user:compileTestJava NO-SOURCE
+> Task :service:user:testClasses UP-TO-DATE
+
+> Task :service:user:test
+Picked up JAVA_TOOL_OPTIONS: 
+
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :service:user:test
+
+RefreshTokenControllerIntegrationTest > access token을 refresh token으로 사용 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at RefreshTokenControllerIntegrationTest.kt:187
+
+RefreshTokenControllerIntegrationTest > 만료된 refresh token으로 갱신 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at RefreshTokenControllerIntegrationTest.kt:217
+
+RefreshTokenControllerIntegrationTest > refresh token rotation으로 이전 토큰은 사용할 수 없다() FAILED
+    org.opentest4j.AssertionFailedError at RefreshTokenControllerIntegrationTest.kt:348
+
+RefreshTokenControllerIntegrationTest > 유효하지 않은 refresh token으로 갱신 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at RefreshTokenControllerIntegrationTest.kt:162
+
+ResendVerificationCodeControllerIntegrationTest > 존재하지 않는 이메일로 재전송 요청 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at ResendVerificationCodeControllerIntegrationTest.kt:125
+
+ResendVerificationCodeControllerIntegrationTest > ACTIVE 상태 사용자의 이메일로 재전송 요청 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at ResendVerificationCodeControllerIntegrationTest.kt:102
+
+ResendVerificationCodeControllerIntegrationTest > BANNED 상태 사용자의 이메일로 재전송 요청 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at ResendVerificationCodeControllerIntegrationTest.kt:159
+
+UserLoginControllerIntegrationTest > 정지된 사용자로 로그인 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at UserLoginControllerIntegrationTest.kt:217
+
+UserLoginControllerIntegrationTest > 존재하지 않는 이메일로 로그인 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at UserLoginControllerIntegrationTest.kt:138
+
+UserLoginControllerIntegrationTest > 잘못된 비밀번호로 로그인 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at UserLoginControllerIntegrationTest.kt:113
+
+UserLoginControllerIntegrationTest > 이메일 미인증 사용자로 로그인 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at UserLoginControllerIntegrationTest.kt:178
+
+UserSignUpControllerIntegrationTest > 유효하지 않은 비밀번호로 회원가입 시 400 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at UserSignUpControllerIntegrationTest.kt:156
+
+UserSignUpControllerIntegrationTest > 중복된 이메일로 회원가입 시 409 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at UserSignUpControllerIntegrationTest.kt:99
+
+UserSignUpControllerIntegrationTest > 중복된 닉네임으로 회원가입 시 409 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at UserSignUpControllerIntegrationTest.kt:129
+
+VerifyEmailControllerIntegrationTest > 이미 인증된 사용자가 재인증 시도 시 400 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at VerifyEmailControllerIntegrationTest.kt:179
+
+VerifyEmailControllerIntegrationTest > 잘못된 인증 코드로 인증 시 400 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at VerifyEmailControllerIntegrationTest.kt:105
+
+VerifyEmailControllerIntegrationTest > 존재하지 않는 이메일로 인증 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at VerifyEmailControllerIntegrationTest.kt:134
+
+VerifyEmailControllerIntegrationTest > 만료된 인증 코드로 인증 시 401 응답을 반환한다() FAILED
+    org.opentest4j.AssertionFailedError at VerifyEmailControllerIntegrationTest.kt:220
+
+GlobalExceptionHandlerIntegrationTest > 필수 파라미터 누락 시 400 에러가 반환된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1826
+            Caused by: jakarta.persistence.PersistenceException at AbstractEntityManagerFactoryBean.java:431
+                Caused by: org.hibernate.exception.JDBCConnectionException at SQLStateConversionDelegate.java:100
+                    Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException at SQLError.java:165
+                        Caused by: com.mysql.cj.exceptions.CJCommunicationsException at Constructor.java:502
+                            Caused by: java.net.ConnectException at Net.java:-2
+
+GlobalExceptionHandlerIntegrationTest > 잘못된 JSON 요청 시 400 에러와 적절한 메시지가 반환된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+GlobalExceptionHandlerIntegrationTest > 한국어 Accept-Language 헤더 사용 시 localizedMessage가 포함된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+GlobalExceptionHandlerIntegrationTest > 영어 Accept-Language 헤더 사용 시 영어 메시지가 반환된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+2025-07-26 21:47:41 - Closing org.springframework.web.context.support.GenericWebApplicationContext@75c5c24d, started on Sat Jul 26 21:47:32 KST 2025
+2025-07-26 21:47:41 - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-07-26 21:47:41 - 
+    drop table if exists user
+Hibernate: 
+    drop table if exists user
+2025-07-26 21:47:41 - HikariPool-30 - Shutdown initiated...
+2025-07-26 21:47:41 - HikariPool-30 - Shutdown completed.
+2025-07-26 21:47:41 - Closing org.springframework.web.context.support.GenericWebApplicationContext@7139e515, started on Sat Jul 26 21:47:33 KST 2025
+2025-07-26 21:47:41 - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-07-26 21:47:41 - 
+    drop table if exists user
+Hibernate: 
+    drop table if exists user
+2025-07-26 21:47:41 - HikariPool-31 - Shutdown initiated...
+2025-07-26 21:47:41 - HikariPool-31 - Shutdown completed.
+2025-07-26 21:47:41 - Closing org.springframework.web.context.support.GenericWebApplicationContext@3069a941, started on Sat Jul 26 21:47:34 KST 2025
+2025-07-26 21:47:41 - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-07-26 21:47:41 - 
+    drop table if exists user
+Hibernate: 
+    drop table if exists user
+2025-07-26 21:47:41 - HikariPool-32 - Shutdown initiated...
+2025-07-26 21:47:41 - HikariPool-32 - Shutdown completed.
+
+> Task :service:user:test
+
+70 tests completed, 22 failed
+
+> Task :service:user:test FAILED
+Kotlin build report is written to file:///C:/Users/leesh/Desktop/projects/TechWikiPlusServer/build/reports/kotlin-build/techwikiplus-build-2025-07-26-21-47-41-0.txt
+
+[Incubating] Problems report is available at: file:///C:/Users/leesh/Desktop/projects/TechWikiPlusServer/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':service:user:test'.
+> There were failing tests. See the report at: file:///C:/Users/leesh/Desktop/projects/TechWikiPlusServer/service/user/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.2/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m
+15 actionable tasks: 5 executed, 10 up-to-date
+Configuration cache entry stored.

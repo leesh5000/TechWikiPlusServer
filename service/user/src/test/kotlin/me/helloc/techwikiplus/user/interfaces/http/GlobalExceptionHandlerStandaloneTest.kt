@@ -112,6 +112,6 @@ class GlobalExceptionHandlerStandaloneTest {
         // then
         assertThat(response.body!!.localizedMessage).isNotNull
         // MessageSource가 mock이므로 기본 메시지가 반환됨
-        assertThat(response.body!!.localizedMessage).isEqualTo("Invalid email or password")
+        assertThat(response.body!!.localizedMessage).isEqualTo("Auth 004")
     }
 }

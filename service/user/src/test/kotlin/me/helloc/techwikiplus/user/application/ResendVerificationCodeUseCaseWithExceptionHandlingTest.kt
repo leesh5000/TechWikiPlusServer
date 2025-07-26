@@ -165,7 +165,7 @@ class ResendVerificationCodeUseCaseWithExceptionHandlingTest : FunSpec({
             thrown shouldBe storeException
             verify {
                 logger.warn(
-                    "재시도 가능한 인프라 예외 발생: ResendVerificationCode - Redis connection failed",
+                    "재시도 가능한 인프라 예외 발생: ResendVerificationCode - External service error: Redis",
                 )
             }
             // 이메일은 이미 발송되었음을 확인

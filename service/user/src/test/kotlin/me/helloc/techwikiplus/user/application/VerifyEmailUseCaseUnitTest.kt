@@ -88,7 +88,10 @@ class VerifyEmailUseCaseUnitTest {
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, code)
         }.isInstanceOf(ExpiredEmailVerificationException::class.java)
-            .hasMessage("Email verification expired for email: $email. Please request a new verification code.")
+            .hasMessage(
+                "Email verification expired. Details: Email verification expired for email: $email. " +
+                    "Please request a new verification code.",
+            )
     }
 
     @Test
@@ -107,7 +110,10 @@ class VerifyEmailUseCaseUnitTest {
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, wrongCode)
         }.isInstanceOf(InvalidVerificationCodeException::class.java)
-            .hasMessage("Invalid verification code: $wrongCode. Please check the code and try again.")
+            .hasMessage(
+                "Invalid verification code. Details: Invalid verification code: $wrongCode. " +
+                    "Please check the code and try again.",
+            )
     }
 
     @Test
@@ -125,7 +131,7 @@ class VerifyEmailUseCaseUnitTest {
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, code)
         }.isInstanceOf(UserEmailNotFoundException::class.java)
-            .hasMessage("User not found with email: $email")
+            .hasMessage("User not found. Details: User not found with email: $email")
     }
 
     @Test
@@ -157,7 +163,7 @@ class VerifyEmailUseCaseUnitTest {
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, code)
         }.isInstanceOf(AlreadyVerifiedEmailException::class.java)
-            .hasMessage("Email is already verified. Your input: $email")
+            .hasMessage("Email is already verified. Details: Your input: $email")
     }
 
     @Test

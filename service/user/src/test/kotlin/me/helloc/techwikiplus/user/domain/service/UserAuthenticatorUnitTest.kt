@@ -94,7 +94,7 @@ class UserAuthenticatorUnitTest {
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(pendingUser, rawPassword) }
             .isInstanceOf(EmailNotVerifiedException::class.java)
-            .hasMessage("Email not verified. Please verify your email before logging in.")
+            .hasMessage("Email not verified. Details: Please verify your email before logging in.")
     }
 
     @Test
@@ -116,7 +116,7 @@ class UserAuthenticatorUnitTest {
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(bannedUser, rawPassword) }
             .isInstanceOf(AccountBannedException::class.java)
-            .hasMessage("Your account has been banned.")
+            .hasMessage("Account has been banned. Details: Your account has been banned.")
     }
 
     @Test
@@ -138,7 +138,7 @@ class UserAuthenticatorUnitTest {
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(dormantUser, rawPassword) }
             .isInstanceOf(AccountDormantException::class.java)
-            .hasMessage("Your account is dormant. Please contact support to reactivate.")
+            .hasMessage("Account is dormant. Details: Your account is dormant. Please contact support to reactivate.")
     }
 
     @Test
@@ -160,7 +160,7 @@ class UserAuthenticatorUnitTest {
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(deletedUser, rawPassword) }
             .isInstanceOf(AccountDeletedException::class.java)
-            .hasMessage("Your account has been deleted.")
+            .hasMessage("Account has been deleted. Details: Your account has been deleted.")
     }
 
     @Test

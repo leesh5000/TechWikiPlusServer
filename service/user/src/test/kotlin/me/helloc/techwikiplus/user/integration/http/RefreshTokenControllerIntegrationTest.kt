@@ -159,8 +159,8 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
-        assertThat(errorResponse.message).contains("Invalid refresh token")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_007")
+        assertThat(errorResponse.message).contains("Invalid token. Details: Invalid refresh token")
     }
 
     @Test
@@ -184,8 +184,10 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
-        assertThat(errorResponse.message).contains("Expected refresh token but received access token")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_008")
+        assertThat(
+            errorResponse.message,
+        ).contains("Invalid token type. Details: Expected refresh token but received access token")
     }
 
     @Test
@@ -214,8 +216,8 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
-        assertThat(errorResponse.message).contains("Invalid refresh token")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_007")
+        assertThat(errorResponse.message).contains("Invalid token. Details: Invalid refresh token")
     }
 
     @Test
@@ -345,7 +347,7 @@ class RefreshTokenControllerIntegrationTest : ControllerIntegrationTestSupport()
         assertThat(response2.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response2.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
-        assertThat(errorResponse.message).contains("Invalid refresh token")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_007")
+        assertThat(errorResponse.message).contains("Invalid token. Details: Invalid refresh token")
     }
 }

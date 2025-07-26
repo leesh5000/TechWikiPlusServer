@@ -107,15 +107,16 @@ class GlobalExceptionHandlerAdvancedTest {
         @DisplayName("MailDeliveryException이 적절히 처리되어야 한다")
         fun shouldHandleMailDeliveryException() {
             // given
-            val exception = MailDeliveryException("Failed to send email to user@example.com")
+            val exception = MailDeliveryException("user@example.com")
             `when`(environment.activeProfiles).thenReturn(arrayOf("development"))
 
             // when
             val response = handler.handleInfrastructureException(exception, request)
 
             // then
-            assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+            assertThat(response.statusCode).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
             assertThat(response.body!!.errorCode).isEqualTo("MAIL_DELIVERY_ERROR")
+            assertThat(response.headers.getFirst("Retry-After")).isEqualTo("60")
         }
     }
 
@@ -185,9 +186,9 @@ class GlobalExceptionHandlerAdvancedTest {
             `when`(request.getHeader("Accept-Language")).thenReturn("ko-KR")
             `when`(
                 messageSource.getMessage(
-                    "error.data_access",
+                    "error.data.access.error",
                     null,
-                    "데이터 접근 중 오류가 발생했습니다",
+                    "Data access error occurred",
                     Locale.KOREA,
                 ),
             ).thenReturn("데이터 접근 중 오류가 발생했습니다")
@@ -208,7 +209,7 @@ class GlobalExceptionHandlerAdvancedTest {
             `when`(request.getHeader("Accept-Language")).thenReturn("fr-FR")
             `when`(
                 messageSource.getMessage(
-                    "error.data_access",
+                    "error.data.access.error",
                     null,
                     "Data access error occurred",
                     Locale.ENGLISH,

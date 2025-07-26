@@ -107,7 +107,7 @@ class UserLoginUseCaseUnitTest {
         assertThatThrownBy {
             userLoginUseCase.login(email, password)
         }.isInstanceOf(UserEmailNotFoundException::class.java)
-            .hasMessage("User not found with email: $email")
+            .hasMessage("User not found. Details: User not found with email: $email")
     }
 
     @Test
@@ -162,7 +162,7 @@ class UserLoginUseCaseUnitTest {
         assertThatThrownBy {
             userLoginUseCase.login(email, password)
         }.isInstanceOf(EmailNotVerifiedException::class.java)
-            .hasMessage("Email not verified. Please verify your email before logging in.")
+            .hasMessage("Email not verified. Details: Please verify your email before logging in.")
     }
 
     @Test

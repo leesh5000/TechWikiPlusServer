@@ -131,6 +131,6 @@ class GlobalExceptionHandlerUnitTest {
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
         assertThat(response.body!!.errorCode).isEqualTo("INTERNAL_SERVER_ERROR")
-        assertThat(response.body!!.message).isEqualTo("An unexpected error occurred")
+        assertThat(response.body!!.message).isEqualTo("Unexpected error")
     }
 }
