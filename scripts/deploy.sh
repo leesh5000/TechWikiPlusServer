@@ -189,6 +189,10 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
     for service in mysql redis; do
         if echo "$SERVICES_TO_UPDATE" | grep -q "$service"; then
             echo "Updating $service..."
+            # 기존 컨테이너 중지 및 제거
+            docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE stop $service || true
+            docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE rm -f $service || true
+            # 새 컨테이너 시작
             docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --no-deps $service
             sleep 5  # 데이터베이스 초기화 대기
         fi
@@ -198,8 +202,13 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
     if echo "$SERVICES_TO_UPDATE" | grep -q "user-service"; then
         echo "Updating user-service..."
 
-        # 최신 이미지로 재시작 (--pull always 옵션 사용)
-        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --no-deps --pull always user-service
+        # 기존 컨테이너 중지 및 제거 (이름 충돌 방지)
+        echo "기존 user-service 컨테이너 중지 중..."
+        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE stop user-service || true
+        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE rm -f user-service || true
+
+        # 최신 이미지로 재시작
+        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --no-deps user-service
 
         # 컨테이너 시작 대기
         echo "컨테이너 초기화 대기 중 (30초)..."
