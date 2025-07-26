@@ -53,3 +53,7 @@ gh_2.40.1_linux_amd64
 ### docker
 .env.*
 .env
+
+### Application Logs ###
+bootrun.log
+*.log

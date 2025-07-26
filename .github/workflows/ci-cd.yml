@@ -143,6 +143,13 @@ jobs:
         TEST_EXIT_CODE=$?
         echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
         exit $TEST_EXIT_CODE
+    
+    - name: API 문서 생성
+      if: success()
+      run: |
+        # OpenAPI 스펙 생성
+        ./gradlew :service:user:openapi3 :service:user:copyOpenApiSpec --build-cache --daemon
+        echo "✅ API 문서가 생성되었습니다." >> $GITHUB_STEP_SUMMARY
 
     - name: 테스트 리포트 업로드
       uses: actions/upload-artifact@v4
@@ -152,6 +159,15 @@ jobs:
         path: |
           service/user/build/reports/tests/
           common/snowflake/build/reports/tests/
+    
+    - name: API 문서 업로드
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: api-documentation
+        path: |
+          service/user/build/api-spec/
+          service/user/src/main/resources/static/docs/
 
     - name: Job Summary 생성
       if: always()

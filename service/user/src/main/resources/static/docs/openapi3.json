@@ -1,0 +1,93 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "TechWikiPlus User Service API",
+    "description" : "사용자 인증 및 관리 서비스 API",
+    "version" : "v1"
+  },
+  "servers" : [ {
+    "url" : "http://localhost:9000",
+    "description" : "Local development server"
+  } ],
+  "paths" : {
+    "/api/v1/users/signup" : {
+      "post" : {
+        "summary" : "새로운 사용자를 등록합니다. 등록 후 이메일 인증이 필요합니다.",
+        "description" : "새로운 사용자를 등록합니다. 등록 후 이메일 인증이 필요합니다.",
+        "operationId" : "user-signup-success",
+        "tags" : [ "User" ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "email" : {
+                    "type" : "string",
+                    "description" : "이메일 주소"
+                  },
+                  "nickname" : {
+                    "type" : "string",
+                    "description" : "사용자 닉네임 (2-20자)"
+                  },
+                  "password" : {
+                    "type" : "string",
+                    "description" : "비밀번호 (8자 이상, 영문/숫자/특수문자 포함)"
+                  }
+                },
+                "required" : [ "email", "nickname", "password" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "description" : "요청 성공",
+            "headers" : {
+              "Location" : {
+                "description" : "이메일 인증 엔드포인트 경로",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "ErrorResponse" : {
+        "type" : "object",
+        "properties" : {
+          "errorCode" : {
+            "type" : "string",
+            "description" : "에러 코드"
+          },
+          "message" : {
+            "type" : "string",
+            "description" : "에러 메시지"
+          },
+          "timestamp" : {
+            "type" : "string",
+            "description" : "에러 발생 시간"
+          },
+          "path" : {
+            "type" : "string",
+            "description" : "요청 경로"
+          },
+          "localizedMessage" : {
+            "type" : "string",
+            "description" : "현지화된 메시지"
+          },
+          "details" : {
+            "type" : "object",
+            "description" : "추가 에러 정보"
+          }
+        }
+      }
+    }
+  }
+}
