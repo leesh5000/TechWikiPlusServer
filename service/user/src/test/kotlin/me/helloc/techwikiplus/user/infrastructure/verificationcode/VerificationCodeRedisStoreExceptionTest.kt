@@ -2,7 +2,9 @@ package me.helloc.techwikiplus.user.infrastructure.verificationcode
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.infrastructure.exception.ExternalServiceException
+import me.helloc.techwikiplus.user.infrastructure.exception.InfrastructureException
 import me.helloc.techwikiplus.user.infrastructure.verificationcode.redis.VerificationCodeRedisStore
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -48,8 +50,9 @@ class VerificationCodeRedisStoreExceptionTest {
             .isInstanceOf(ExternalServiceException::class.java)
             .hasMessageContaining("Redis")
             .hasCause(redisException)
-            .extracting("retryable")
-            .isEqualTo(true)
+            .matches { exception ->
+                (exception as InfrastructureException).retryable == true
+            }
     }
 
     @Test
