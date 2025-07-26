@@ -147,9 +147,38 @@ jobs:
     - name: API 문서 생성
       if: success()
       run: |
+        echo "=== API 문서 생성 시작 ==="
+        
+        # REST Docs 스니펫 확인
+        echo "REST Docs 스니펫 확인:"
+        if [ -d "service/user/build/generated-snippets" ]; then
+          echo "Snippets 디렉토리가 존재합니다."
+          find service/user/build/generated-snippets -name "resource.json" | head -10
+        else
+          echo "⚠️ Snippets 디렉토리가 존재하지 않습니다!"
+        fi
+        
+        # 빌드 디렉토리 상태 확인
+        echo ""
+        echo "빌드 디렉토리 구조:"
+        ls -la service/user/build/ || echo "빌드 디렉토리가 없습니다."
+        
         # OpenAPI 스펙 생성
-        ./gradlew :service:user:openapi3 :service:user:copyOpenApiSpec --build-cache --daemon
-        echo "✅ API 문서가 생성되었습니다." >> $GITHUB_STEP_SUMMARY
+        echo ""
+        echo "OpenAPI 스펙 생성 실행:"
+        ./gradlew :service:user:openapi3 :service:user:copyOpenApiSpec --build-cache --daemon --info
+        
+        # 생성된 파일 확인
+        echo ""
+        echo "생성된 API 문서 확인:"
+        if [ -f "service/user/build/api-spec/openapi3.json" ]; then
+          echo "✅ OpenAPI 스펙이 생성되었습니다."
+          ls -la service/user/build/api-spec/
+        else
+          echo "❌ OpenAPI 스펙이 생성되지 않았습니다."
+        fi
+        
+        echo "✅ API 문서 생성 완료" >> $GITHUB_STEP_SUMMARY
 
     - name: 테스트 리포트 업로드
       uses: actions/upload-artifact@v4

@@ -98,16 +98,9 @@ tasks.test {
     outputs.dir(snippetsDir)
 }
 
-// 정적 리소스 디렉토리 생성
-tasks.register("createDocsDir") {
-    doLast {
-        file("src/main/resources/static/docs").mkdirs()
-    }
-}
-
 // OpenAPI 3.0 스펙 생성 태스크
 tasks.register<JavaExec>("openapi3") {
-    dependsOn(tasks.test, tasks.classes)
+    dependsOn(tasks.test, tasks.classes, tasks.compileKotlin)
 
     mainClass.set("me.helloc.techwikiplus.user.infrastructure.documentation.OpenApiGenerator")
     classpath = sourceSets["main"].runtimeClasspath
@@ -126,16 +119,40 @@ tasks.register<JavaExec>("openapi3") {
         )
 
     doFirst {
+        println("=== OpenAPI Generator Task ===")
+        println("Snippets directory: ${snippetsDir.absolutePath}")
+        println("Snippets directory exists: ${snippetsDir.exists()}")
+
+        if (snippetsDir.exists()) {
+            val snippetFiles = snippetsDir.walk().filter { it.name == "resource.json" }.toList()
+            println("Number of resource.json files found: ${snippetFiles.size}")
+            snippetFiles.forEach { file ->
+                println("  - ${file.absolutePath}")
+            }
+        }
+
         if (!snippetsDir.exists() || snippetsDir.listFiles()?.isEmpty() == true) {
             throw GradleException("REST Docs 스니펫이 없습니다. 테스트를 먼저 실행해주세요.")
         }
+
+        println("Output file: ${openApiFile.absolutePath}")
+        println("==============================")
     }
+
+    // 표준 출력과 에러를 콘솔에 표시
+    standardOutput = System.out
+    errorOutput = System.err
 }
 
-// OpenAPI 스펙을 정적 리소스로 복사
-tasks.register<Copy>("copyOpenApiSpec") {
-    dependsOn("openapi3", "createDocsDir")
-    from("$buildDir/api-spec")
+// OpenAPI 스펙을 정적 리소스로 복사 - Configuration Cache 호환
+tasks.register<Sync>("copyOpenApiSpec") {
+    dependsOn("openapi3")
+
+    from("$buildDir/api-spec") {
+        include("*.json")
+    }
+
     into("src/main/resources/static/docs")
-    include("*.json")
+    
+    // Sync 태스크는 대상 디렉토리를 자동으로 생성합니다
 }

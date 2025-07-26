@@ -15,7 +15,7 @@
         "summary" : "새로운 사용자를 등록합니다. 등록 후 이메일 인증이 필요합니다.",
         "description" : "새로운 사용자를 등록합니다. 등록 후 이메일 인증이 필요합니다.",
         "operationId" : "user-signup-success",
-        "tags" : [ "User" ],
+        "tags" : [ "api" ],
         "requestBody" : {
           "required" : true,
           "content" : {
