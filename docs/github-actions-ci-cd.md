@@ -57,7 +57,7 @@
 
 ### 전체 파이프라인
 - **푸시**: main, develop 브랜치
-- **PR**: main 브랜치로의 PR (opened, synchronize, reopened, closed)
+- **PR**: main 브랜치로의 PR (opened, synchronize, reopened)
 
 ### Job별 조건
 - **lint, test**: 모든 트리거에서 실행
