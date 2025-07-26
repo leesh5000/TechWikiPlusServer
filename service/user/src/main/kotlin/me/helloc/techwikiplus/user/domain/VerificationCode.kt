@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.domain
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.InvalidVerificationCode
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidVerificationCodeException
 
 data class VerificationCode(val value: String) {
     companion object {
@@ -26,7 +26,7 @@ data class VerificationCode(val value: String) {
 
     fun equalsOrThrows(code: String) {
         if (this.value != code) {
-            throw InvalidVerificationCode(code)
+            throw InvalidVerificationCodeException(code)
         }
     }
 }

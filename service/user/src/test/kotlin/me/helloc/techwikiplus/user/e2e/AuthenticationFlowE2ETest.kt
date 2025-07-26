@@ -132,7 +132,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
 
                 assertThat(loginResponse.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
                 val errorResponse = parseErrorResponse(loginResponse.body!!)
-                assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+                assertThat(errorResponse.errorCode).isEqualTo("AUTH_006")
                 assertThat(errorResponse.message).contains("Email not verified")
             }
         testResults["loginBeforeVerify"] = loginBeforeVerifyTime
@@ -156,7 +156,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
 
                 assertThat(verifyResponse.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
                 val errorResponse = parseErrorResponse(verifyResponse.body!!)
-                assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+                assertThat(errorResponse.errorCode).isEqualTo("AUTH_003")
                 assertThat(errorResponse.message).contains("Invalid verification code")
             }
         testResults["verifyWithWrongCode"] = verifyWithWrongCodeTime
@@ -290,8 +290,8 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
 
                 assertThat(refreshResponse.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
                 val errorResponse = parseErrorResponse(refreshResponse.body!!)
-                assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
-                assertThat(errorResponse.message).contains("Invalid refresh token")
+                assertThat(errorResponse.errorCode).isEqualTo("AUTH_007")
+                assertThat(errorResponse.message).contains("Invalid token")
             }
         testResults["oldRefreshToken"] = oldRefreshTokenTime
 
@@ -339,7 +339,7 @@ class AuthenticationFlowE2ETest : ControllerIntegrationTestSupport() {
 
         assertThat(secondSignup.statusCode).isEqualTo(HttpStatus.CONFLICT)
         val errorResponse = parseErrorResponse(secondSignup.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("CONFLICT")
+        assertThat(errorResponse.errorCode).isEqualTo("USER_201")
         assertThat(errorResponse.message).contains("Email already exists")
     }
 

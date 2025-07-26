@@ -4,7 +4,10 @@ import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.ExpiredEmailVerificationException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidVerificationCodeException
+import me.helloc.techwikiplus.user.domain.exception.notfound.UserEmailNotFoundException
+import me.helloc.techwikiplus.user.domain.exception.validation.AlreadyVerifiedEmailException
 import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import me.helloc.techwikiplus.user.domain.service.UserReader
 import me.helloc.techwikiplus.user.domain.service.UserWriter
@@ -84,8 +87,11 @@ class VerifyEmailUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, code)
-        }.isInstanceOf(CustomException.AuthenticationException.ExpiredEmailVerification::class.java)
-            .hasMessage("Email verification expired for email: $email. Please request a new verification code.")
+        }.isInstanceOf(ExpiredEmailVerificationException::class.java)
+            .hasMessage(
+                "Email verification expired. Details: Email verification expired for email: $email. " +
+                    "Please request a new verification code.",
+            )
     }
 
     @Test
@@ -103,8 +109,11 @@ class VerifyEmailUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, wrongCode)
-        }.isInstanceOf(CustomException.AuthenticationException.InvalidVerificationCode::class.java)
-            .hasMessage("Invalid verification code: $wrongCode. Please check the code and try again.")
+        }.isInstanceOf(InvalidVerificationCodeException::class.java)
+            .hasMessage(
+                "Invalid verification code. Details: Invalid verification code: $wrongCode. " +
+                    "Please check the code and try again.",
+            )
     }
 
     @Test
@@ -121,8 +130,8 @@ class VerifyEmailUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, code)
-        }.isInstanceOf(CustomException.NotFoundException.UserEmailNotFoundException::class.java)
-            .hasMessage("User not found with email: $email")
+        }.isInstanceOf(UserEmailNotFoundException::class.java)
+            .hasMessage("User not found. Details: User not found with email: $email")
     }
 
     @Test
@@ -153,8 +162,8 @@ class VerifyEmailUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             verifyEmailUseCase.verify(email, code)
-        }.isInstanceOf(CustomException.ValidationException.AlreadyVerifiedEmail::class.java)
-            .hasMessage("Email is already verified. Your input: $email")
+        }.isInstanceOf(AlreadyVerifiedEmailException::class.java)
+            .hasMessage("Email is already verified. Details: Your input: $email")
     }
 
     @Test

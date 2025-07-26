@@ -2,8 +2,8 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateEmail
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateNickname
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateEmailException
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateNicknameException
 import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
 import org.assertj.core.api.Assertions.assertThatNoException
@@ -51,8 +51,8 @@ class UserDuplicateCheckerUnitTest {
 
         // when & then
         assertThatThrownBy { userDuplicateChecker.validateUserEmailDuplicate(email) }
-            .isInstanceOf(DuplicateEmail::class.java)
-            .hasMessage("Email already exists. Your input: $email")
+            .isInstanceOf(DuplicateEmailException::class.java)
+            .hasMessage("Email already exists. Details: Your input: $email")
     }
 
     @Test
@@ -82,8 +82,8 @@ class UserDuplicateCheckerUnitTest {
 
         // when & then
         assertThatThrownBy { userDuplicateChecker.validateUserNicknameDuplicate(nickname) }
-            .isInstanceOf(DuplicateNickname::class.java)
-            .hasMessage("Nickname already exists. Your input: $nickname")
+            .isInstanceOf(DuplicateNicknameException::class.java)
+            .hasMessage("Nickname already exists. Details: Your input: $nickname")
     }
 
     @Test

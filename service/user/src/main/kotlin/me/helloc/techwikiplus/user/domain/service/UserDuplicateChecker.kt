@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.domain.service
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateEmail
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ConflictException.DuplicateNickname
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateEmailException
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateNicknameException
 import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
 
 class UserDuplicateChecker(
@@ -9,13 +9,13 @@ class UserDuplicateChecker(
 ) {
     fun validateUserEmailDuplicate(email: String) {
         if (repository.existsByEmail(email)) {
-            throw DuplicateEmail(email)
+            throw DuplicateEmailException(email)
         }
     }
 
     fun validateUserNicknameDuplicate(nickname: String) {
         if (repository.existsByNickname(nickname)) {
-            throw DuplicateNickname(nickname)
+            throw DuplicateNicknameException(nickname)
         }
     }
 }

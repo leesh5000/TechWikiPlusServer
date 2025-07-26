@@ -5,7 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.kotest.matchers.string.shouldMatch
-import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.InvalidVerificationCode
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidVerificationCodeException
 
 class VerificationCodeUnitTest : FunSpec({
 
@@ -105,20 +105,20 @@ class VerificationCodeUnitTest : FunSpec({
             verificationCode.equalsOrThrows("ABCDEF")
         }
 
-        test("일치하지 않는 코드 비교 시 InvalidVerificationCode 예외 발생") {
+        test("일치하지 않는 코드 비교 시 InvalidVerificationCodeException 예외 발생") {
             val verificationCode = VerificationCode("ABCDEF")
 
-            shouldThrow<InvalidVerificationCode> {
+            shouldThrow<InvalidVerificationCodeException> {
                 verificationCode.equalsOrThrows("WRONG1")
-            }.code shouldBe "WRONG1"
+            }.invalidCode shouldBe "WRONG1"
         }
 
         test("대소문자 구분하여 비교") {
             val verificationCode = VerificationCode("ABCDEF")
 
-            shouldThrow<InvalidVerificationCode> {
+            shouldThrow<InvalidVerificationCodeException> {
                 verificationCode.equalsOrThrows("abcdef")
-            }.code shouldBe "abcdef"
+            }.invalidCode shouldBe "abcdef"
         }
     }
 })

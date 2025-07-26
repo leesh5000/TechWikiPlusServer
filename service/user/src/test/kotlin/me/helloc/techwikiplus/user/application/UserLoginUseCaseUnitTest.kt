@@ -3,7 +3,9 @@ package me.helloc.techwikiplus.user.application
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.EmailNotVerifiedException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidCredentialsException
+import me.helloc.techwikiplus.user.domain.exception.notfound.UserEmailNotFoundException
 import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import me.helloc.techwikiplus.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.user.domain.service.UserReader
@@ -104,8 +106,8 @@ class UserLoginUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             userLoginUseCase.login(email, password)
-        }.isInstanceOf(CustomException.NotFoundException.UserEmailNotFoundException::class.java)
-            .hasMessage("User not found with email: $email")
+        }.isInstanceOf(UserEmailNotFoundException::class.java)
+            .hasMessage("User not found. Details: User not found with email: $email")
     }
 
     @Test
@@ -133,7 +135,7 @@ class UserLoginUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             userLoginUseCase.login(email, wrongPassword)
-        }.isInstanceOf(CustomException.AuthenticationException.InvalidCredentials::class.java)
+        }.isInstanceOf(InvalidCredentialsException::class.java)
             .hasMessage("Invalid email or password")
     }
 
@@ -159,8 +161,8 @@ class UserLoginUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             userLoginUseCase.login(email, password)
-        }.isInstanceOf(CustomException.AuthenticationException.EmailNotVerified::class.java)
-            .hasMessage("Email not verified. Please verify your email before logging in.")
+        }.isInstanceOf(EmailNotVerifiedException::class.java)
+            .hasMessage("Email not verified. Details: Please verify your email before logging in.")
     }
 
     @Test

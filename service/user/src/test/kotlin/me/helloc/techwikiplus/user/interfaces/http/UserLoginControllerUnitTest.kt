@@ -1,7 +1,8 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
 import me.helloc.techwikiplus.user.application.TokenResult
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidCredentialsException
+import me.helloc.techwikiplus.user.domain.exception.notfound.UserEmailNotFoundException
 import me.helloc.techwikiplus.user.infrastructure.usecase.UserLoginUseCaseWrapper
 import me.helloc.techwikiplus.user.interfaces.http.dto.request.LoginRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -147,7 +148,7 @@ class UserLoginControllerUnitTest {
                 password = "password123",
             )
 
-        val exception = CustomException.NotFoundException.UserEmailNotFoundException("nonexistent@example.com")
+        val exception = UserEmailNotFoundException("nonexistent@example.com")
         doThrow(exception).`when`(userLoginUseCaseWrapper).login(
             email = request.email,
             password = request.password,
@@ -157,7 +158,7 @@ class UserLoginControllerUnitTest {
         try {
             controller.login(request)
             assertThat(false).isTrue() // should not reach here
-        } catch (e: CustomException.NotFoundException.UserEmailNotFoundException) {
+        } catch (e: UserEmailNotFoundException) {
             assertThat(e.email).isEqualTo("nonexistent@example.com")
         }
     }
@@ -172,7 +173,7 @@ class UserLoginControllerUnitTest {
                 password = "wrongPassword",
             )
 
-        val exception = CustomException.AuthenticationException.InvalidCredentials()
+        val exception = InvalidCredentialsException()
         doThrow(exception).`when`(userLoginUseCaseWrapper).login(
             email = request.email,
             password = request.password,
@@ -182,7 +183,7 @@ class UserLoginControllerUnitTest {
         try {
             controller.login(request)
             assertThat(false).isTrue() // should not reach here
-        } catch (e: CustomException.AuthenticationException.InvalidCredentials) {
+        } catch (e: InvalidCredentialsException) {
             assertThat(e.message).isEqualTo("Invalid email or password")
         }
     }

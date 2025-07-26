@@ -96,7 +96,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(response.statusCode).isEqualTo(HttpStatus.CONFLICT)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("CONFLICT")
+        assertThat(errorResponse.errorCode).isEqualTo("USER_201")
         assertThat(errorResponse.message).contains("Email already exists")
     }
 
@@ -126,7 +126,7 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(response.statusCode).isEqualTo(HttpStatus.CONFLICT)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("CONFLICT")
+        assertThat(errorResponse.errorCode).isEqualTo("USER_202")
         assertThat(errorResponse.message).contains("Nickname already exists")
     }
 
@@ -153,8 +153,8 @@ class UserSignUpControllerIntegrationTest : ControllerIntegrationTestSupport() {
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("VALIDATION_FAILED")
-        assertThat(errorResponse.message).contains("Password must be")
+        assertThat(errorResponse.errorCode).isEqualTo("USER_003")
+        assertThat(errorResponse.message).contains("Invalid password format")
     }
 
     @Test

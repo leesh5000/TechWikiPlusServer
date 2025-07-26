@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateEmailException
 import me.helloc.techwikiplus.user.infrastructure.usecase.UserSignUpUseCaseWrapper
 import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -102,7 +102,7 @@ class UserSignUpControllerUnitTest {
                 password = "ValidPass123!",
             )
 
-        val exception = CustomException.ConflictException.DuplicateEmail("duplicate@example.com")
+        val exception = DuplicateEmailException("duplicate@example.com")
         doThrow(exception).`when`(userSignUpUseCaseWrapper).signUp(
             email = request.email,
             nickname = request.nickname,
@@ -113,7 +113,7 @@ class UserSignUpControllerUnitTest {
         try {
             controller.signUp(request)
             assertThat(false).isTrue() // should not reach here
-        } catch (e: CustomException.ConflictException.DuplicateEmail) {
+        } catch (e: DuplicateEmailException) {
             assertThat(e.email).isEqualTo("duplicate@example.com")
         }
     }

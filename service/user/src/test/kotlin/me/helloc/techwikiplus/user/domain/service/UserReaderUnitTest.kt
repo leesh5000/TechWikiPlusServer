@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
-import me.helloc.techwikiplus.user.domain.exception.CustomException.NotFoundException.UserEmailNotFoundException
+import me.helloc.techwikiplus.user.domain.exception.notfound.UserEmailNotFoundException
 import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -55,7 +55,7 @@ class UserReaderUnitTest {
         // when & then
         assertThatThrownBy { userReader.readByEmailOrThrows(nonExistentEmail) }
             .isInstanceOf(UserEmailNotFoundException::class.java)
-            .hasMessage("User not found with email: $nonExistentEmail")
+            .hasMessage("User not found. Details: User not found with email: $nonExistentEmail")
     }
 
     @Test

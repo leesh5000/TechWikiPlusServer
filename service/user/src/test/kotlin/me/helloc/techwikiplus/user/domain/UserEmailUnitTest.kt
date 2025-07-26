@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidEmail
+import me.helloc.techwikiplus.user.domain.exception.validation.InvalidEmailException
 
 class UserEmailUnitTest : FunSpec({
 
@@ -46,7 +46,7 @@ class UserEmailUnitTest : FunSpec({
                 )
 
             invalidEmails.forEach { email ->
-                shouldThrow<InvalidEmail> {
+                shouldThrow<InvalidEmailException> {
                     UserEmail(email)
                 }.email shouldBe email
             }

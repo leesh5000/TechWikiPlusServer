@@ -99,7 +99,7 @@ class ResendVerificationCodeControllerIntegrationTest : ControllerIntegrationTes
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_002")
         assertThat(errorResponse.message).contains("Pending user not found")
 
         // 이메일이 발송되지 않았는지 확인
@@ -122,7 +122,7 @@ class ResendVerificationCodeControllerIntegrationTest : ControllerIntegrationTes
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_002")
         assertThat(errorResponse.message).contains("Pending user not found")
 
         // 이메일이 발송되지 않았는지 확인
@@ -156,7 +156,7 @@ class ResendVerificationCodeControllerIntegrationTest : ControllerIntegrationTes
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
 
         val errorResponse = parseErrorResponse(response.body!!)
-        assertThat(errorResponse.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(errorResponse.errorCode).isEqualTo("AUTH_002")
         assertThat(errorResponse.message).contains("Pending user not found")
 
         // 이메일이 발송되지 않았는지 확인

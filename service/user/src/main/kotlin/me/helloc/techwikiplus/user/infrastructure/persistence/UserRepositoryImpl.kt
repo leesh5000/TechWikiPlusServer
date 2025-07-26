@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.user.infrastructure.persistence
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
+import me.helloc.techwikiplus.user.infrastructure.exception.DataAccessException
 import me.helloc.techwikiplus.user.infrastructure.persistence.jpa.UserEntity
 import me.helloc.techwikiplus.user.infrastructure.persistence.jpa.UserJpaRepository
 import org.springframework.stereotype.Repository
@@ -11,18 +12,34 @@ class UserRepositoryImpl(
     private val jpaRepository: UserJpaRepository,
 ) : UserRepository {
     override fun existsByEmail(email: String): Boolean {
-        return jpaRepository.existsByEmail(email)
+        return try {
+            jpaRepository.existsByEmail(email)
+        } catch (e: Exception) {
+            throw DataAccessException("checking email existence", e)
+        }
     }
 
     override fun existsByNickname(nickname: String): Boolean {
-        return jpaRepository.existsByNickname(nickname)
+        return try {
+            jpaRepository.existsByNickname(nickname)
+        } catch (e: Exception) {
+            throw DataAccessException("checking nickname existence", e)
+        }
     }
 
     override fun insertOrUpdate(user: User) {
-        jpaRepository.save(UserEntity.from(user))
+        try {
+            jpaRepository.save(UserEntity.from(user))
+        } catch (e: Exception) {
+            throw DataAccessException("saving user", e)
+        }
     }
 
     override fun findByEmail(email: String): User? {
-        return jpaRepository.findByEmail(email)?.toDomain()
+        return try {
+            jpaRepository.findByEmail(email)?.toDomain()
+        } catch (e: Exception) {
+            throw DataAccessException("finding user by email", e)
+        }
     }
 }

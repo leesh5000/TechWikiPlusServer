@@ -1,0 +1,3 @@
+@echo off
+echo Running E2E test...
+call gradlew.bat :service:user:test --tests "me.helloc.techwikiplus.user.e2e.AuthenticationFlowE2ETest" --info

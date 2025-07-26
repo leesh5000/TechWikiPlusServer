@@ -1,0 +1,2 @@
+Write-Host "Running simple test..." -ForegroundColor Yellow
+.\gradlew.bat :service:user:test --tests "*UserLoginControllerIntegrationTest.잘못된 비밀번호로 로그인 시 401 응답을 반환한다" --info 2>&1 | Select-Object -Last 50

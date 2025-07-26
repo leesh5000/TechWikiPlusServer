@@ -4,7 +4,7 @@ import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.PendingUserNotFoundException
 import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import me.helloc.techwikiplus.user.domain.service.PendingUserValidator
 import me.helloc.techwikiplus.user.infrastructure.mail.fake.FakeMailSender
@@ -110,9 +110,9 @@ class ResendVerificationCodeUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             resendVerificationCodeUseCase.resendVerificationCode(email)
-        }.isInstanceOf(CustomException.AuthenticationException.PendingUserNotFound::class.java)
+        }.isInstanceOf(PendingUserNotFoundException::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. " +
+                "Pending user not found. Details: Pending user not found for email: $email. " +
                     "Please ensure you have registered and requested verification.",
             )
 
@@ -143,9 +143,9 @@ class ResendVerificationCodeUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             resendVerificationCodeUseCase.resendVerificationCode(email)
-        }.isInstanceOf(CustomException.AuthenticationException.PendingUserNotFound::class.java)
+        }.isInstanceOf(PendingUserNotFoundException::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. " +
+                "Pending user not found. Details: Pending user not found for email: $email. " +
                     "Please ensure you have registered and requested verification.",
             )
 

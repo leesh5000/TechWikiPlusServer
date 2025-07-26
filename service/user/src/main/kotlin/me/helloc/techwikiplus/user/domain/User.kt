@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.domain
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidNickname
+import me.helloc.techwikiplus.user.domain.exception.validation.AlreadyVerifiedEmailException
+import me.helloc.techwikiplus.user.domain.exception.validation.InvalidNicknameException
 import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import java.time.LocalDateTime
 
@@ -18,7 +18,7 @@ class User(
     companion object {
         private fun validateNickname(nickname: String) {
             if (!DomainConstants.Nickname.PATTERN.matches(nickname)) {
-                throw InvalidNickname(nickname)
+                throw InvalidNicknameException(nickname)
             }
         }
 
@@ -101,7 +101,7 @@ class User(
 
     fun completeSignUp(clock: Clock = Clock.system): User {
         if (status == UserStatus.ACTIVE) {
-            throw CustomException.ValidationException.AlreadyVerifiedEmail(email.value)
+            throw AlreadyVerifiedEmailException(email.value)
         }
 
         return copy(

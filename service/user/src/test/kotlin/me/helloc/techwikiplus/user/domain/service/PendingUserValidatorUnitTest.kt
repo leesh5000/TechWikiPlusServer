@@ -3,7 +3,7 @@ package me.helloc.techwikiplus.user.domain.service
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.PendingUserNotFound
+import me.helloc.techwikiplus.user.domain.exception.authentication.PendingUserNotFoundException
 import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.infrastructure.persistence.fake.FakeUserRepository
 import org.assertj.core.api.Assertions.assertThatNoException
@@ -50,9 +50,9 @@ class PendingUserValidatorUnitTest {
 
         // when & then
         assertThatThrownBy { pendingUserValidator.existsOrThrows(email) }
-            .isInstanceOf(PendingUserNotFound::class.java)
+            .isInstanceOf(PendingUserNotFoundException::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. " +
+                "Pending user not found. Details: Pending user not found for email: $email. " +
                     "Please ensure you have registered and requested verification.",
             )
     }
@@ -75,9 +75,9 @@ class PendingUserValidatorUnitTest {
 
         // when & then
         assertThatThrownBy { pendingUserValidator.existsOrThrows(email) }
-            .isInstanceOf(PendingUserNotFound::class.java)
+            .isInstanceOf(PendingUserNotFoundException::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. " +
+                "Pending user not found. Details: Pending user not found for email: $email. " +
                     "Please ensure you have registered and requested verification.",
             )
     }
@@ -100,9 +100,9 @@ class PendingUserValidatorUnitTest {
 
         // when & then
         assertThatThrownBy { pendingUserValidator.existsOrThrows(email) }
-            .isInstanceOf(PendingUserNotFound::class.java)
+            .isInstanceOf(PendingUserNotFoundException::class.java)
             .hasMessage(
-                "Pending user not found for email: $email. " +
+                "Pending user not found. Details: Pending user not found for email: $email. " +
                     "Please ensure you have registered and requested verification.",
             )
     }

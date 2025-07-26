@@ -1,0 +1,80 @@
+Calculating task graph as no cached configuration is available for tasks: :service:user:test --tests *GlobalExceptionHandler*
+> Task :common:snowflake:processResources NO-SOURCE
+> Task :common:snowflake:checkKotlinGradlePluginConfigurationErrors
+> Task :service:user:checkKotlinGradlePluginConfigurationErrors
+> Task :service:user:processTestResources UP-TO-DATE
+> Task :service:user:bootBuildInfo
+> Task :common:snowflake:kaptGenerateStubsKotlin UP-TO-DATE
+> Task :service:user:processResources UP-TO-DATE
+> Task :common:snowflake:kaptKotlin SKIPPED
+> Task :common:snowflake:compileKotlin UP-TO-DATE
+> Task :common:snowflake:compileJava NO-SOURCE
+> Task :common:snowflake:classes UP-TO-DATE
+> Task :common:snowflake:jar UP-TO-DATE
+> Task :service:user:kaptGenerateStubsKotlin UP-TO-DATE
+> Task :service:user:kaptKotlin UP-TO-DATE
+> Task :service:user:compileKotlin UP-TO-DATE
+> Task :service:user:compileJava NO-SOURCE
+> Task :service:user:classes
+> Task :service:user:kaptGenerateStubsTestKotlin
+> Task :service:user:kaptTestKotlin
+> Task :service:user:compileTestKotlin
+> Task :service:user:compileTestJava NO-SOURCE
+> Task :service:user:testClasses UP-TO-DATE
+
+> Task :service:user:test
+
+GlobalExceptionHandlerIntegrationTest > 필수 파라미터 누락 시 400 에러가 반환된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1826
+            Caused by: jakarta.persistence.PersistenceException at AbstractEntityManagerFactoryBean.java:431
+                Caused by: org.hibernate.exception.JDBCConnectionException at SQLStateConversionDelegate.java:100
+                    Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException at SQLError.java:165
+                        Caused by: com.mysql.cj.exceptions.CJCommunicationsException at Constructor.java:502
+                            Caused by: java.net.ConnectException at Net.java:-2
+
+GlobalExceptionHandlerIntegrationTest > 잘못된 JSON 요청 시 400 에러와 적절한 메시지가 반환된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+GlobalExceptionHandlerIntegrationTest > 한국어 Accept-Language 헤더 사용 시 localizedMessage가 포함된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+GlobalExceptionHandlerIntegrationTest > 영어 Accept-Language 헤더 사용 시 영어 메시지가 반환된다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+
+> Task :service:user:test
+
+GlobalExceptionHandlerAdvancedTest > InfrastructureException 처리 > MailDeliveryException이 적절히 처리되어야 한다 FAILED
+    org.opentest4j.AssertionFailedError at GlobalExceptionHandlerAdvancedTest.kt:117
+
+GlobalExceptionHandlerAdvancedTest > 국제화 지원 > Accept-Language 헤더에 따라 적절한 언어로 메시지가 반환되어야 한다 FAILED
+    org.opentest4j.AssertionFailedError at GlobalExceptionHandlerAdvancedTest.kt:199
+
+GlobalExceptionHandlerStandaloneTest > DomainException에 localizedMessage가 포함된다 FAILED
+    org.opentest4j.AssertionFailedError at GlobalExceptionHandlerStandaloneTest.kt:115
+
+GlobalExceptionHandlerTest > handleDomainException should return localized message for Korean locale() FAILED
+    org.opentest4j.AssertionFailedError at GlobalExceptionHandlerTest.kt:52
+
+GlobalExceptionHandlerTest > handleInfrastructureException should show details in development() FAILED
+    org.opentest4j.AssertionFailedError at GlobalExceptionHandlerTest.kt:105
+
+GlobalExceptionHandlerTest > should handle unsupported locale by falling back to English() FAILED
+    org.opentest4j.AssertionFailedError at GlobalExceptionHandlerTest.kt:188
+
+GlobalExceptionHandlerTest > handleDomainException should return English message for English locale() FAILED
+    org.opentest4j.AssertionFailedError at GlobalExceptionHandlerTest.kt:75
+
+> Task :service:user:test FAILED
+Kotlin build report is written to file:///C:/Users/leesh/Desktop/projects/TechWikiPlusServer/build/reports/kotlin-build/techwikiplus-build-2025-07-26-21-52-56-0.txt
+
+[Incubating] Problems report is available at: file:///C:/Users/leesh/Desktop/projects/TechWikiPlusServer/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.2/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+15 actionable tasks: 7 executed, 8 up-to-date
+Configuration cache entry stored.
