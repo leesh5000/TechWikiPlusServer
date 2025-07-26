@@ -1,0 +1,54 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  
+  # H2 인메모리 데이터베이스 사용 (Docker 불필요)
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+    
+  jpa:
+    database: h2
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+
+  # Redis는 임베디드 Redis 사용
+  data:
+    redis:
+      host: localhost
+      port: 6370  # 임베디드 Redis 포트
+      
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@example.com
+    password: test-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  secret: "test-secret-key-for-documentation-testing-only-12345678901234567890"
+  access-token-expiration: 3600000  # 1시간
+  refresh-token-expiration: 604800000  # 7일
+
+snowflake:
+  machine-id: 1
+
+logging:
+  level:
+    org.springframework.web: INFO
+    me.helloc.techwikiplus: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

@@ -35,6 +35,14 @@ dependencies {
     // mysql
     implementation("com.mysql:mysql-connector-j")
 
+    // H2 Database - 문서화 테스트용
+    testImplementation("com.h2database:h2")
+
+    // Embedded Redis - 문서화 테스트용
+    testImplementation("it.ozimov:embedded-redis:0.7.3") {
+        exclude(group = "org.slf4j", module = "slf4j-simple")
+    }
+
     // TestContainers - 통합 테스트를 위한 도커 기반 테스트 환경
     // BOM(Bill of Materials): TestContainers 모듈들의 버전을 일관되게 관리
     testImplementation(platform("org.testcontainers:testcontainers-bom:1.19.3"))
