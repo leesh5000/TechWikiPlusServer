@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.user.infrastructure.passwordencoder
 
 import me.helloc.techwikiplus.user.domain.DomainConstants
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidPassword
-import me.helloc.techwikiplus.user.domain.service.PasswordValidator
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordValidator
 import org.springframework.stereotype.Component
 
 @Component

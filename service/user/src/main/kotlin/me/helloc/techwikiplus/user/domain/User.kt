@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.user.domain
 
 import me.helloc.techwikiplus.user.domain.exception.CustomException
 import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidNickname
-import me.helloc.techwikiplus.user.domain.service.Clock
+import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import java.time.LocalDateTime
 
 class User(

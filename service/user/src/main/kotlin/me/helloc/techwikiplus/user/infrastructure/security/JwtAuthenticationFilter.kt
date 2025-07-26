@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import me.helloc.techwikiplus.user.domain.TokenType
-import me.helloc.techwikiplus.user.domain.service.TokenProvider
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService

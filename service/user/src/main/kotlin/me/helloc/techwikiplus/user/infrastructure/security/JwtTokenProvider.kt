@@ -1,9 +1,9 @@
 package me.helloc.techwikiplus.user.infrastructure.security
 
-import me.helloc.techwikiplus.user.domain.service.TokenGenerator
-import me.helloc.techwikiplus.user.domain.service.TokenParser
-import me.helloc.techwikiplus.user.domain.service.TokenProvider
-import me.helloc.techwikiplus.user.domain.service.TokenValidator
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenParser
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenValidator
 
 class JwtTokenProvider(
     private val tokenGenerator: TokenGenerator,

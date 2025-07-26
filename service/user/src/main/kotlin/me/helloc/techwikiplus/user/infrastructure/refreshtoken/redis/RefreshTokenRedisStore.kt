@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.refreshtoken.redis
 
-import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
+import me.helloc.techwikiplus.user.domain.port.outbound.RefreshTokenStore
 import me.helloc.techwikiplus.user.infrastructure.redis.RedisKeyFormatter
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component

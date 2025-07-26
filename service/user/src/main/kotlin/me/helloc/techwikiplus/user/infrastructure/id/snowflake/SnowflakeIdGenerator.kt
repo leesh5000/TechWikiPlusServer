@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.id.snowflake
 
 import me.helloc.common.snowflake.Snowflake
-import me.helloc.techwikiplus.user.domain.service.IdGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.IdGenerator
 import org.springframework.stereotype.Component
 
 /**

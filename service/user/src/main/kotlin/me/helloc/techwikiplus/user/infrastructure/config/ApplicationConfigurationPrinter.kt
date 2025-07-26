@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.config
 
+import me.helloc.techwikiplus.user.infrastructure.cors.CorsProperties
 import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent

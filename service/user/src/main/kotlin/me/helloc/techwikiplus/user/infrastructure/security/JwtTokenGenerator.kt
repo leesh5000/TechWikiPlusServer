@@ -3,7 +3,7 @@ package me.helloc.techwikiplus.user.infrastructure.security
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import me.helloc.techwikiplus.user.domain.DomainConstants
-import me.helloc.techwikiplus.user.domain.service.TokenGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenGenerator
 import org.springframework.stereotype.Component
 import java.util.Date
 import java.util.UUID

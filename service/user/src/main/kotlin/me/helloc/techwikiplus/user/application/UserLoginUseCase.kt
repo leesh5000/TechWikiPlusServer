@@ -1,17 +1,13 @@
 package me.helloc.techwikiplus.user.application
 
-import me.helloc.techwikiplus.user.domain.service.RefreshTokenStore
-import me.helloc.techwikiplus.user.domain.service.TokenConfiguration
-import me.helloc.techwikiplus.user.domain.service.TokenProvider
+import me.helloc.techwikiplus.user.domain.port.outbound.RefreshTokenStore
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenConfiguration
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
 import me.helloc.techwikiplus.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.user.domain.service.UserReader
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 
-@Service
-@Transactional(readOnly = true)
-open class UserLoginUseCase(
+class UserLoginUseCase(
     private val userReader: UserReader,
     private val userAuthenticator: UserAuthenticator,
     private val tokenProvider: TokenProvider,

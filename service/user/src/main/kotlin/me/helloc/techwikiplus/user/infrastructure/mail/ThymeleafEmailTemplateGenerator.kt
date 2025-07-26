@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.mail
 
-import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator
-import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator.EmailTemplateDetails
+import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator.EmailTemplateDetails
 import org.springframework.stereotype.Component
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context

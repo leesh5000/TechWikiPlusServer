@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.security
 
-import me.helloc.techwikiplus.user.domain.service.TokenConfiguration
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 

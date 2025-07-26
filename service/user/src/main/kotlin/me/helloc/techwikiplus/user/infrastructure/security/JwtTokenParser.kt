@@ -3,7 +3,7 @@ package me.helloc.techwikiplus.user.infrastructure.security
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
-import me.helloc.techwikiplus.user.domain.service.TokenParser
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenParser
 import org.springframework.stereotype.Component
 import javax.crypto.SecretKey
 

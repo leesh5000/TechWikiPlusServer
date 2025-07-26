@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.user.infrastructure.verificationcode.redis
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.ExpiredEmailVerification
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
 import me.helloc.techwikiplus.user.infrastructure.redis.RedisKeyFormatter
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component

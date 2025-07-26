@@ -1,9 +1,9 @@
 package me.helloc.techwikiplus.user.infrastructure.mail.java
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator
-import me.helloc.techwikiplus.user.domain.service.EmailTemplateGenerator.EmailTemplateDetails
-import me.helloc.techwikiplus.user.domain.service.MailSender
+import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator
+import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator.EmailTemplateDetails
+import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender

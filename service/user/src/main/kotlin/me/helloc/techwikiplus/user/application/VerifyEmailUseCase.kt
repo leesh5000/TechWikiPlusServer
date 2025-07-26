@@ -2,12 +2,10 @@ package me.helloc.techwikiplus.user.application
 
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.VerificationCode
+import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
 import me.helloc.techwikiplus.user.domain.service.UserReader
 import me.helloc.techwikiplus.user.domain.service.UserWriter
-import me.helloc.techwikiplus.user.domain.service.VerificationCodeStore
-import org.springframework.stereotype.Component
 
-@Component
 class VerifyEmailUseCase(
     private val verificationCodeStore: VerificationCodeStore,
     private val userReader: UserReader,

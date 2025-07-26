@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.persistence
 
 import me.helloc.techwikiplus.user.domain.User
-import me.helloc.techwikiplus.user.domain.service.UserRepository
+import me.helloc.techwikiplus.user.domain.port.outbound.UserRepository
 import me.helloc.techwikiplus.user.infrastructure.persistence.jpa.UserEntity
 import me.helloc.techwikiplus.user.infrastructure.persistence.jpa.UserJpaRepository
 import org.springframework.stereotype.Repository

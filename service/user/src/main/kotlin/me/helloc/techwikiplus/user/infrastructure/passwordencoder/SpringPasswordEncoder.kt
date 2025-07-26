@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.passwordencoder
 
-import me.helloc.techwikiplus.user.domain.service.PasswordEncoder
+import me.helloc.techwikiplus.user.domain.port.outbound.PasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.security.crypto.password.PasswordEncoder as SpringPasswordEncoderInterface
 
