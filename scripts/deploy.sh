@@ -204,18 +204,41 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
 
         # 기존 컨테이너를 down으로 완전히 제거
         echo "기존 user-service 컨테이너 완전 제거 중..."
-        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE down user-service || true
+        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE down --remove-orphans --volumes user-service || true
+        
+        # 포트를 점유하는 프로세스 강제 종료
+        echo "포트 9000을 점유하는 프로세스 확인 중..."
+        PORT_PID=$(sudo lsof -ti:9000 2>/dev/null) || true
+        if [ -n "$PORT_PID" ]; then
+            echo "포트 9000을 점유하는 프로세스($PORT_PID) 강제 종료..."
+            sudo kill -9 $PORT_PID 2>/dev/null || true
+            sleep 2
+        fi
+        
+        # Docker 네트워크 재생성
+        echo "Docker 네트워크 정리 중..."
+        docker network rm techwikiplus-server_techwikiplus-network 2>/dev/null || true
+        
+        # Dangling 리소스 정리
+        echo "Docker dangling 리소스 정리 중..."
+        docker system prune -f --volumes 2>/dev/null || true
 
         # 포트 해제 대기
         echo "포트 해제 대기 중..."
         PORT_RELEASED=false
         for i in {1..10}; do
-            if ! nc -zv localhost 9000 2>/dev/null; then
+            if ! sudo lsof -i:9000 >/dev/null 2>&1; then
                 echo "포트 9000이 해제되었습니다."
                 PORT_RELEASED=true
                 break
             fi
             echo "대기 중... ($i/10)"
+            # 재시도 중에도 포트를 점유하는 프로세스가 있으면 종료
+            PORT_PID=$(sudo lsof -ti:9000 2>/dev/null) || true
+            if [ -n "$PORT_PID" ]; then
+                echo "  - 여전히 포트를 점유하는 프로세스($PORT_PID) 발견, 강제 종료..."
+                sudo kill -9 $PORT_PID 2>/dev/null || true
+            fi
             sleep 2
         done
 
@@ -225,7 +248,41 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
 
         # 새 컨테이너 시작 (--force-recreate 옵션 추가)
         echo "새 user-service 컨테이너 시작 중..."
-        docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --force-recreate --no-deps user-service
+        COMPOSE_UP_RETRY=0
+        COMPOSE_UP_SUCCESS=false
+        
+        while [ $COMPOSE_UP_RETRY -lt 3 ]; do
+            if docker-compose -p techwikiplus-server -f $COMPOSE_BASE_FILE -f $COMPOSE_PROD_FILE --env-file $ENV_FILE up -d --force-recreate --no-deps user-service; then
+                echo "✅ 컨테이너 시작 성공!"
+                COMPOSE_UP_SUCCESS=true
+                break
+            else
+                COMPOSE_UP_RETRY=$((COMPOSE_UP_RETRY+1))
+                echo "❌ 컨테이너 시작 실패! (시도 $COMPOSE_UP_RETRY/3)"
+                
+                if [ $COMPOSE_UP_RETRY -lt 3 ]; then
+                    echo "5초 후 재시도..."
+                    sleep 5
+                    
+                    # 재시도 전 포트 재확인 및 정리
+                    echo "포트 상태 재확인 중..."
+                    PORT_PID=$(sudo lsof -ti:9000 2>/dev/null) || true
+                    if [ -n "$PORT_PID" ]; then
+                        echo "포트 9000을 여전히 점유하는 프로세스($PORT_PID) 강제 종료..."
+                        sudo kill -9 $PORT_PID 2>/dev/null || true
+                        sleep 2
+                    fi
+                    
+                    # Docker 시스템 재정리
+                    docker system prune -f 2>/dev/null || true
+                fi
+            fi
+        done
+        
+        if [ "$COMPOSE_UP_SUCCESS" = false ]; then
+            echo "❌ 컨테이너 시작 최종 실패!"
+            exit 1
+        fi
 
         # 컨테이너 시작 대기
         echo "컨테이너 초기화 대기 중 (30초)..."
@@ -238,7 +295,7 @@ if [ -n "$SERVICES_TO_UPDATE" ]; then
         HEALTH_CHECK_PASSED=false
 
         # 먼저 포트가 열려있는지 확인
-        if nc -zv localhost 9000 2>&1 | grep -q succeeded; then
+        if sudo lsof -i:9000 >/dev/null 2>&1; then
             echo "포트 9000이 열려있습니다."
         else
             echo "WARNING: 포트 9000이 아직 열리지 않았습니다."
