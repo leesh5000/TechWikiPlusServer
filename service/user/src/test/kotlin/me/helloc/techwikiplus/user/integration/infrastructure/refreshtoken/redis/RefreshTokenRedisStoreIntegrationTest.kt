@@ -132,11 +132,19 @@ class RefreshTokenRedisStoreIntegrationTest : IntegrationTestSupport() {
         refreshTokenStore.store(userId, refreshToken, ttl)
         assertThat(refreshTokenStore.exists(refreshToken)).isTrue
 
-        // 2.5초 대기 (만료 시간보다 충분히 길게)
-        Thread.sleep(2500)
+        // then - 폴링 방식으로 최대 5초까지 대기
+        val maxWaitTime = 5000L // 5초
+        val pollInterval = 100L // 100ms
+        val startTime = System.currentTimeMillis()
 
-        // then
-        assertThat(refreshTokenStore.exists(refreshToken)).isFalse
+        var tokenExists = true
+        while (tokenExists && (System.currentTimeMillis() - startTime) < maxWaitTime) {
+            Thread.sleep(pollInterval)
+            tokenExists = refreshTokenStore.exists(refreshToken)
+        }
+
+        assertThat(tokenExists).isFalse()
+            .withFailMessage("Token should have been expired and deleted after TTL")
     }
 
     @Test
