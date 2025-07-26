@@ -4,7 +4,8 @@ import me.helloc.techwikiplus.user.domain.TokenType
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidTokenException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidTokenTypeException
 import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import me.helloc.techwikiplus.user.domain.service.TokenRefresher
 import me.helloc.techwikiplus.user.domain.service.UserReader
@@ -100,7 +101,7 @@ class RefreshTokenUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             refreshTokenUseCase.refresh(invalidToken)
-        }.isInstanceOf(CustomException.AuthenticationException.InvalidToken::class.java)
+        }.isInstanceOf(InvalidTokenException::class.java)
             .hasMessage("Invalid refresh token")
     }
 
@@ -133,7 +134,7 @@ class RefreshTokenUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             refreshTokenUseCase.refresh(accessToken)
-        }.isInstanceOf(CustomException.AuthenticationException.InvalidTokenType::class.java)
+        }.isInstanceOf(InvalidTokenTypeException::class.java)
             .hasMessage("Expected refresh token but received access token")
     }
 }

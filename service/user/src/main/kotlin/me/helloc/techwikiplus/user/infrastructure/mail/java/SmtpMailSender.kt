@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.user.domain.VerificationCode
 import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator
 import me.helloc.techwikiplus.user.domain.port.outbound.EmailTemplateGenerator.EmailTemplateDetails
 import me.helloc.techwikiplus.user.domain.port.outbound.MailSender
+import me.helloc.techwikiplus.user.infrastructure.exception.MailDeliveryException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
@@ -45,8 +46,8 @@ class SmtpMailSender(
             helper.setText(emailTemplateDetails.body, true) // true for HTML
             mailSender.send(message)
         } catch (e: Exception) {
-            log.error("Failed to send verification email to $email", e)
-            throw RuntimeException("Failed to send verification email", e)
+            log.error("Failed to send email to $email", e)
+            throw MailDeliveryException(email, e)
         }
     }
 }

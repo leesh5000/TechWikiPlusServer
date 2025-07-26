@@ -3,7 +3,11 @@ package me.helloc.techwikiplus.user.domain.service
 import me.helloc.techwikiplus.user.domain.User
 import me.helloc.techwikiplus.user.domain.UserEmail
 import me.helloc.techwikiplus.user.domain.UserStatus
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.AccountBannedException
+import me.helloc.techwikiplus.user.domain.exception.authentication.AccountDeletedException
+import me.helloc.techwikiplus.user.domain.exception.authentication.AccountDormantException
+import me.helloc.techwikiplus.user.domain.exception.authentication.EmailNotVerifiedException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidCredentialsException
 import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import me.helloc.techwikiplus.user.infrastructure.passwordencoder.fake.FakePasswordEncoder
 import org.assertj.core.api.Assertions.assertThat
@@ -67,7 +71,7 @@ class UserAuthenticatorUnitTest {
 
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(activeUser, wrongPassword) }
-            .isInstanceOf(CustomException.AuthenticationException.InvalidCredentials::class.java)
+            .isInstanceOf(InvalidCredentialsException::class.java)
             .hasMessage("Invalid email or password")
     }
 
@@ -89,7 +93,7 @@ class UserAuthenticatorUnitTest {
 
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(pendingUser, rawPassword) }
-            .isInstanceOf(CustomException.AuthenticationException.EmailNotVerified::class.java)
+            .isInstanceOf(EmailNotVerifiedException::class.java)
             .hasMessage("Email not verified. Please verify your email before logging in.")
     }
 
@@ -111,7 +115,7 @@ class UserAuthenticatorUnitTest {
 
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(bannedUser, rawPassword) }
-            .isInstanceOf(CustomException.AuthenticationException.AccountBanned::class.java)
+            .isInstanceOf(AccountBannedException::class.java)
             .hasMessage("Your account has been banned.")
     }
 
@@ -133,7 +137,7 @@ class UserAuthenticatorUnitTest {
 
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(dormantUser, rawPassword) }
-            .isInstanceOf(CustomException.AuthenticationException.AccountDormant::class.java)
+            .isInstanceOf(AccountDormantException::class.java)
             .hasMessage("Your account is dormant. Please contact support to reactivate.")
     }
 
@@ -155,7 +159,7 @@ class UserAuthenticatorUnitTest {
 
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(deletedUser, rawPassword) }
-            .isInstanceOf(CustomException.AuthenticationException.AccountDeleted::class.java)
+            .isInstanceOf(AccountDeletedException::class.java)
             .hasMessage("Your account has been deleted.")
     }
 
@@ -177,7 +181,7 @@ class UserAuthenticatorUnitTest {
 
         // when & then
         assertThatThrownBy { userAuthenticator.authenticate(pendingUser, wrongPassword) }
-            .isInstanceOf(CustomException.AuthenticationException.InvalidCredentials::class.java)
+            .isInstanceOf(InvalidCredentialsException::class.java)
             .hasMessage("Invalid email or password")
     }
 }

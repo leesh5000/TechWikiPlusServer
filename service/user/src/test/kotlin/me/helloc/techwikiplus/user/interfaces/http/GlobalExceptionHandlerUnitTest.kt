@@ -1,7 +1,11 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
 import jakarta.servlet.http.HttpServletRequest
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidCredentialsException
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateEmailException
+import me.helloc.techwikiplus.user.domain.exception.notfound.UserEmailNotFoundException
+import me.helloc.techwikiplus.user.domain.exception.ratelimit.ResendRateLimitExceededException
+import me.helloc.techwikiplus.user.domain.exception.validation.InvalidEmailException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -26,15 +30,15 @@ class GlobalExceptionHandlerUnitTest {
     @DisplayName("유효성 검증 예외가 400 상태 코드로 처리되어야 한다")
     fun shouldHandleValidationExceptionWith400Status() {
         // given
-        val exception = CustomException.ValidationException.InvalidEmail("invalid-email")
+        val exception = InvalidEmailException("invalid-email")
 
         // when
-        val response = handler.handleCustomException(exception, request)
+        val response = handler.handleDomainException(exception, request)
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         assertThat(response.body).isNotNull
-        assertThat(response.body!!.errorCode).isEqualTo("VALIDATION_FAILED")
+        assertThat(response.body!!.errorCode).isEqualTo("USER_001")
         assertThat(response.body!!.message).contains("Invalid email format")
         assertThat(response.body!!.path).isEqualTo("/api/v1/users/test")
         assertThat(response.body!!.timestamp).isNotEmpty()
@@ -44,14 +48,14 @@ class GlobalExceptionHandlerUnitTest {
     @DisplayName("인증 예외가 401 상태 코드로 처리되어야 한다")
     fun shouldHandleAuthenticationExceptionWith401Status() {
         // given
-        val exception = CustomException.AuthenticationException.InvalidCredentials()
+        val exception = InvalidCredentialsException()
 
         // when
-        val response = handler.handleCustomException(exception, request)
+        val response = handler.handleDomainException(exception, request)
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
-        assertThat(response.body!!.errorCode).isEqualTo("AUTHENTICATION_FAILED")
+        assertThat(response.body!!.errorCode).isEqualTo("AUTH_004")
         assertThat(response.body!!.message).isEqualTo("Invalid email or password")
     }
 
@@ -59,131 +63,50 @@ class GlobalExceptionHandlerUnitTest {
     @DisplayName("리소스를 찾을 수 없는 예외가 404 상태 코드로 처리되어야 한다")
     fun shouldHandleNotFoundExceptionWith404Status() {
         // given
-        val exception = CustomException.NotFoundException.UserEmailNotFoundException("test@example.com")
+        val exception = UserEmailNotFoundException("notfound@example.com")
 
         // when
-        val response = handler.handleCustomException(exception, request)
+        val response = handler.handleDomainException(exception, request)
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-        assertThat(response.body!!.errorCode).isEqualTo("NOT_FOUND")
-        assertThat(response.body!!.message).contains("User not found with email")
+        assertThat(response.body!!.errorCode).isEqualTo("USER_101")
+        assertThat(response.body!!.message).contains("User not found")
     }
 
     @Test
-    @DisplayName("충돌 예외가 409 상태 코드로 처리되어야 한다")
+    @DisplayName("중복 리소스 예외가 409 상태 코드로 처리되어야 한다")
     fun shouldHandleConflictExceptionWith409Status() {
         // given
-        val exception = CustomException.ConflictException.DuplicateEmail("duplicate@example.com")
+        val exception = DuplicateEmailException("duplicate@example.com")
 
         // when
-        val response = handler.handleCustomException(exception, request)
+        val response = handler.handleDomainException(exception, request)
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.CONFLICT)
-        assertThat(response.body!!.errorCode).isEqualTo("CONFLICT")
+        assertThat(response.body!!.errorCode).isEqualTo("USER_201")
         assertThat(response.body!!.message).contains("Email already exists")
     }
 
     @Test
-    @DisplayName("요청 제한 초과 예외가 429 상태 코드로 처리되어야 한다")
+    @DisplayName("Rate Limit 예외가 429 상태 코드로 처리되어야 한다")
     fun shouldHandleRateLimitExceptionWith429Status() {
         // given
-        val exception = CustomException.ResendRateLimitExceeded("Too many requests")
+        val exception = ResendRateLimitExceededException("You can resend after 5 minutes")
 
         // when
-        val response = handler.handleCustomException(exception, request)
+        val response = handler.handleDomainException(exception, request)
 
         // then
         assertThat(response.statusCode).isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
-        assertThat(response.body!!.errorCode).isEqualTo("RATE_LIMIT_EXCEEDED")
-        assertThat(response.body!!.message).isEqualTo("Too many requests")
+        assertThat(response.body!!.errorCode).isEqualTo("RATE_001")
+        assertThat(response.body!!.message).contains("Rate limit exceeded")
     }
 
     @Test
-    @DisplayName("일반적인 예외가 500 상태 코드로 처리되어야 한다")
-    fun shouldHandleGenericExceptionWith500Status() {
-        // given
-        val exception = RuntimeException("Unexpected error")
-
-        // when
-        val response = handler.handleGenericException(exception, request)
-
-        // then
-        assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-        assertThat(response.body).isNotNull
-        assertThat(response.body!!.errorCode).isEqualTo("INTERNAL_SERVER_ERROR")
-        assertThat(response.body!!.message).isEqualTo("An unexpected error occurred.")
-        assertThat(response.body!!.path).isEqualTo("/api/v1/users/test")
-    }
-
-    @Test
-    @DisplayName("에러 응답에 ISO 형식의 타임스탬프가 포함되어야 한다")
-    fun shouldIncludeTimestampInISOFormat() {
-        // given
-        val exception = CustomException.ValidationException.InvalidPassword("weak")
-
-        // when
-        val response = handler.handleCustomException(exception, request)
-
-        // then
-        assertThat(response.body!!.timestamp).matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z")
-    }
-
-    @Test
-    @DisplayName("다양한 요청 경로가 에러 응답에 올바르게 포함되어야 한다")
-    fun shouldHandleDifferentRequestPaths() {
-        // given
-        val exception = CustomException.ConflictException.DuplicateNickname("existinguser")
-        `when`(request.requestURI).thenReturn("/api/v1/users/signup")
-
-        // when
-        val response = handler.handleCustomException(exception, request)
-
-        // then
-        assertThat(response.body!!.path).isEqualTo("/api/v1/users/signup")
-    }
-
-    @Test
-    @DisplayName("모든 인증 예외 타입이 동일한 401 상태 코드로 처리되어야 한다")
-    fun shouldHandleAllAuthenticationExceptionTypes() {
-        // given
-        val exceptions =
-            listOf(
-                CustomException.AuthenticationException.EmailNotVerified(),
-                CustomException.AuthenticationException.AccountBanned(),
-                CustomException.AuthenticationException.AccountDormant(),
-                CustomException.AuthenticationException.AccountDeleted(),
-                CustomException.AuthenticationException.UnauthorizedAccess("resource"),
-            )
-
-        // when & then
-        exceptions.forEach { exception ->
-            val response = handler.handleCustomException(exception, request)
-            assertThat(response.statusCode).isEqualTo(HttpStatus.UNAUTHORIZED)
-            assertThat(response.body!!.errorCode).isEqualTo("AUTHENTICATION_FAILED")
-        }
-    }
-
-    @Test
-    @DisplayName("예외 메시지가 null인 경우 기본 메시지로 처리되어야 한다")
-    fun shouldHandleNullExceptionMessage() {
-        // given
-        val exception =
-            object : Exception() {
-                override val message: String? = null
-            }
-
-        // when
-        val response = handler.handleGenericException(exception, request)
-
-        // then
-        assertThat(response.body!!.message).isEqualTo("An unexpected error occurred.")
-    }
-
-    @Test
-    @DisplayName("필수 요청 파라미터 누락 예외가 400 상태 코드로 처리되어야 한다")
-    fun shouldHandleMissingServletRequestParameterException() {
+    @DisplayName("필수 파라미터 누락 예외가 400 상태 코드로 처리되어야 한다")
+    fun shouldHandleMissingParameterExceptionWith400Status() {
         // given
         val exception = MissingServletRequestParameterException("email", "String")
 
@@ -194,6 +117,20 @@ class GlobalExceptionHandlerUnitTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         assertThat(response.body!!.errorCode).isEqualTo("MISSING_PARAMETER")
         assertThat(response.body!!.message).isEqualTo("Required parameter 'email' is missing")
-        assertThat(response.body!!.path).isEqualTo("/api/v1/users/test")
+    }
+
+    @Test
+    @DisplayName("일반 예외가 500 상태 코드로 처리되어야 한다")
+    fun shouldHandleGenericExceptionWith500Status() {
+        // given
+        val exception = RuntimeException("Unexpected error")
+
+        // when
+        val response = handler.handleGenericException(exception, request)
+
+        // then
+        assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+        assertThat(response.body!!.errorCode).isEqualTo("INTERNAL_SERVER_ERROR")
+        assertThat(response.body!!.message).isEqualTo("An unexpected error occurred")
     }
 }

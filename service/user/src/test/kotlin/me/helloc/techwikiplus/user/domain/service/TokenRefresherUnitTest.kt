@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.user.domain.service
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidTokenException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidTokenTypeException
 import me.helloc.techwikiplus.user.infrastructure.refreshtoken.fake.FakeRefreshTokenStore
 import me.helloc.techwikiplus.user.infrastructure.security.JwtProperties
 import me.helloc.techwikiplus.user.infrastructure.security.fake.FakeTokenProvider
@@ -82,7 +83,7 @@ class TokenRefresherUnitTest {
 
         // when & then
         assertThatThrownBy { tokenRefresher.refreshTokens(invalidToken) }
-            .isInstanceOf(CustomException.AuthenticationException.InvalidToken::class.java)
+            .isInstanceOf(InvalidTokenException::class.java)
     }
 
     @Test
@@ -95,7 +96,7 @@ class TokenRefresherUnitTest {
 
         // when & then
         assertThatThrownBy { tokenRefresher.refreshTokens(accessToken) }
-            .isInstanceOf(CustomException.AuthenticationException.InvalidTokenType::class.java)
+            .isInstanceOf(InvalidTokenTypeException::class.java)
     }
 
     @Test
@@ -108,7 +109,7 @@ class TokenRefresherUnitTest {
 
         // when & then
         assertThatThrownBy { tokenRefresher.refreshTokens(refreshToken) }
-            .isInstanceOf(CustomException.AuthenticationException.InvalidToken::class.java)
+            .isInstanceOf(InvalidTokenException::class.java)
     }
 
     @Test
@@ -121,6 +122,6 @@ class TokenRefresherUnitTest {
 
         // when & then
         assertThatThrownBy { tokenRefresher.refreshTokens(expiredToken) }
-            .isInstanceOf(CustomException.AuthenticationException.InvalidToken::class.java)
+            .isInstanceOf(InvalidTokenException::class.java)
     }
 }

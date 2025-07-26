@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.user.application
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateEmailException
+import me.helloc.techwikiplus.user.domain.exception.conflict.DuplicateNicknameException
 import me.helloc.techwikiplus.user.domain.service.UserDuplicateChecker
 import me.helloc.techwikiplus.user.domain.service.UserRegister
 import me.helloc.techwikiplus.user.domain.service.UserWriter
@@ -105,7 +106,7 @@ class UserSignUpUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             userSignUpUseCase.signUp(email, nickname, password)
-        }.isInstanceOf(CustomException.ConflictException.DuplicateEmail::class.java)
+        }.isInstanceOf(DuplicateEmailException::class.java)
             .hasMessageContaining("Email already exists")
 
         // 이메일이 전송되지 않았는지 확인
@@ -126,7 +127,7 @@ class UserSignUpUseCaseUnitTest {
         // when & then
         assertThatThrownBy {
             userSignUpUseCase.signUp(email, nickname, password)
-        }.isInstanceOf(CustomException.ConflictException.DuplicateNickname::class.java)
+        }.isInstanceOf(DuplicateNicknameException::class.java)
             .hasMessageContaining("Nickname already exists")
 
         // 이메일이 전송되지 않았는지 확인

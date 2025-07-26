@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.PendingUserNotFoundException
+import me.helloc.techwikiplus.user.domain.exception.ratelimit.ResendRateLimitExceededException
 import me.helloc.techwikiplus.user.infrastructure.usecase.ResendVerificationCodeUseCaseWrapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -85,14 +86,14 @@ class ResendVerificationCodeControllerUnitTest {
         // given
         val email = "nonexistent@example.com"
 
-        val exception = CustomException.AuthenticationException.PendingUserNotFound(email)
+        val exception = PendingUserNotFoundException(email)
         doThrow(exception).`when`(resendVerificationCodeUseCaseWrapper).resendVerificationCode(email)
 
         // when & then
         try {
             controller.resendVerificationCode(email)
             assertThat(false).isTrue() // should not reach here
-        } catch (e: CustomException.AuthenticationException.PendingUserNotFound) {
+        } catch (e: PendingUserNotFoundException) {
             assertThat(e.email).isEqualTo(email)
         }
     }
@@ -103,14 +104,14 @@ class ResendVerificationCodeControllerUnitTest {
         // given
         val email = "test@example.com"
 
-        val exception = CustomException.ResendRateLimitExceeded("Too many requests. Please try again later.")
+        val exception = ResendRateLimitExceededException("Too many requests. Please try again later.")
         doThrow(exception).`when`(resendVerificationCodeUseCaseWrapper).resendVerificationCode(email)
 
         // when & then
         try {
             controller.resendVerificationCode(email)
             assertThat(false).isTrue() // should not reach here
-        } catch (e: CustomException.ResendRateLimitExceeded) {
+        } catch (e: ResendRateLimitExceededException) {
             assertThat(e.message).contains("Too many requests")
         }
     }

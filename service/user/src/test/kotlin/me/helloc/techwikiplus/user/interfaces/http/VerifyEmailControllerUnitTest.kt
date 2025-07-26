@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.ExpiredEmailVerificationException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidVerificationCodeException
 import me.helloc.techwikiplus.user.infrastructure.usecase.VerifyEmailUseCaseWrapper
 import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpVerifyRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -117,7 +118,7 @@ class VerifyEmailControllerUnitTest {
                 code = "123456",
             )
 
-        val exception = CustomException.AuthenticationException.ExpiredEmailVerification("test@example.com")
+        val exception = ExpiredEmailVerificationException("test@example.com")
         doThrow(exception).`when`(verifyEmailUseCaseWrapper).verify(
             email = request.email,
             code = request.code,
@@ -127,7 +128,7 @@ class VerifyEmailControllerUnitTest {
         try {
             controller.verifyEmail(request)
             assertThat(false).isTrue() // should not reach here
-        } catch (e: CustomException.AuthenticationException.ExpiredEmailVerification) {
+        } catch (e: ExpiredEmailVerificationException) {
             assertThat(e.email).isEqualTo("test@example.com")
         }
     }
@@ -142,7 +143,7 @@ class VerifyEmailControllerUnitTest {
                 code = "WRONG",
             )
 
-        val exception = CustomException.AuthenticationException.InvalidVerificationCode("WRONG")
+        val exception = InvalidVerificationCodeException("WRONG")
         doThrow(exception).`when`(verifyEmailUseCaseWrapper).verify(
             email = request.email,
             code = request.code,
@@ -152,7 +153,7 @@ class VerifyEmailControllerUnitTest {
         try {
             controller.verifyEmail(request)
             assertThat(false).isTrue() // should not reach here
-        } catch (e: CustomException.AuthenticationException.InvalidVerificationCode) {
+        } catch (e: InvalidVerificationCodeException) {
             assertThat(e.code).isEqualTo("WRONG")
         }
     }

@@ -1,7 +1,8 @@
 package me.helloc.techwikiplus.user.domain.service
 
 import me.helloc.techwikiplus.user.domain.TokenType
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidTokenException
+import me.helloc.techwikiplus.user.domain.exception.authentication.InvalidTokenTypeException
 import me.helloc.techwikiplus.user.domain.port.outbound.RefreshTokenStore
 import me.helloc.techwikiplus.user.domain.port.outbound.TokenConfiguration
 import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
@@ -35,17 +36,17 @@ class TokenRefresher(
     private fun validateRefreshToken(refreshToken: String) {
         val isValid = tokenProvider.validateToken(refreshToken)
         if (!isValid) {
-            throw CustomException.AuthenticationException.InvalidToken()
+            throw InvalidTokenException()
         }
 
         val tokenType = tokenProvider.getTokenType(refreshToken)
         if (tokenType != TokenType.REFRESH) {
-            throw CustomException.AuthenticationException.InvalidTokenType()
+            throw InvalidTokenTypeException()
         }
 
         // Check if a refresh token exists in store
         if (!refreshTokenStore.exists(refreshToken)) {
-            throw CustomException.AuthenticationException.InvalidToken()
+            throw InvalidTokenException()
         }
     }
 

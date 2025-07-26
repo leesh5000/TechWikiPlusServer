@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.user.infrastructure.config
 
+import me.helloc.techwikiplus.user.application.ApplicationExceptionHandler
 import me.helloc.techwikiplus.user.application.RefreshTokenUseCase
 import me.helloc.techwikiplus.user.application.ResendVerificationCodeUseCase
 import me.helloc.techwikiplus.user.application.UserLoginUseCase
@@ -17,17 +18,26 @@ import me.helloc.techwikiplus.user.domain.service.UserReader
 import me.helloc.techwikiplus.user.domain.service.UserRegister
 import me.helloc.techwikiplus.user.domain.service.UserWriter
 import me.helloc.techwikiplus.user.domain.service.VerificationCodeSender
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 class UseCaseConfig {
     @Bean
+    fun applicationExceptionHandler(): ApplicationExceptionHandler {
+        return ApplicationExceptionHandler(
+            LoggerFactory.getLogger(ApplicationExceptionHandler::class.java),
+        )
+    }
+
+    @Bean
     fun userSignUpUseCase(
         userRegister: UserRegister,
         verificationCodeSender: VerificationCodeSender,
+        exceptionHandler: ApplicationExceptionHandler,
     ): UserSignUpUseCase {
-        return UserSignUpUseCase(userRegister, verificationCodeSender)
+        return UserSignUpUseCase(userRegister, verificationCodeSender, exceptionHandler)
     }
 
     @Bean
@@ -37,6 +47,7 @@ class UseCaseConfig {
         tokenProvider: TokenProvider,
         refreshTokenStore: RefreshTokenStore,
         tokenConfiguration: TokenConfiguration,
+        exceptionHandler: ApplicationExceptionHandler,
     ): UserLoginUseCase {
         return UserLoginUseCase(
             userReader = userReader,
@@ -44,6 +55,7 @@ class UseCaseConfig {
             tokenProvider = tokenProvider,
             refreshTokenStore = refreshTokenStore,
             tokenConfiguration = tokenConfiguration,
+            exceptionHandler = exceptionHandler,
         )
     }
 
@@ -52,8 +64,9 @@ class UseCaseConfig {
         verificationCodeStore: VerificationCodeStore,
         userReader: UserReader,
         userWriter: UserWriter,
+        exceptionHandler: ApplicationExceptionHandler,
     ): VerifyEmailUseCase {
-        return VerifyEmailUseCase(verificationCodeStore, userReader, userWriter)
+        return VerifyEmailUseCase(verificationCodeStore, userReader, userWriter, exceptionHandler)
     }
 
     @Bean
@@ -61,12 +74,16 @@ class UseCaseConfig {
         mailSender: MailSender,
         verificationCodeStore: VerificationCodeStore,
         pendingUserValidator: PendingUserValidator,
+        exceptionHandler: ApplicationExceptionHandler,
     ): ResendVerificationCodeUseCase {
-        return ResendVerificationCodeUseCase(mailSender, verificationCodeStore, pendingUserValidator)
+        return ResendVerificationCodeUseCase(mailSender, verificationCodeStore, pendingUserValidator, exceptionHandler)
     }
 
     @Bean
-    fun refreshTokenUseCase(tokenRefresher: TokenRefresher): RefreshTokenUseCase {
-        return RefreshTokenUseCase(tokenRefresher)
+    fun refreshTokenUseCase(
+        tokenRefresher: TokenRefresher,
+        exceptionHandler: ApplicationExceptionHandler,
+    ): RefreshTokenUseCase {
+        return RefreshTokenUseCase(tokenRefresher, exceptionHandler)
     }
 }

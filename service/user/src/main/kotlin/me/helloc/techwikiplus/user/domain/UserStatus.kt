@@ -1,6 +1,9 @@
 package me.helloc.techwikiplus.user.domain
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException
+import me.helloc.techwikiplus.user.domain.exception.authentication.AccountBannedException
+import me.helloc.techwikiplus.user.domain.exception.authentication.AccountDeletedException
+import me.helloc.techwikiplus.user.domain.exception.authentication.AccountDormantException
+import me.helloc.techwikiplus.user.domain.exception.authentication.EmailNotVerifiedException
 
 enum class UserStatus {
     ACTIVE, // 활성 상태
@@ -13,10 +16,10 @@ enum class UserStatus {
     fun validateForAuthentication() {
         when (this) {
             ACTIVE -> return
-            PENDING -> throw CustomException.AuthenticationException.EmailNotVerified()
-            BANNED -> throw CustomException.AuthenticationException.AccountBanned()
-            DORMANT -> throw CustomException.AuthenticationException.AccountDormant()
-            DELETED -> throw CustomException.AuthenticationException.AccountDeleted()
+            PENDING -> throw EmailNotVerifiedException()
+            BANNED -> throw AccountBannedException()
+            DORMANT -> throw AccountDormantException()
+            DELETED -> throw AccountDeletedException()
         }
     }
 }

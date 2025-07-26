@@ -5,8 +5,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
-import me.helloc.techwikiplus.user.domain.exception.CustomException
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidNickname
+import me.helloc.techwikiplus.user.domain.exception.validation.AlreadyVerifiedEmailException
+import me.helloc.techwikiplus.user.domain.exception.validation.InvalidNicknameException
 import me.helloc.techwikiplus.user.infrastructure.clock.fake.FakeClock
 import java.time.LocalDateTime
 
@@ -61,7 +61,7 @@ class UserUnitTest : FunSpec({
         test("닉네임이 2자 미만일 때 InvalidNickname 예외 발생") {
             val now = LocalDateTime.now()
 
-            shouldThrow<InvalidNickname> {
+            shouldThrow<InvalidNicknameException> {
                 User(
                     id = 123456789L,
                     email = UserEmail("test@example.com"),
@@ -77,7 +77,7 @@ class UserUnitTest : FunSpec({
             val now = LocalDateTime.now()
             val longNickname = "a".repeat(21)
 
-            shouldThrow<InvalidNickname> {
+            shouldThrow<InvalidNicknameException> {
                 User(
                     id = 123456789L,
                     email = UserEmail("test@example.com"),
@@ -104,7 +104,7 @@ class UserUnitTest : FunSpec({
                 )
 
             invalidNicknames.forEach { nickname ->
-                shouldThrow<InvalidNickname> {
+                shouldThrow<InvalidNicknameException> {
                     User(
                         id = 123456789L,
                         email = UserEmail("test@example.com"),
@@ -174,7 +174,7 @@ class UserUnitTest : FunSpec({
         }
 
         test("withPendingUser에서도 닉네임 유효성 검증") {
-            shouldThrow<InvalidNickname> {
+            shouldThrow<InvalidNicknameException> {
                 User.withPendingUser(
                     id = 123456789L,
                     email = UserEmail("test@example.com"),
@@ -224,7 +224,7 @@ class UserUnitTest : FunSpec({
                     updatedAt = now,
                 )
 
-            shouldThrow<InvalidNickname> {
+            shouldThrow<InvalidNicknameException> {
                 user.changeNickname("@")
             }.nickname shouldBe "@"
         }
@@ -338,7 +338,7 @@ class UserUnitTest : FunSpec({
                     updatedAt = LocalDateTime.now(),
                 )
 
-            shouldThrow<CustomException.ValidationException.AlreadyVerifiedEmail> {
+            shouldThrow<AlreadyVerifiedEmailException> {
                 activeUser.completeSignUp()
             }.apply {
                 email shouldBe "test@example.com"

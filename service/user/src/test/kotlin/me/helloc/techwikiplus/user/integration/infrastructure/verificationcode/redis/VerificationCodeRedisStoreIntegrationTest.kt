@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.integration.infrastructure.verificationcode.redis
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.ExpiredEmailVerification
+import me.helloc.techwikiplus.user.domain.exception.authentication.ExpiredEmailVerificationException
 import me.helloc.techwikiplus.user.infrastructure.config.IntegrationTestSupport
 import me.helloc.techwikiplus.user.infrastructure.config.TestContainerConfig
 import me.helloc.techwikiplus.user.infrastructure.verificationcode.redis.VerificationCodeRedisStore
@@ -117,7 +117,7 @@ class VerificationCodeRedisStoreIntegrationTest : IntegrationTestSupport() {
             // 3초 후 조회하면 만료되어 실패
             Thread.sleep(3000)
             assertThatThrownBy { verificationCodeStore.retrieveOrThrows(email) }
-                .isInstanceOf(ExpiredEmailVerification::class.java)
+                .isInstanceOf(ExpiredEmailVerificationException::class.java)
                 .extracting("email")
                 .isEqualTo(email)
         }
@@ -143,19 +143,19 @@ class VerificationCodeRedisStoreIntegrationTest : IntegrationTestSupport() {
         }
 
         @Test
-        fun `존재하지 않는 이메일로 조회하면 ExpiredEmailVerification 예외가 발생한다`() {
+        fun `존재하지 않는 이메일로 조회하면 ExpiredEmailVerificationException 예외가 발생한다`() {
             // given
             val email = "notfound@example.com"
 
             // when & then
             assertThatThrownBy { verificationCodeStore.retrieveOrThrows(email) }
-                .isInstanceOf(ExpiredEmailVerification::class.java)
+                .isInstanceOf(ExpiredEmailVerificationException::class.java)
                 .extracting("email")
                 .isEqualTo(email)
         }
 
         @Test
-        fun `만료된 코드를 조회하면 ExpiredEmailVerification 예외가 발생한다`() {
+        fun `만료된 코드를 조회하면 ExpiredEmailVerificationException 예외가 발생한다`() {
             // given
             val email = "expired@example.com"
             val code = VerificationCode.generate()
@@ -168,7 +168,7 @@ class VerificationCodeRedisStoreIntegrationTest : IntegrationTestSupport() {
 
             // then
             assertThatThrownBy { verificationCodeStore.retrieveOrThrows(email) }
-                .isInstanceOf(ExpiredEmailVerification::class.java)
+                .isInstanceOf(ExpiredEmailVerificationException::class.java)
                 .extracting("email")
                 .isEqualTo(email)
         }

@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.user.infrastructure.verificationcode.fake
 
 import me.helloc.techwikiplus.user.domain.VerificationCode
-import me.helloc.techwikiplus.user.domain.exception.CustomException.AuthenticationException.ExpiredEmailVerification
+import me.helloc.techwikiplus.user.domain.exception.authentication.ExpiredEmailVerificationException
 import me.helloc.techwikiplus.user.domain.port.outbound.Clock
 import me.helloc.techwikiplus.user.domain.port.outbound.VerificationCodeStore
 import java.time.Duration
@@ -29,11 +29,11 @@ class FakeVerificationCodeStore(
     override fun retrieveOrThrows(email: String): VerificationCode {
         val storedCode =
             store[email]
-                ?: throw ExpiredEmailVerification(email)
+                ?: throw ExpiredEmailVerificationException(email)
 
         if (clock.localDateTime().isAfter(storedCode.expiryTime)) {
             store.remove(email)
-            throw ExpiredEmailVerification(email)
+            throw ExpiredEmailVerificationException(email)
         }
 
         return storedCode.code

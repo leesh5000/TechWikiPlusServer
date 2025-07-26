@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.user.domain
 
-import me.helloc.techwikiplus.user.domain.exception.CustomException.ValidationException.InvalidEmail
+import me.helloc.techwikiplus.user.domain.exception.validation.InvalidEmailException
 
 data class UserEmail(val value: String, val verified: Boolean = false) {
     companion object {
@@ -11,7 +11,7 @@ data class UserEmail(val value: String, val verified: Boolean = false) {
 
     init {
         if (!isValid(value)) {
-            throw InvalidEmail(value)
+            throw InvalidEmailException(value)
         }
     }
 
