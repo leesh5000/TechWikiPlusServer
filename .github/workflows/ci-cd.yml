@@ -516,9 +516,9 @@ jobs:
         echo "✅ 배포가 성공적으로 완료되었습니다!"
         echo ""
         echo "간단 상태 확인:"
-        CONTAINER_STATUS=$(ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod --format json" | jq -r '.[] | select(.Service == "user-service") | .State')
+        CONTAINER_STATUS=$(ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod ps --format json" | jq -r '.[] | select(.Service == "user-service") | .State')
         echo "container_status=$CONTAINER_STATUS" >> $GITHUB_OUTPUT
-        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml ps"
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd ~/${{ env.PROJECT_DIRECTORY }} && docker-compose -p techwikiplus-server -f docker/compose/docker-compose.base.yml -f docker/compose/docker-compose.prod.yml --env-file .env.prod ps"
 
     - name: Job Summary 생성
       if: always()
