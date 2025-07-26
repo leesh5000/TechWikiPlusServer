@@ -194,4 +194,35 @@ object OpenApiGenerator {
 
         return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(openApiSpec)
     }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        if (args.size < 2) {
+            println("Usage: OpenApiGenerator <snippetsDir> <outputFile> [title] [description] [version] [serverUrl]")
+            System.exit(1)
+        }
+
+        val snippetsDir = File(args[0])
+        val outputFile = File(args[1])
+        val title = args.getOrNull(2) ?: "API Documentation"
+        val description = args.getOrNull(3) ?: "API Documentation"
+        val version = args.getOrNull(4) ?: "v1"
+        val serverUrl = args.getOrNull(5) ?: "http://localhost:8080"
+
+        if (!snippetsDir.exists()) {
+            println("Error: Snippets directory does not exist: ${snippetsDir.absolutePath}")
+            System.exit(1)
+        }
+
+        try {
+            val openApiSpec = generateOpenApiSpec(snippetsDir, title, description, version, serverUrl)
+            outputFile.parentFile?.mkdirs()
+            outputFile.writeText(openApiSpec)
+            println("OpenAPI spec generated successfully: ${outputFile.absolutePath}")
+        } catch (e: Exception) {
+            println("Error generating OpenAPI spec: ${e.message}")
+            e.printStackTrace()
+            System.exit(1)
+        }
+    }
 }
