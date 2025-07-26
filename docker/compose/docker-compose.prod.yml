@@ -5,8 +5,6 @@ services:
   user-service:
     # 프로덕션 이미지 사용 (ECR)
     image: ${USER_SERVICE_IMAGE}
-
-    container_name: techwikiplus-user-service
     restart: unless-stopped
 
     # 항상 최신 이미지 pull

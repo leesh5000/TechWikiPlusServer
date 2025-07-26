@@ -100,22 +100,23 @@ tasks.register("createDocsDir") {
 // OpenAPI 3.0 스펙 생성 태스크
 tasks.register<JavaExec>("openapi3") {
     dependsOn(tasks.test, tasks.classes)
-    
+
     mainClass.set("me.helloc.techwikiplus.user.infrastructure.documentation.OpenApiGenerator")
     classpath = sourceSets["main"].runtimeClasspath
-    
+
     val snippetsDir = file("$buildDir/generated-snippets")
     val openApiFile = file("$buildDir/api-spec/openapi3.json")
-    
-    args = listOf(
-        snippetsDir.absolutePath,
-        openApiFile.absolutePath,
-        "TechWikiPlus User Service API",
-        "사용자 인증 및 관리 서비스 API",
-        "v1",
-        "http://localhost:9000"
-    )
-    
+
+    args =
+        listOf(
+            snippetsDir.absolutePath,
+            openApiFile.absolutePath,
+            "TechWikiPlus User Service API",
+            "사용자 인증 및 관리 서비스 API",
+            "v1",
+            "http://localhost:9000",
+        )
+
     doFirst {
         if (!snippetsDir.exists() || snippetsDir.listFiles()?.isEmpty() == true) {
             throw GradleException("REST Docs 스니펫이 없습니다. 테스트를 먼저 실행해주세요.")

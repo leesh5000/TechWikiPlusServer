@@ -4,7 +4,6 @@
 services:
   mysql:
     image: mysql:8.0.32
-    container_name: techwikiplus-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-techwikiplus}
@@ -32,7 +31,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: techwikiplus-redis
     restart: unless-stopped
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-techwikiplus}
@@ -56,7 +54,6 @@ services:
 
   mailhog:
     image: mailhog/mailhog:latest
-    container_name: techwikiplus-mailhog
     restart: unless-stopped
     ports:
       - "${MAILHOG_SMTP_PORT:-1025}:1025"  # SMTP port

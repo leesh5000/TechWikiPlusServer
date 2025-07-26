@@ -3,12 +3,14 @@ package me.helloc.techwikiplus.user.infrastructure.documentation
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import org.slf4j.LoggerFactory
 import java.io.File
 
 /**
  * restdocs-api-spec의 resource.json 파일들을 읽어서 OpenAPI 3.0 스펙으로 변환
  */
 object OpenApiGenerator {
+    private val logger = LoggerFactory.getLogger(OpenApiGenerator::class.java)
     private val objectMapper = ObjectMapper()
 
     fun generateOpenApiSpec(
@@ -48,15 +50,18 @@ object OpenApiGenerator {
         val errorResponseSchema = objectMapper.createObjectNode()
         errorResponseSchema.put("type", "object")
         val errorPropertiesNode = objectMapper.createObjectNode()
-        
+
         // Helper function to create property nodes
-        fun createPropertyNode(type: String, description: String): ObjectNode {
+        fun createPropertyNode(
+            type: String,
+            description: String,
+        ): ObjectNode {
             return objectMapper.createObjectNode().apply {
                 put("type", type)
                 put("description", description)
             }
         }
-        
+
         errorPropertiesNode.set<ObjectNode>("errorCode", createPropertyNode("string", "에러 코드"))
         errorPropertiesNode.set<ObjectNode>("message", createPropertyNode("string", "에러 메시지"))
         errorPropertiesNode.set<ObjectNode>("timestamp", createPropertyNode("string", "에러 발생 시간"))
@@ -84,9 +89,20 @@ object OpenApiGenerator {
                     methodNode.put("description", resource["description"].asText())
                     methodNode.put("operationId", resource["operationId"].asText())
 
-                    // tags
+                    // tags - resource.json에서 읽거나 경로에서 추출
                     val tagsArray = objectMapper.createArrayNode()
-                    tagsArray.add("User")
+                    val tags = resource.path("tags")
+                    if (tags.isArray && tags.size() > 0) {
+                        // resource.json에 tags가 정의되어 있으면 사용
+                        tags.forEach { tag -> tagsArray.add(tag.asText()) }
+                    } else {
+                        // 없으면 경로에서 도메인 추출 (예: /api/v1/users/... -> Users)
+                        val pathSegments = path.split("/").filter { it.isNotEmpty() }
+                        val domain =
+                            pathSegments.find { it != "api" && !it.startsWith("v") }
+                                ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } ?: "Default"
+                        tagsArray.add(domain)
+                    }
                     methodNode.set<ArrayNode>("tags", tagsArray)
 
                     // request body
@@ -124,7 +140,15 @@ object OpenApiGenerator {
                     val responsesNode = objectMapper.createObjectNode()
                     val statusCode = resource["response"]["status"].asText()
                     val responseNode = objectMapper.createObjectNode()
-                    responseNode.put("description", if (statusCode == "202") "요청 성공" else "요청 실패")
+                    responseNode.put(
+                        "description",
+                        when {
+                            statusCode.startsWith("2") -> "요청 성공"
+                            statusCode.startsWith("4") -> "요청 실패"
+                            statusCode.startsWith("5") -> "서버 오류"
+                            else -> "응답"
+                        },
+                    )
 
                     // response headers
                     if (resource["response"]["headers"].size() > 0) {
@@ -145,7 +169,24 @@ object OpenApiGenerator {
                         val contentNode = objectMapper.createObjectNode()
                         val jsonContentNode = objectMapper.createObjectNode()
                         val schemaNode = objectMapper.createObjectNode()
-                        schemaNode.put("\$ref", "#/components/schemas/ErrorResponse")
+
+                        // 에러 응답인 경우만 ErrorResponse 스키마 참조
+                        if (statusCode.startsWith("4") || statusCode.startsWith("5")) {
+                            schemaNode.put("\$ref", "#/components/schemas/ErrorResponse")
+                        } else {
+                            // 성공 응답인 경우 responseFields를 기반으로 스키마 생성
+                            schemaNode.put("type", "object")
+                            val propertiesNode = objectMapper.createObjectNode()
+                            resource["response"]["responseFields"].forEach { field ->
+                                val fieldName = field["path"].asText()
+                                val fieldNode = objectMapper.createObjectNode()
+                                fieldNode.put("type", field["type"].asText().lowercase())
+                                fieldNode.put("description", field["description"].asText())
+                                propertiesNode.set<ObjectNode>(fieldName, fieldNode)
+                            }
+                            schemaNode.set<ObjectNode>("properties", propertiesNode)
+                        }
+
                         jsonContentNode.set<ObjectNode>("schema", schemaNode)
                         contentNode.set<ObjectNode>("application/json", jsonContentNode)
                         responseNode.set<ObjectNode>("content", contentNode)
@@ -153,9 +194,10 @@ object OpenApiGenerator {
 
                     responsesNode.set<ObjectNode>(statusCode, responseNode)
                     methodNode.set<ObjectNode>("responses", responsesNode)
-                    
+
                     // Security 설정 - 회원가입, 로그인 등 공개 엔드포인트는 security 제외
-                    val publicEndpoints = listOf("/api/v1/users/signup", "/api/v1/users/login", "/api/v1/users/signup/verify")
+                    val publicEndpoints =
+                        listOf("/api/v1/users/signup", "/api/v1/users/login", "/api/v1/users/signup/verify")
                     if (publicEndpoints.contains(path)) {
                         // 공개 엔드포인트는 빈 security 배열로 설정 (인증 불필요)
                         methodNode.set<ArrayNode>("security", objectMapper.createArrayNode())
@@ -165,12 +207,12 @@ object OpenApiGenerator {
                     pathNode.set<ObjectNode>(method, methodNode)
                     pathsNode.set<ObjectNode>(path, pathNode)
                 } catch (e: Exception) {
-                    println("Error processing resource file ${resourceFile.path}: ${e.message}")
+                    logger.error("Error processing resource file ${resourceFile.path}: ${e.message}", e)
                 }
             }
 
         openApiSpec.set<ObjectNode>("paths", pathsNode)
-        
+
         // Security schemes 추가
         val securitySchemesNode = objectMapper.createObjectNode()
         val bearerAuthNode = objectMapper.createObjectNode()
@@ -179,11 +221,11 @@ object OpenApiGenerator {
         bearerAuthNode.put("bearerFormat", "JWT")
         bearerAuthNode.put("description", "JWT 토큰을 사용한 인증")
         securitySchemesNode.set<ObjectNode>("bearerAuth", bearerAuthNode)
-        
+
         componentsNode.set<ObjectNode>("schemas", schemasNode)
         componentsNode.set<ObjectNode>("securitySchemes", securitySchemesNode)
         openApiSpec.set<ObjectNode>("components", componentsNode)
-        
+
         // Global security 설정 (인증이 필요없는 엔드포인트는 개별적으로 override)
         val globalSecurityArray = objectMapper.createArrayNode()
         val securityRequirement = objectMapper.createObjectNode()
@@ -197,7 +239,9 @@ object OpenApiGenerator {
     @JvmStatic
     fun main(args: Array<String>) {
         if (args.size < 2) {
-            println("Usage: OpenApiGenerator <snippetsDir> <outputFile> [title] [description] [version] [serverUrl]")
+            logger.error(
+                "Usage: OpenApiGenerator <snippetsDir> <outputFile> [title] [description] [version] [serverUrl]",
+            )
             System.exit(1)
         }
 
@@ -209,7 +253,7 @@ object OpenApiGenerator {
         val serverUrl = args.getOrNull(5) ?: "http://localhost:8080"
 
         if (!snippetsDir.exists()) {
-            println("Error: Snippets directory does not exist: ${snippetsDir.absolutePath}")
+            logger.error("Error: Snippets directory does not exist: ${snippetsDir.absolutePath}")
             System.exit(1)
         }
 
@@ -217,10 +261,9 @@ object OpenApiGenerator {
             val openApiSpec = generateOpenApiSpec(snippetsDir, title, description, version, serverUrl)
             outputFile.parentFile?.mkdirs()
             outputFile.writeText(openApiSpec)
-            println("OpenAPI spec generated successfully: ${outputFile.absolutePath}")
+            logger.info("OpenAPI spec generated successfully: ${outputFile.absolutePath}")
         } catch (e: Exception) {
-            println("Error generating OpenAPI spec: ${e.message}")
-            e.printStackTrace()
+            logger.error("Error generating OpenAPI spec: ${e.message}", e)
             System.exit(1)
         }
     }
