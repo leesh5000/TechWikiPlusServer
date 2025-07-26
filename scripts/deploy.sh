@@ -11,9 +11,50 @@ echo "디렉토리: $(pwd)"
 echo "사용자: $(whoami)"
 echo "호스트: $(hostname)"
 
-# 1. 작업 디렉토리 확인
+# 1. 작업 디렉토리 확인 및 자동 탐지
+# 프로젝트 루트 디렉토리를 자동으로 찾는 함수
+find_project_root() {
+    local current_dir="$(pwd)"
+    local search_dir="$current_dir"
+    
+    # 최대 5단계까지 상위 디렉토리 검색
+    for i in {1..5}; do
+        # 필요한 파일들이 모두 있는지 확인
+        if [ -f "$search_dir/docker/compose/docker-compose.base.yml" ] && 
+           [ -f "$search_dir/docker/compose/docker-compose.prod.yml" ] && 
+           [ -f "$search_dir/.env.prod" ]; then
+            echo "$search_dir"
+            return 0
+        fi
+        
+        # 상위 디렉토리로 이동
+        search_dir="$(dirname "$search_dir")"
+        
+        # 홈 디렉토리까지 올라갔으면 중단
+        if [ "$search_dir" = "$HOME" ] || [ "$search_dir" = "/" ]; then
+            break
+        fi
+    done
+    
+    # 현재 위치에서 찾지 못했으면 일반적인 경로들 확인
+    for potential_dir in \
+        "$HOME/techwikiplus/server/user-service" \
+        "$HOME/${PROJECT_DIRECTORY:-techwikiplus-server}" \
+        "$HOME/techwikiplus-server"; do
+        
+        if [ -d "$potential_dir" ] && 
+           [ -f "$potential_dir/docker/compose/docker-compose.base.yml" ] && 
+           [ -f "$potential_dir/docker/compose/docker-compose.prod.yml" ] && 
+           [ -f "$potential_dir/.env.prod" ]; then
+            echo "$potential_dir"
+            return 0
+        fi
+    done
+    
+    return 1
+}
+
 # 환경변수 설정
-PROJECT_DIR="${PROJECT_DIRECTORY:-techwikiplus-server}"
 PROJECT_NAME="techwikiplus-server"
 COMPOSE_BASE_FILE="docker/compose/docker-compose.base.yml"
 COMPOSE_PROD_FILE="docker/compose/docker-compose.prod.yml"
@@ -22,7 +63,21 @@ HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/actuator/health}"
 HEALTH_CHECK_MAX_RETRIES="${HEALTH_CHECK_MAX_RETRIES:-10}"
 HEALTH_CHECK_RETRY_DELAY="${HEALTH_CHECK_RETRY_DELAY:-5}"
 
-cd ~/$PROJECT_DIR || { echo "$PROJECT_DIR 디렉토리가 없습니다. ec2-setup.sh를 먼저 실행하세요."; exit 1; }
+# 프로젝트 루트 디렉토리 찾기
+PROJECT_ROOT=$(find_project_root)
+if [ $? -ne 0 ] || [ -z "$PROJECT_ROOT" ]; then
+    echo "ERROR: 프로젝트 루트 디렉토리를 찾을 수 없습니다."
+    echo "다음 파일들이 있는 디렉토리를 찾고 있습니다:"
+    echo "  - $COMPOSE_BASE_FILE"
+    echo "  - $COMPOSE_PROD_FILE" 
+    echo "  - $ENV_FILE"
+    echo ""
+    echo "ec2-setup.sh를 먼저 실행하거나, 올바른 디렉토리에서 스크립트를 실행하세요."
+    exit 1
+fi
+
+echo "프로젝트 루트: $PROJECT_ROOT"
+cd "$PROJECT_ROOT" || { echo "ERROR: $PROJECT_ROOT 디렉토리로 이동할 수 없습니다."; exit 1; }
 
 # 2. .env 파일 확인
 if [ ! -f "$ENV_FILE" ]; then
