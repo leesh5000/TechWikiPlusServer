@@ -1,12 +1,16 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import me.helloc.techwikiplus.user.infrastructure.config.IntegrationTestSupport
+import me.helloc.techwikiplus.user.domain.port.outbound.TokenProvider
+import me.helloc.techwikiplus.user.interfaces.config.MessageSourceConfig
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -18,14 +22,27 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  * GlobalExceptionHandler 통합 테스트
  * 실제 Spring 컨텍스트에서 예외 처리가 올바르게 동작하는지 검증
  */
-@AutoConfigureMockMvc
+@WebMvcTest(
+    controllers = [TestControllerForExceptionHandler::class],
+    excludeAutoConfiguration = [
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration::class,
+        org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration::class,
+    ],
+)
+@Import(GlobalExceptionHandler::class, MessageSourceConfig::class)
 @ActiveProfiles("test")
-class GlobalExceptionHandlerIntegrationTest : IntegrationTestSupport() {
+class GlobalExceptionHandlerIntegrationTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
+
+    @MockBean
+    private lateinit var tokenProvider: TokenProvider
+
+    @MockBean
+    private lateinit var userDetailsService: UserDetailsService
 
     @Test
     @DisplayName("잘못된 JSON 요청 시 400 에러와 적절한 메시지가 반환된다")
@@ -35,7 +52,7 @@ class GlobalExceptionHandlerIntegrationTest : IntegrationTestSupport() {
 
         // when & then
         mockMvc.perform(
-            post("/api/v1/users/login")
+            post("/test/exception-handler/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidJson),
         )
@@ -43,7 +60,7 @@ class GlobalExceptionHandlerIntegrationTest : IntegrationTestSupport() {
             .andExpect(jsonPath("$.errorCode").value("INVALID_JSON"))
             .andExpect(jsonPath("$.message").exists())
             .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.path").value("/api/v1/users/login"))
+            .andExpect(jsonPath("$.path").value("/test/exception-handler/login"))
     }
 
     @Test
@@ -51,7 +68,7 @@ class GlobalExceptionHandlerIntegrationTest : IntegrationTestSupport() {
     fun shouldHandleMissingParameter() {
         // when & then
         mockMvc.perform(
-            get("/api/v1/users/verify")
+            get("/test/exception-handler/verify")
                 // email 파라미터 누락
                 .param("code", "123456"),
         )
@@ -72,13 +89,14 @@ class GlobalExceptionHandlerIntegrationTest : IntegrationTestSupport() {
 
         // when & then
         mockMvc.perform(
-            post("/api/v1/users/login")
+            post("/test/exception-handler/login")
                 .header("Accept-Language", "ko-KR")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidEmail)),
         )
             .andExpect(status().isUnauthorized) // 로그인 실패
             .andExpect(jsonPath("$.localizedMessage").exists())
+            .andExpect(jsonPath("$.localizedMessage").value("이메일 또는 비밀번호가 올바르지 않습니다"))
     }
 
     @Test
@@ -93,12 +111,13 @@ class GlobalExceptionHandlerIntegrationTest : IntegrationTestSupport() {
 
         // when & then
         mockMvc.perform(
-            post("/api/v1/users/login")
+            post("/test/exception-handler/login")
                 .header("Accept-Language", "en-US")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidEmail)),
         )
             .andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.localizedMessage").exists())
+            .andExpect(jsonPath("$.localizedMessage").value("Invalid email or password"))
     }
 }
