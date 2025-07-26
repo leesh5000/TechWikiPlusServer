@@ -53,7 +53,8 @@
               }
             }
           }
-        }
+        },
+        "security" : [ ]
       }
     }
   },
@@ -88,6 +89,17 @@
           }
         }
       }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT",
+        "description" : "JWT 토큰을 사용한 인증"
+      }
     }
-  }
+  },
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ]
 }

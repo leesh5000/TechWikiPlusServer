@@ -180,6 +180,14 @@ object OpenApiGenerator {
 
                     responsesNode.set<ObjectNode>(statusCode, responseNode)
                     methodNode.set<ObjectNode>("responses", responsesNode)
+                    
+                    // Security 설정 - 회원가입, 로그인 등 공개 엔드포인트는 security 제외
+                    val publicEndpoints = listOf("/api/v1/users/signup", "/api/v1/users/login", "/api/v1/users/signup/verify")
+                    if (publicEndpoints.contains(path)) {
+                        // 공개 엔드포인트는 빈 security 배열로 설정 (인증 불필요)
+                        methodNode.set<ArrayNode>("security", objectMapper.createArrayNode())
+                    }
+                    // 인증이 필요한 엔드포인트는 global security가 자동 적용됨
 
                     pathNode.set<ObjectNode>(method, methodNode)
                     pathsNode.set<ObjectNode>(path, pathNode)
@@ -189,8 +197,26 @@ object OpenApiGenerator {
             }
 
         openApiSpec.set<ObjectNode>("paths", pathsNode)
+        
+        // Security schemes 추가
+        val securitySchemesNode = objectMapper.createObjectNode()
+        val bearerAuthNode = objectMapper.createObjectNode()
+        bearerAuthNode.put("type", "http")
+        bearerAuthNode.put("scheme", "bearer")
+        bearerAuthNode.put("bearerFormat", "JWT")
+        bearerAuthNode.put("description", "JWT 토큰을 사용한 인증")
+        securitySchemesNode.set<ObjectNode>("bearerAuth", bearerAuthNode)
+        
         componentsNode.set<ObjectNode>("schemas", schemasNode)
+        componentsNode.set<ObjectNode>("securitySchemes", securitySchemesNode)
         openApiSpec.set<ObjectNode>("components", componentsNode)
+        
+        // Global security 설정 (인증이 필요없는 엔드포인트는 개별적으로 override)
+        val globalSecurityArray = objectMapper.createArrayNode()
+        val securityRequirement = objectMapper.createObjectNode()
+        securityRequirement.set<ArrayNode>("bearerAuth", objectMapper.createArrayNode())
+        globalSecurityArray.add(securityRequirement)
+        openApiSpec.set<ArrayNode>("security", globalSecurityArray)
 
         return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(openApiSpec)
     }
