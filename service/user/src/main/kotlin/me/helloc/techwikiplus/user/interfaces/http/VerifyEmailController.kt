@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.application.VerifyEmailUseCase
+import me.helloc.techwikiplus.user.infrastructure.usecase.VerifyEmailUseCaseWrapper
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpVerifyRequest
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class VerifyEmailController(
-    private val facade: VerifyEmailUseCase,
+    private val facade: VerifyEmailUseCaseWrapper,
 ) {
     @PostMapping("/api/v1/users/signup/verify")
     fun verifyEmail(
@@ -21,9 +22,4 @@ class VerifyEmailController(
         )
         return ResponseEntity.status(OK).build()
     }
-
-    data class UserSignUpVerifyRequest(
-        val email: String,
-        val code: String,
-    )
 }

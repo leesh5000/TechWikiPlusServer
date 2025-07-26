@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.application.UserSignUpUseCase
+import me.helloc.techwikiplus.user.infrastructure.usecase.UserSignUpUseCaseWrapper
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.UserSignUpRequest
 import org.springframework.http.HttpStatus.ACCEPTED
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class UserSignUpController(val facade: UserSignUpUseCase) {
+class UserSignUpController(val facade: UserSignUpUseCaseWrapper) {
     @PostMapping("/api/v1/users/signup", consumes = ["application/json"])
     fun signUp(
         @RequestBody request: UserSignUpRequest,
@@ -22,10 +23,4 @@ class UserSignUpController(val facade: UserSignUpUseCase) {
             .header("Location", "/api/v1/users/signup/verify")
             .build()
     }
-
-    data class UserSignUpRequest(
-        val email: String,
-        val nickname: String,
-        val password: String,
-    )
 }

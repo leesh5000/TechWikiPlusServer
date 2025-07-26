@@ -1,6 +1,8 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.application.UserLoginUseCase
+import me.helloc.techwikiplus.user.infrastructure.usecase.UserLoginUseCaseWrapper
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.LoginRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.response.LoginResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -8,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class UserLoginController(
-    private val useCase: UserLoginUseCase,
+    private val useCase: UserLoginUseCaseWrapper,
 ) {
     @PostMapping("/api/v1/users/login")
     fun login(
@@ -28,15 +30,4 @@ class UserLoginController(
             ),
         )
     }
-
-    data class LoginRequest(
-        val email: String,
-        val password: String,
-    )
-
-    data class LoginResponse(
-        val accessToken: String,
-        val refreshToken: String,
-        val userId: Long,
-    )
 }

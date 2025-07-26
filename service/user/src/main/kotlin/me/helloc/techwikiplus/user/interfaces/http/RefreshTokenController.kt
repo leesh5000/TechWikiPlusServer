@@ -1,6 +1,8 @@
 package me.helloc.techwikiplus.user.interfaces.http
 
-import me.helloc.techwikiplus.user.application.RefreshTokenUseCase
+import me.helloc.techwikiplus.user.infrastructure.usecase.RefreshTokenUseCaseWrapper
+import me.helloc.techwikiplus.user.interfaces.http.dto.request.RefreshTokenRequest
+import me.helloc.techwikiplus.user.interfaces.http.dto.response.RefreshTokenResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -8,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class RefreshTokenController(
-    private val useCase: RefreshTokenUseCase,
+    private val useCase: RefreshTokenUseCaseWrapper,
 ) {
     @PostMapping("/api/v1/users/refresh")
     fun refresh(
@@ -24,14 +26,4 @@ class RefreshTokenController(
             ),
         )
     }
-
-    data class RefreshTokenRequest(
-        val refreshToken: String,
-    )
-
-    data class RefreshTokenResponse(
-        val accessToken: String,
-        val refreshToken: String,
-        val userId: Long,
-    )
 }
