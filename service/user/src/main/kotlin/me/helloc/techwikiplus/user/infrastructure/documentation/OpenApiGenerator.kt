@@ -48,48 +48,21 @@ object OpenApiGenerator {
         val errorResponseSchema = objectMapper.createObjectNode()
         errorResponseSchema.put("type", "object")
         val errorPropertiesNode = objectMapper.createObjectNode()
-        errorPropertiesNode.set<ObjectNode>(
-            "errorCode",
-            objectMapper.createObjectNode().apply {
-                put("type", "string")
-                put("description", "에러 코드")
-            },
-        )
-        errorPropertiesNode.set<ObjectNode>(
-            "message",
-            objectMapper.createObjectNode().apply {
-                put("type", "string")
-                put("description", "에러 메시지")
-            },
-        )
-        errorPropertiesNode.set<ObjectNode>(
-            "timestamp",
-            objectMapper.createObjectNode().apply {
-                put("type", "string")
-                put("description", "에러 발생 시간")
-            },
-        )
-        errorPropertiesNode.set<ObjectNode>(
-            "path",
-            objectMapper.createObjectNode().apply {
-                put("type", "string")
-                put("description", "요청 경로")
-            },
-        )
-        errorPropertiesNode.set<ObjectNode>(
-            "localizedMessage",
-            objectMapper.createObjectNode().apply {
-                put("type", "string")
-                put("description", "현지화된 메시지")
-            },
-        )
-        errorPropertiesNode.set<ObjectNode>(
-            "details",
-            objectMapper.createObjectNode().apply {
-                put("type", "object")
-                put("description", "추가 에러 정보")
-            },
-        )
+        
+        // Helper function to create property nodes
+        fun createPropertyNode(type: String, description: String): ObjectNode {
+            return objectMapper.createObjectNode().apply {
+                put("type", type)
+                put("description", description)
+            }
+        }
+        
+        errorPropertiesNode.set<ObjectNode>("errorCode", createPropertyNode("string", "에러 코드"))
+        errorPropertiesNode.set<ObjectNode>("message", createPropertyNode("string", "에러 메시지"))
+        errorPropertiesNode.set<ObjectNode>("timestamp", createPropertyNode("string", "에러 발생 시간"))
+        errorPropertiesNode.set<ObjectNode>("path", createPropertyNode("string", "요청 경로"))
+        errorPropertiesNode.set<ObjectNode>("localizedMessage", createPropertyNode("string", "현지화된 메시지"))
+        errorPropertiesNode.set<ObjectNode>("details", createPropertyNode("object", "추가 에러 정보"))
         errorResponseSchema.set<ObjectNode>("properties", errorPropertiesNode)
         schemasNode.set<ObjectNode>("ErrorResponse", errorResponseSchema)
 
