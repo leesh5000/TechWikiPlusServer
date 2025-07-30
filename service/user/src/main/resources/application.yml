@@ -1,0 +1,41 @@
+server:
+  port: ${SERVER_PORT:9000}
+spring:
+  application:
+    name: techwikiplus-user
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:13306}/${MYSQL_DATABASE:techwikiplus-user}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
+    username: ${MYSQL_USER:techwikiplus}
+    password: ${MYSQL_PASSWORD:techwikiplus}
+    hikari:
+      maximum-pool-size: 30 # 최대 커넥션 풀 크기
+      minimum-idle: 10 # 최소 유휴 커넥션 수
+      connection-timeout: 30000 # 커넥션 타임아웃 (30초)
+      idle-timeout: 600000 # 유휴 커넥션 타임아웃 (10분)
+      max-lifetime: 1800000 # 커넥션 최대 생명주기 (30분)
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    open-in-view: false
+    show-sql: ${JPA_SHOW_SQL:false}  # 성능 최적화를 위해 비활성화
+    hibernate:
+      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:none}
+    properties:
+      hibernate:
+        # 배치 처리 설정
+        jdbc:
+          batch_size: 5000
+          batch_versioned_data: true
+          fetch_size: 1000
+        # SQL 순서 최적화
+        order_inserts: true
+        order_updates: true
+        # 통계 비활성화 (성능 향상)
+        generate_statistics: false
+        # 캐시 비활성화 (배치 처리에서는 불필요)
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        # 메타데이터 최적화
+        temp:
+          use_jdbc_metadata_defaults: false

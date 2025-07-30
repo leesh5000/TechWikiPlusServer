@@ -1,0 +1,69 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+max_line_length = 120
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Kotlin 공식 코딩 컨벤션
+indent_size = 4
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# 코드 스타일
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ij_kotlin_line_comment_at_first_column = false
+ij_kotlin_line_comment_add_space = true
+ij_kotlin_keep_blank_lines_in_declarations = 1
+ij_kotlin_keep_blank_lines_in_code = 1
+ij_kotlin_keep_blank_lines_before_right_brace = 0
+
+# import 정렬
+ij_kotlin_name_count_to_use_star_import = 5
+ij_kotlin_name_count_to_use_star_import_for_members = 3
+ij_kotlin_import_nested_classes = false
+ij_kotlin_imports_layout = *,java.**,javax.**,kotlin.**,^
+
+# 공백 설정
+ij_kotlin_space_before_if_parentheses = true
+ij_kotlin_space_before_for_parentheses = true
+ij_kotlin_space_before_while_parentheses = true
+ij_kotlin_space_before_when_parentheses = true
+ij_kotlin_space_before_catch_parentheses = true
+ij_kotlin_space_before_lambda_arrow = true
+
+# 함수 매개변수
+ij_kotlin_method_parameters_wrap = on_every_item
+ij_kotlin_method_parameters_new_line_after_left_paren = true
+ij_kotlin_method_parameters_right_paren_on_new_line = true
+
+# 클래스/인터페이스
+ij_kotlin_class_annotation_wrap = split_into_lines
+ij_kotlin_field_annotation_wrap = split_into_lines
+ij_kotlin_parameter_annotation_wrap = off
+
+# 줄바꿈
+ij_kotlin_method_call_chain_wrap = normal
+ij_kotlin_assignment_wrap = off
+ij_kotlin_enum_constants_wrap = off
+
+# 기타 파일 형식
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+[*.{gradle,gradle.kts}]
+indent_size = 4
+
+[{Makefile,*.mk}]
+indent_style = tab
+
+[*.sh]
+indent_size = 2

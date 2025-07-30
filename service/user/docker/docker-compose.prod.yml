@@ -1,0 +1,82 @@
+# Production Docker Compose configuration for TechWikiPlus User Service
+#
+# 중요: 이 파일은 프로덕션 환경에서 사용되는 설정입니다.
+# 빌드 컨텍스트가 프로젝트 루트(../..)로 설정되어 있어서,
+# 모든 서브모듈(common/snowflake 등)에 접근 가능합니다.
+#
+# 실행 방법:
+# cd service/user
+# docker-compose --env-file .env --env-file .env.prod -f docker/docker-compose.base.yml -f docker/docker-compose.prod.yml up -d
+services:
+
+  user:
+    build:
+      # 빌드 컨텍스트를 프로젝트 루트로 설정
+      # 이렇게 해야 common/snowflake 등 공통 모듈을 COPY할 수 있습니다
+      # 현재 위치: service/user/docker/
+      # 프로젝트 루트: ../../../ (TechWikiPlusServer/)
+      context: ../../..
+
+      # Dockerfile 경로는 프로젝트 루트 기준으로 지정
+      # 실제 위치: service/user/docker/Dockerfile
+      dockerfile: service/user/docker/Dockerfile
+
+      # 빌드 시 사용할 인자 (필요시 주석 해제)
+      # args:
+      #   - JDK_VERSION=21
+      #   - GRADLE_VERSION=8.14.2
+
+    # 빌드된 이미지 태그
+    # CI/CD에서는 이 값을 ${IMAGE_TAG} 등으로 동적 변경 가능
+    image: techwikiplus/user:latest
+    # 컨테이너 재시작 정책
+    # unless-stopped: 수동으로 중지하지 않는 한 항상 재시작
+    restart: unless-stopped
+
+    # 환경 변수 설정
+    # .env 및 .env.prod 파일에서 값을 읽어옴
+    environment:
+      # MySQL 연결 설정
+      - MYSQL_HOST=${MYSQL_HOST}            # MySQL 서버 주소
+      - MYSQL_PORT=${MYSQL_PORT}            # MySQL 포트 (기본: 3306)
+      - MYSQL_DATABASE=${MYSQL_DATABASE}    # 데이터베이스 이름
+      - MYSQL_USER=${MYSQL_USER}            # MySQL 사용자
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}    # MySQL 비밀번호
+
+      # Redis 연결 설정
+      - REDIS_HOST=${REDIS_HOST}            # Redis 서버 주소
+      - REDIS_PORT=${REDIS_PORT}            # Redis 포트 (기본: 6379)
+      - REDIS_PASSWORD=${REDIS_PASSWORD}    # Redis 비밀번호
+
+      # JPA 설정
+      - JPA_SHOW_SQL=${JPA_SHOW_SQL}       # SQL 로그 출력 여부 (프로덕션: false)
+      - JPA_HIBERNATE_DDL_AUTO=${JPA_HIBERNATE_DDL_AUTO}  # DDL 자동 실행 (프로덕션: none)
+
+    # 포트 매핑
+    # 호스트:컨테이너 형식
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"     # 애플리케이션 포트 (기본: 9000)
+
+    # 서비스 의존성
+    # 아래 서비스들이 healthy 상태가 되어야 시작
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    # 네트워크 설정
+    # base.yml에서 정의된 네트워크 사용
+    networks:
+      - techwikiplus-network
+
+    # 헬스 체크 설정
+    # Spring Boot Actuator의 health 엔드포인트 활용
+    healthcheck:
+      # curl을 사용해 health 엔드포인트 확인
+      # ${HEALTH_CHECK_PATH}가 정의되지 않은 경우 actuator/health 사용 권장
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/${HEALTH_CHECK_PATH}"]
+      interval: 10s      # 체크 간격
+      timeout: 5s        # 응답 대기 시간
+      retries: 5         # 실패 시 재시도 횟수
+      start_period: 30s  # 컨테이너 시작 후 첫 체크까지 대기 시간

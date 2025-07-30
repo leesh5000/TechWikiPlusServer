@@ -1,0 +1,339 @@
+name: User Service CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'common/**'
+      - 'service/user/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - '.github/workflows/user-service-ci.yml'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - 'common/**'
+      - 'service/user/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - '.github/workflows/user-service-ci.yml'
+
+env:
+  JAVA_VERSION: '21'
+  GRADLE_VERSION: '8.5'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    name: CI Pipeline
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Initialize Job Summary
+        run: |
+          echo "# User Service CI Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Run:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+  linter:
+    needs: ci
+    runs-on: ubuntu-latest
+    name: Code Style Check (ktlint)
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run ktlint
+        id: ktlint
+        run: |
+          echo "## 🎨 Code Style Check (ktlint)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run ktlint and capture output
+          ./gradlew ktlintCheck --no-daemon > ktlint-output.log 2>&1 || KTLINT_EXIT_CODE=$?
+          
+          if [ -z "$KTLINT_EXIT_CODE" ]; then
+            echo "✅ **Status:** Passed" >> $GITHUB_STEP_SUMMARY
+            echo "All code follows the style guidelines!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status:** Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Style Violations Found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Extract and display ktlint errors
+            grep -E "\\[(ERROR|WARNING)\\]" ktlint-output.log >> $GITHUB_STEP_SUMMARY || true
+            
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Fix command:** \`./gradlew ktlintFormat\`" >> $GITHUB_STEP_SUMMARY
+            
+            # Fail the step
+            exit $KTLINT_EXIT_CODE
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload ktlint reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktlint-reports
+          path: |
+            **/build/reports/ktlint/**/*.xml
+            **/build/reports/ktlint/**/*.txt
+            ktlint-output.log
+
+  test:
+    needs: ci
+    runs-on: ubuntu-latest
+    name: Run Tests
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Run tests
+        id: test
+        run: |
+          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run tests for both common and user service modules
+          ./gradlew :common:snowflake:test :service:user:test --no-daemon --stacktrace > test-output.log 2>&1 || TEST_EXIT_CODE=$?
+          
+          if [ -z "$TEST_EXIT_CODE" ]; then
+            echo "✅ **Status:** All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status:** Tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Failed Tests:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Extract test failures
+            grep -A 5 -B 5 "FAILED" test-output.log | grep -E "(FAILED|expected|but was|at )" >> $GITHUB_STEP_SUMMARY || true
+            
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Fail the step
+            exit $TEST_EXIT_CODE
+          fi
+
+      - name: Generate test report summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Summary by Module:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Common module test results
+          if [ -f "common/snowflake/build/test-results/test/TEST-*.xml" ]; then
+            echo "**Common Module (snowflake):**" >> $GITHUB_STEP_SUMMARY
+            TEST_COUNT=$(find common/snowflake/build/test-results/test -name "TEST-*.xml" -exec grep -h "tests=" {} \; | awk -F'"' '{sum+=$2} END {print sum}' || echo "0")
+            FAILURE_COUNT=$(find common/snowflake/build/test-results/test -name "TEST-*.xml" -exec grep -h "failures=" {} \; | awk -F'"' '{sum+=$2} END {print sum}' || echo "0")
+            echo "- Total tests: $TEST_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $FAILURE_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # User service test results
+          if [ -f "service/user/build/test-results/test/TEST-*.xml" ]; then
+            echo "**User Service:**" >> $GITHUB_STEP_SUMMARY
+            TEST_COUNT=$(find service/user/build/test-results/test -name "TEST-*.xml" -exec grep -h "tests=" {} \; | awk -F'"' '{sum+=$2} END {print sum}' || echo "0")
+            FAILURE_COUNT=$(find service/user/build/test-results/test -name "TEST-*.xml" -exec grep -h "failures=" {} \; | awk -F'"' '{sum+=$2} END {print sum}' || echo "0")
+            echo "- Total tests: $TEST_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $FAILURE_COUNT" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/build/test-results/test/TEST-*.xml
+            **/build/reports/tests/test/
+            test-output.log
+
+  build:
+    needs: [linter, test]
+    runs-on: ubuntu-latest
+    name: Build Application
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build application
+        id: build
+        run: |
+          echo "## 🔨 Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Build the application
+          ./gradlew :service:user:build -x test --no-daemon --stacktrace > build-output.log 2>&1 || BUILD_EXIT_CODE=$?
+          
+          if [ -z "$BUILD_EXIT_CODE" ]; then
+            echo "✅ **Status:** Build successful" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Display JAR information
+            JAR_FILE=$(find service/user/build/libs -name "*.jar" -not -name "*-plain.jar" | head -1)
+            if [ -f "$JAR_FILE" ]; then
+              JAR_SIZE=$(du -h "$JAR_FILE" | cut -f1)
+              JAR_NAME=$(basename "$JAR_FILE")
+              echo "### Build Artifacts:" >> $GITHUB_STEP_SUMMARY
+              echo "- **JAR File:** \`$JAR_NAME\`" >> $GITHUB_STEP_SUMMARY
+              echo "- **Size:** $JAR_SIZE" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Status:** Build failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Build Errors:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Extract compilation errors
+            grep -E "(error:|ERROR|FAILURE)" build-output.log | head -20 >> $GITHUB_STEP_SUMMARY || true
+            
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Fail the step
+            exit $BUILD_EXIT_CODE
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: user-service-jar
+          path: service/user/build/libs/*.jar
+          retention-days: 7
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build-output.log
+            **/build/tmp/
+
+  summary:
+    needs: [linter, test, build]
+    if: always()
+    runs-on: ubuntu-latest
+    name: CI Summary
+    
+    steps:
+      - name: Generate final summary
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Overall CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check job statuses
+          if [ "${{ needs.linter.result }}" == "success" ] && 
+             [ "${{ needs.test.result }}" == "success" ] && 
+             [ "${{ needs.build.result }}" == "success" ]; then
+            echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Some CI checks failed:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            [ "${{ needs.linter.result }}" != "success" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
+            [ "${{ needs.test.result }}" != "success" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+            [ "${{ needs.build.result }}" != "success" ] && echo "- ❌ Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Duration:** ~${{ github.run_number }} minutes" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const linterResult = '${{ needs.linter.result }}';
+            const testResult = '${{ needs.test.result }}';
+            const buildResult = '${{ needs.build.result }}';
+            
+            const statusEmoji = (result) => result === 'success' ? '✅' : '❌';
+            
+            const comment = `## CI Results for User Service
+            
+            | Check | Status |
+            |-------|--------|
+            | Code Style (ktlint) | ${statusEmoji(linterResult)} ${linterResult} |
+            | Tests | ${statusEmoji(testResult)} ${testResult} |
+            | Build | ${statusEmoji(buildResult)} ${buildResult} |
+            
+            **Commit:** \`${context.sha.substring(0, 7)}\`
+            **Workflow Run:** [#${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
