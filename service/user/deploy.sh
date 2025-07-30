@@ -191,7 +191,7 @@ echo -e "\n${PURPLE}Docker Image Information:${NC}"
 echo -e "${BLUE}───────────────────────────────────────────────────${NC}"
 
 # Check if ECR_REGISTRY is set and construct full image path
-if [ -n "$ECR_REGISTRY" ]; then
+if [ -n "${ECR_REGISTRY:-}" ]; then
     # ECR_REGISTRY should already include the full repository path
     FULL_IMAGE_PATH="${ECR_REGISTRY}:${IMAGE_TAG}"
     echo -e "${BLUE}  → Registry: ${NC}${ECR_REGISTRY}"
@@ -209,17 +209,17 @@ fi
 echo -e "\n${PURPLE}Deployment Context:${NC}"
 echo -e "${BLUE}───────────────────────────────────────────────────${NC}"
 
-if [ -n "$COMMIT_SHA" ]; then
+if [ -n "${COMMIT_SHA:-}" ]; then
     echo -e "${BLUE}  → Git Commit SHA: ${NC}${COMMIT_SHA}"
 else
     echo -e "${YELLOW}  → Git Commit SHA: ${NC}Not available"
 fi
 
-if [ -n "$GITHUB_RUN_NUMBER" ]; then
+if [ -n "${GITHUB_RUN_NUMBER:-}" ]; then
     echo -e "${BLUE}  → GitHub Actions Run #: ${NC}${GITHUB_RUN_NUMBER}"
 fi
 
-if [ -n "$GITHUB_ACTOR" ]; then
+if [ -n "${GITHUB_ACTOR:-}" ]; then
     echo -e "${BLUE}  → Triggered by: ${NC}${GITHUB_ACTOR}"
 fi
 
@@ -271,7 +271,7 @@ if command_exists aws; then
     print_info "AWS CLI is installed"
 
     # Check ECR login capability
-    if [ -n "$AWS_REGION" ] && [ -n "$ECR_REGISTRY" ]; then
+    if [ -n "${AWS_REGION:-}" ] && [ -n "${ECR_REGISTRY:-}" ]; then
         print_info "Attempting to authenticate with ECR..."
 
         if aws ecr get-login-password --region $AWS_REGION 2>/dev/null | docker login --username AWS --password-stdin $ECR_REGISTRY >/dev/null 2>&1; then
