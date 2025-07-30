@@ -1,0 +1,113 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+.settings
+.classpath
+.project
+
+# Build output
+**/build/
+**/target/
+**/out/
+**/bin/
+**/*.class
+# JAR 파일은 빌드에 필요하므로 제외하지 않음 (Gradle wrapper)
+# *.jar
+*.war
+*.ear
+
+# Gradle
+**/.gradle/
+# Gradle wrapper JAR는 빌드에 필요하므로 제외하지 않음
+# gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Tests
+**/src/test/
+*.test
+*.spec
+
+# Documentation
+*.md
+README*
+LICENSE*
+CONTRIBUTING*
+docs/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker
+**/Dockerfile
+**/docker-compose*.yml
+**/.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.cache
+
+# Package files
+*.zip
+*.tar.gz
+*.rar
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Node (if any frontend assets)
+**/node_modules/
+**/npm-debug.log
+**/yarn-error.log
+
+# Python (if any scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# Security
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+secrets/
+
+# Coverage reports
+coverage/
+*.coverage
+.coverage.*
+htmlcov/
+
+# Misc
+*.orig
+.history/

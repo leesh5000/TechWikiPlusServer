@@ -79,16 +79,28 @@ docker run -d \
   techwikiplus-user:latest
 ```
 
-### Docker Compose 실행
+### Docker Compose 실행 및 중지
 프로젝트는 base 설정과 환경별 설정을 분리하여 관리합니다.
 
 ```bash
 # 프로덕션 환경
 cd service/user
-docker-compose --env-file .env --env-file .env.prod -f docker/docker-compose.base.yml -f docker/docker-compose.prod.yml up -d
+docker-compose --env-file .env --env-file .env.prod -f docker/docker-compose.base.yml -f docker/docker-compose.prod.yml up -d --build
+
+# 중지
+docker-compose --env-file .env --env-file .env.prod -f docker/docker-compose.base.yml -f docker/docker-compose.prod.yml down
+
+# 중지 (볼륨 삭제)
+docker-compose --env-file .env --env-file .env.prod -f docker/docker-compose.base .yml -f docker/docker-compose.prod.yml down --volumes
 
 # 로컬 환경 (개발)
 docker-compose --env-file .env --env-file .env.local -f docker/docker-compose.base.yml -f docker/docker-compose.local.yml up -d
+
+# 중지
+docker-compose --env-file .env --env-file .env.local -f docker/docker-compose.base.yml -f docker/docker-compose.local.yml down
+
+# 중지 (볼륨 삭제)
+docker-compose --env-file .env --env-file .env.local -f docker/docker-compose.base.yml -f docker/docker-compose.local.yml down --volumes
 ```
 
 ## 성능 최적화 결과

@@ -10,16 +10,16 @@
 services:
 
   user:
-    build:
+    # build:
       # 빌드 컨텍스트를 프로젝트 루트로 설정
       # 이렇게 해야 common/snowflake 등 공통 모듈을 COPY할 수 있습니다
       # 현재 위치: service/user/docker/
       # 프로젝트 루트: ../../../ (TechWikiPlusServer/)
-      context: ../../..
+      # context: ../../..
 
       # Dockerfile 경로는 프로젝트 루트 기준으로 지정
       # 실제 위치: service/user/docker/Dockerfile
-      dockerfile: service/user/docker/Dockerfile
+      # dockerfile: service/user/docker/Dockerfile
 
       # 빌드 시 사용할 인자 (필요시 주석 해제)
       # args:
@@ -28,7 +28,7 @@ services:
 
     # 빌드된 이미지 태그
     # CI/CD에서는 이 값을 ${IMAGE_TAG} 등으로 동적 변경 가능
-    image: techwikiplus/user:latest
+    image: ${DOCKER_REGISTRY}:latest
     # 컨테이너 재시작 정책
     # unless-stopped: 수동으로 중지하지 않는 한 항상 재시작
     restart: unless-stopped
