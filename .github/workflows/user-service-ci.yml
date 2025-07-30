@@ -207,10 +207,10 @@ jobs:
             **/build/reports/tests/test/
             test-output.log
 
-  build:
+  compile-check:
     needs: [linter, test]
     runs-on: ubuntu-latest
-    name: Build Application
+    name: Compile Check
     
     steps:
       - name: Checkout repository
@@ -231,63 +231,46 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build application
-        id: build
+      - name: Compile check
+        id: compile
         run: |
-          echo "## 🔨 Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Compile Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Build the application
-          ./gradlew :service:user:build -x test --no-daemon --stacktrace > build-output.log 2>&1 || BUILD_EXIT_CODE=$?
+          # Compile the application (both common and user service)
+          ./gradlew :common:snowflake:compileKotlin :service:user:compileKotlin --no-daemon --stacktrace > compile-output.log 2>&1 || COMPILE_EXIT_CODE=$?
           
-          if [ -z "$BUILD_EXIT_CODE" ]; then
-            echo "✅ **Status:** Build successful" >> $GITHUB_STEP_SUMMARY
+          if [ -z "$COMPILE_EXIT_CODE" ]; then
+            echo "✅ **Status:** Compilation successful" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            
-            # Display JAR information
-            JAR_FILE=$(find service/user/build/libs -name "*.jar" -not -name "*-plain.jar" | head -1)
-            if [ -f "$JAR_FILE" ]; then
-              JAR_SIZE=$(du -h "$JAR_FILE" | cut -f1)
-              JAR_NAME=$(basename "$JAR_FILE")
-              echo "### Build Artifacts:" >> $GITHUB_STEP_SUMMARY
-              echo "- **JAR File:** \`$JAR_NAME\`" >> $GITHUB_STEP_SUMMARY
-              echo "- **Size:** $JAR_SIZE" >> $GITHUB_STEP_SUMMARY
-            fi
+            echo "All Kotlin code compiles without errors." >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ **Status:** Build failed" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Status:** Compilation failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Build Errors:" >> $GITHUB_STEP_SUMMARY
+            echo "### Compilation Errors:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             
             # Extract compilation errors
-            grep -E "(error:|ERROR|FAILURE)" build-output.log | head -20 >> $GITHUB_STEP_SUMMARY || true
+            grep -E "(error:|ERROR|FAILURE|e: )" compile-output.log | head -30 >> $GITHUB_STEP_SUMMARY || true
             
             echo '```' >> $GITHUB_STEP_SUMMARY
             
             # Fail the step
-            exit $BUILD_EXIT_CODE
+            exit $COMPILE_EXIT_CODE
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload build artifacts
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: user-service-jar
-          path: service/user/build/libs/*.jar
-          retention-days: 7
-
-      - name: Upload build logs
+      - name: Upload compile logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs
+          name: compile-logs
           path: |
-            build-output.log
+            compile-output.log
             **/build/tmp/
 
   docker-build-push:
-    needs: build
+    needs: [linter, test, compile-check]
     runs-on: ubuntu-latest
     name: Build and Push Docker Image
     environment: AWS
@@ -479,7 +462,7 @@ jobs:
             ecr-login.log
 
   summary:
-    needs: [linter, test, build, docker-build-push]
+    needs: [linter, test, compile-check, docker-build-push]
     if: always()
     runs-on: ubuntu-latest
     name: CI Summary
@@ -496,7 +479,7 @@ jobs:
           ALL_SUCCESS=true
           if [ "${{ needs.linter.result }}" == "success" ] && 
              [ "${{ needs.test.result }}" == "success" ] && 
-             [ "${{ needs.build.result }}" == "success" ]; then
+             [ "${{ needs.compile-check.result }}" == "success" ]; then
             # Check Docker job only if it was supposed to run
             if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
               if [ "${{ needs.docker-build-push.result }}" == "success" ] || [ "${{ needs.docker-build-push.result }}" == "skipped" ]; then
@@ -516,7 +499,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.linter.result }}" != "success" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.test.result }}" != "success" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
-            [ "${{ needs.build.result }}" != "success" ] && echo "- ❌ Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+            [ "${{ needs.compile-check.result }}" != "success" ] && echo "- ❌ Compile Check: ${{ needs.compile-check.result }}" >> $GITHUB_STEP_SUMMARY
             
             # Show Docker status only if it was supposed to run
             if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
@@ -535,14 +518,14 @@ jobs:
           script: |
             const linterResult = '${{ needs.linter.result }}';
             const testResult = '${{ needs.test.result }}';
-            const buildResult = '${{ needs.build.result }}';
+            const compileResult = '${{ needs.compile-check.result }}';
             const dockerResult = '${{ needs.docker-build-push.result }}';
             
             const statusEmoji = (result) => result === 'success' ? '✅' : '❌';
             
             let tableRows = `| Code Style (ktlint) | ${statusEmoji(linterResult)} ${linterResult} |
             | Tests | ${statusEmoji(testResult)} ${testResult} |
-            | Build | ${statusEmoji(buildResult)} ${buildResult} |`;
+            | Compile Check | ${statusEmoji(compileResult)} ${compileResult} |`;
             
             // Note: Docker build/push only runs on main branch push, not on PRs
             const dockerNote = `

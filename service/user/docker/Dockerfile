@@ -101,7 +101,7 @@ EXPOSE 9000
 # 헬스 체크 설정
 # Spring Boot Actuator의 health 엔드포인트 활용
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:9000/actuator/health || exit 1
+    CMD curl -f http://localhost:9000/health || exit 1
 
 # JVM 최적화 설정 (컨테이너 환경)
 # -XX:+UseContainerSupport: 컨테이너 리소스 제한 인식

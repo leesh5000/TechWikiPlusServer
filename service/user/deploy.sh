@@ -12,7 +12,7 @@ PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Configuration
-HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/actuator/health}"
+HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/health}"
 HEALTH_CHECK_TIMEOUT=30
 DOCKER_COMPOSE_CMD="docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml"
 
@@ -49,7 +49,7 @@ echo -e "${PURPLE}"
 echo "╔═══════════════════════════════════════════════════╗"
 echo "║          User Service Deployment Script           ║"
 echo "║                                                   ║"
-echo "║  This script will deploy the User Service with   ║"
+echo "║  This script will deploy the User Service with    ║"
 echo "║  comprehensive checks and validations.            ║"
 echo "╚═══════════════════════════════════════════════════╝"
 echo -e "${NC}"
