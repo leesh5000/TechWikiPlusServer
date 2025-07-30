@@ -286,8 +286,166 @@ jobs:
             build-output.log
             **/build/tmp/
 
+  docker-build-push:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Build and Push Docker Image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        run: |
+          echo "## 🐳 Docker Build and Push to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Login to ECR
+          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }} > ecr-login.log 2>&1 || ECR_LOGIN_EXIT_CODE=$?
+          
+          if [ -z "$ECR_LOGIN_EXIT_CODE" ]; then
+            echo "✅ **ECR Login:** Successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **ECR Login:** Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Login Error:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat ecr-login.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $ECR_LOGIN_EXIT_CODE
+          fi
+
+      - name: Prepare build metadata
+        id: meta
+        run: |
+          # Extract repository name from ECR registry URL
+          REPO_NAME=$(echo "${{ secrets.ECR_REGISTRY }}" | cut -d'/' -f2)
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+          
+          # Generate tags
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          
+          # Set image tags
+          echo "image_tag_latest=${{ secrets.ECR_REGISTRY }}:latest" >> $GITHUB_OUTPUT
+          echo "image_tag_sha=${{ secrets.ECR_REGISTRY }}:$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        id: docker-build
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔨 Docker Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Enable BuildKit
+          export DOCKER_BUILDKIT=1
+          export BUILDKIT_PROGRESS=plain
+          
+          # Build the image with BuildKit cache
+          docker buildx build \
+            --platform linux/amd64 \
+            --file service/user/docker/Dockerfile \
+            --tag ${{ steps.meta.outputs.image_tag_latest }} \
+            --tag ${{ steps.meta.outputs.image_tag_sha }} \
+            --cache-from type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache \
+            --cache-to type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --progress=plain \
+            --load \
+            . > docker-build.log 2>&1 || DOCKER_BUILD_EXIT_CODE=$?
+          
+          if [ -z "$DOCKER_BUILD_EXIT_CODE" ]; then
+            echo "✅ **Build Status:** Successful" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Get image size
+            IMAGE_SIZE=$(docker image inspect ${{ steps.meta.outputs.image_tag_latest }} --format='{{.Size}}' | numfmt --to=iec-i --suffix=B)
+            echo "**Image Size:** $IMAGE_SIZE" >> $GITHUB_STEP_SUMMARY
+            echo "**Build Cache:** Enabled (BuildKit)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Build Errors:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 50 docker-build.log | grep -E "(ERROR|error:|FAILED|Step)" >> $GITHUB_STEP_SUMMARY || tail -n 30 docker-build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $DOCKER_BUILD_EXIT_CODE
+          fi
+
+      - name: Push Docker images to ECR
+        id: docker-push
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📤 Push to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Push latest tag
+          echo "Pushing latest tag..." >> $GITHUB_STEP_SUMMARY
+          docker push ${{ steps.meta.outputs.image_tag_latest }} > push-latest.log 2>&1 || PUSH_LATEST_EXIT_CODE=$?
+          
+          if [ -z "$PUSH_LATEST_EXIT_CODE" ]; then
+            echo "✅ **Latest tag:** Pushed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Latest tag:** Push failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 push-latest.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $PUSH_LATEST_EXIT_CODE
+          fi
+          
+          # Push SHA tag
+          echo "Pushing SHA tag..." >> $GITHUB_STEP_SUMMARY
+          docker push ${{ steps.meta.outputs.image_tag_sha }} > push-sha.log 2>&1 || PUSH_SHA_EXIT_CODE=$?
+          
+          if [ -z "$PUSH_SHA_EXIT_CODE" ]; then
+            echo "✅ **SHA tag (${{ steps.meta.outputs.short_sha }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **SHA tag:** Push failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 push-sha.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $PUSH_SHA_EXIT_CODE
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Image Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry:** \`${{ secrets.ECR_REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Latest Tag:** \`latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **SHA Tag:** \`${{ steps.meta.outputs.short_sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Full SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Docker build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-build-logs
+          path: |
+            docker-build.log
+            push-latest.log
+            push-sha.log
+            ecr-login.log
+
   summary:
-    needs: [linter, test, build]
+    needs: [linter, test, build, docker-build-push]
     if: always()
     runs-on: ubuntu-latest
     name: CI Summary
@@ -301,16 +459,35 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Check job statuses
+          ALL_SUCCESS=true
           if [ "${{ needs.linter.result }}" == "success" ] && 
              [ "${{ needs.test.result }}" == "success" ] && 
              [ "${{ needs.build.result }}" == "success" ]; then
-            echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+            # Check Docker job only if it was supposed to run
+            if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+              if [ "${{ needs.docker-build-push.result }}" == "success" ] || [ "${{ needs.docker-build-push.result }}" == "skipped" ]; then
+                echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+              else
+                ALL_SUCCESS=false
+              fi
+            else
+              echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+            fi
           else
+            ALL_SUCCESS=false
+          fi
+          
+          if [ "$ALL_SUCCESS" == "false" ]; then
             echo "### ❌ Some CI checks failed:" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.linter.result }}" != "success" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.test.result }}" != "success" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.build.result }}" != "success" ] && echo "- ❌ Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+            
+            # Show Docker status only if it was supposed to run
+            if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+              [ "${{ needs.docker-build-push.result }}" != "success" ] && [ "${{ needs.docker-build-push.result }}" != "skipped" ] && echo "- ❌ Docker Build & Push: ${{ needs.docker-build-push.result }}" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -325,16 +502,25 @@ jobs:
             const linterResult = '${{ needs.linter.result }}';
             const testResult = '${{ needs.test.result }}';
             const buildResult = '${{ needs.build.result }}';
+            const dockerResult = '${{ needs.docker-build-push.result }}';
             
             const statusEmoji = (result) => result === 'success' ? '✅' : '❌';
+            
+            let tableRows = `| Code Style (ktlint) | ${statusEmoji(linterResult)} ${linterResult} |
+            | Tests | ${statusEmoji(testResult)} ${testResult} |
+            | Build | ${statusEmoji(buildResult)} ${buildResult} |`;
+            
+            // Note: Docker build/push only runs on main branch push, not on PRs
+            const dockerNote = `
+            
+            > **Note:** Docker image build and push to ECR will run automatically when this PR is merged to the main branch.`;
             
             const comment = `## CI Results for User Service
             
             | Check | Status |
             |-------|--------|
-            | Code Style (ktlint) | ${statusEmoji(linterResult)} ${linterResult} |
-            | Tests | ${statusEmoji(testResult)} ${testResult} |
-            | Build | ${statusEmoji(buildResult)} ${buildResult} |
+            ${tableRows}
+            ${dockerNote}
             
             **Commit:** \`${context.sha.substring(0, 7)}\`
             **Workflow Run:** [#${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
