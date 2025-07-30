@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.helloc.techwikiplus"
-version = "0.0.1"
+version = "0.0.2"
 
 allprojects {
 
