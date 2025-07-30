@@ -283,11 +283,11 @@ fi
 print_step "3" "Checking required configuration files"
 
 REQUIRED_FILES=(
+    ".env.tag"
+    ".env.base"
+    ".env.user-service"
     "docker-compose.base.yml"
     "docker-compose.user-service.yml"
-    ".env"
-    ".env.user-service"
-    ".env.tag"
 )
 
 ALL_FILES_EXIST=true
