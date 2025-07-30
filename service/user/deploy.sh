@@ -147,7 +147,7 @@ else
     # Normal deployment - validate IMAGE_TAG
     echo -e "\n${PURPLE}Image Tag Configuration:${NC}"
     echo -e "${BLUE}───────────────────────────────────────────────────${NC}"
-    
+
     if [ -z "$IMAGE_TAG" ]; then
         print_warning "IMAGE_TAG environment variable is not set!"
         echo -e "${YELLOW}  → Using default tag: 'latest'${NC}"
@@ -156,7 +156,7 @@ else
         print_success "IMAGE_TAG is properly set"
         echo -e "${GREEN}  → Current IMAGE_TAG: ${PURPLE}${IMAGE_TAG}${NC}"
     fi
-    
+
     # Display deployment type based on IMAGE_TAG pattern
     if [[ "$IMAGE_TAG" =~ ^[0-9]{12}$ ]]; then
         echo -e "${BLUE}  → Deployment Type: ${GREEN}Automated CI/CD Deployment${NC}"
@@ -176,15 +176,15 @@ echo -e "${BLUE}─────────────────────�
 
 # Check if ECR_REGISTRY is set and construct full image path
 if [ -n "$ECR_REGISTRY" ]; then
-    FULL_IMAGE_PATH="${ECR_REGISTRY}/techwikiplus/user-service:${IMAGE_TAG}"
+    # ECR_REGISTRY should already include the full repository path
+    FULL_IMAGE_PATH="${ECR_REGISTRY}:${IMAGE_TAG}"
     echo -e "${BLUE}  → Registry: ${NC}${ECR_REGISTRY}"
-    echo -e "${BLUE}  → Repository: ${NC}techwikiplus/user-service"
     echo -e "${BLUE}  → Tag: ${NC}${IMAGE_TAG}"
     echo -e "${GREEN}  → Full Image Path: ${NC}${FULL_IMAGE_PATH}"
 else
     print_warning "ECR_REGISTRY not set - using local/default registry"
-    FULL_IMAGE_PATH="techwikiplus/user-service:${IMAGE_TAG}"
-    echo -e "${BLUE}  → Repository: ${NC}techwikiplus/user-service"
+    FULL_IMAGE_PATH="techwikiplus-user-service:${IMAGE_TAG}"
+    echo -e "${BLUE}  → Repository: ${NC}techwikiplus-user-service"
     echo -e "${BLUE}  → Tag: ${NC}${IMAGE_TAG}"
     echo -e "${GREEN}  → Full Image Path: ${NC}${FULL_IMAGE_PATH}"
 fi
