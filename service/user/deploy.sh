@@ -336,9 +336,6 @@ print_step "4" "Deploying services with Docker Compose"
 
 print_info "Pulling latest images and starting services..."
 
-# Capture current images before deployment
-BEFORE_IMAGES=$(docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v "<none>")
-
 # IMAGE_TAG is already available from .env.tag via --env-file flag
 
 # Run docker-compose up
@@ -424,9 +421,6 @@ done
 echo -e "\r${GREEN}Wait complete!                       ${NC}"
 
 print_info "Checking container health..."
-
-# Get all containers from the compose project
-CONTAINERS=$($DOCKER_COMPOSE_CMD ps --format json 2>/dev/null || $DOCKER_COMPOSE_CMD ps)
 
 # Check each container
 ALL_HEALTHY=true
