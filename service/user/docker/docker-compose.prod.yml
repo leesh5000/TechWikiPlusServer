@@ -32,6 +32,8 @@ services:
     # 컨테이너 재시작 정책
     # unless-stopped: 수동으로 중지하지 않는 한 항상 재시작
     restart: unless-stopped
+    # 항상 최신 이미지를 사용하도록 설정
+    pull_policy: always
 
     # 환경 변수 설정
     # .env 및 .env.prod 파일에서 값을 읽어옴
