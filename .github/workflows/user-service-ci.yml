@@ -32,7 +32,7 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     name: CI Pipeline
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           gradle-home-cache-cleanup: true
         continue-on-error: true  # Continue if cache fails
-      
+
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
@@ -85,7 +85,7 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     name: Code Style Check (ktlint)
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -103,7 +103,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           gradle-home-cache-cleanup: true
         continue-on-error: true  # Continue if cache fails
-      
+
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
@@ -122,10 +122,10 @@ jobs:
         run: |
           echo "## 🎨 Code Style Check (ktlint)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Run ktlint and capture output
           ./gradlew ktlintCheck --no-daemon --stacktrace --info > ktlint-output.log 2>&1 || KTLINT_EXIT_CODE=$?
-          
+
           if [ -z "$KTLINT_EXIT_CODE" ]; then
             echo "✅ **Status:** Passed" >> $GITHUB_STEP_SUMMARY
             echo "All code follows the style guidelines!" >> $GITHUB_STEP_SUMMARY
@@ -134,14 +134,14 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Style Violations Found:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            
+
             # Extract and display ktlint errors
             grep -E "\\[(ERROR|WARNING)\\]" ktlint-output.log >> $GITHUB_STEP_SUMMARY || true
-            
+
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Fix command:** \`./gradlew ktlintFormat\`" >> $GITHUB_STEP_SUMMARY
-            
+
             # Fail the step
             exit $KTLINT_EXIT_CODE
           fi
@@ -161,7 +161,7 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     name: Run Tests
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -179,7 +179,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           gradle-home-cache-cleanup: true
         continue-on-error: true  # Continue if cache fails
-      
+
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
@@ -198,10 +198,10 @@ jobs:
         run: |
           echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Run tests for both common and user service modules
           ./gradlew :common:snowflake:test :service:user:test --no-daemon --stacktrace > test-output.log 2>&1 || TEST_EXIT_CODE=$?
-          
+
           if [ -z "$TEST_EXIT_CODE" ]; then
             echo "✅ **Status:** All tests passed" >> $GITHUB_STEP_SUMMARY
           else
@@ -209,12 +209,12 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Failed Tests:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            
+
             # Extract test failures
             grep -A 5 -B 5 "FAILED" test-output.log | grep -E "(FAILED|expected|but was|at )" >> $GITHUB_STEP_SUMMARY || true
-            
+
             echo '```' >> $GITHUB_STEP_SUMMARY
-            
+
             # Fail the step
             exit $TEST_EXIT_CODE
           fi
@@ -225,7 +225,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Test Summary by Module:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Common module test results
           if [ -f "common/snowflake/build/test-results/test/TEST-*.xml" ]; then
             echo "**Common Module (snowflake):**" >> $GITHUB_STEP_SUMMARY
@@ -235,7 +235,7 @@ jobs:
             echo "- Failures: $FAILURE_COUNT" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           # User service test results
           if [ -f "service/user/build/test-results/test/TEST-*.xml" ]; then
             echo "**User Service:**" >> $GITHUB_STEP_SUMMARY
@@ -260,7 +260,7 @@ jobs:
     needs: [linter, test]
     runs-on: ubuntu-latest
     name: Compile Check
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -278,7 +278,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           gradle-home-cache-cleanup: true
         continue-on-error: true  # Continue if cache fails
-      
+
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
@@ -297,10 +297,10 @@ jobs:
         run: |
           echo "## 🔍 Compile Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Compile the application (both common and user service)
           ./gradlew :common:snowflake:compileKotlin :service:user:compileKotlin --no-daemon --stacktrace --info > compile-output.log 2>&1 || COMPILE_EXIT_CODE=$?
-          
+
           if [ -z "$COMPILE_EXIT_CODE" ]; then
             echo "✅ **Status:** Compilation successful" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -310,12 +310,12 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Compilation Errors:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            
+
             # Extract compilation errors
             grep -E "(error:|ERROR|FAILURE|e: )" compile-output.log | head -30 >> $GITHUB_STEP_SUMMARY || true
-            
+
             echo '```' >> $GITHUB_STEP_SUMMARY
-            
+
             # Fail the step
             exit $COMPILE_EXIT_CODE
           fi
@@ -339,7 +339,7 @@ jobs:
     outputs:
       version: ${{ steps.meta.outputs.version }}
       image_tag: ${{ steps.meta.outputs.image_tag_version }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -352,14 +352,6 @@ jobs:
           driver-opts: |
             image=moby/buildkit:latest
             network=host
-          buildkitd-flags: --debug
-          config-inline: |
-            [worker.oci]
-              max-parallelism = 4
-            [registry."${{ secrets.ECR_REGISTRY }}"]
-              mirrors = ["${{ secrets.ECR_REGISTRY }}"]
-              http = false
-              insecure = false
 
       - name: Debug - Check if secrets are available
         run: |
@@ -389,7 +381,7 @@ jobs:
         run: |
           echo "Verifying AWS credentials configuration..."
           aws sts get-caller-identity > aws-identity.log 2>&1 || AWS_VERIFY_EXIT_CODE=$?
-          
+
           if [ -z "$AWS_VERIFY_EXIT_CODE" ]; then
             echo "✅ AWS credentials configured successfully"
             echo "Account info:"
@@ -401,33 +393,15 @@ jobs:
             exit $AWS_VERIFY_EXIT_CODE
           fi
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Login to Amazon ECR
         id: login-ecr
         run: |
           echo "## 🐳 Docker Build and Push to ECR" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Login to ECR
           aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }} > ecr-login.log 2>&1 || ECR_LOGIN_EXIT_CODE=$?
-          
+
           if [ -z "$ECR_LOGIN_EXIT_CODE" ]; then
             echo "✅ **ECR Login:** Successful" >> $GITHUB_STEP_SUMMARY
           else
@@ -446,80 +420,113 @@ jobs:
           # Extract repository name from ECR registry URL
           REPO_NAME=$(echo "${{ secrets.ECR_REGISTRY }}" | cut -d'/' -f2)
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-          
+
           # Generate tags
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
-          
+
           # Generate version with date/time (YYYYMMDDHHMM format)
           VERSION=$(date +%Y%m%d%H%M)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
+
           # Set image tags
           echo "image_tag_latest=${{ secrets.ECR_REGISTRY }}:latest" >> $GITHUB_OUTPUT
           echo "image_tag_sha=${{ secrets.ECR_REGISTRY }}:$SHORT_SHA" >> $GITHUB_OUTPUT
           echo "image_tag_version=${{ secrets.ECR_REGISTRY }}:$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Build Docker image
         id: docker-build
-        with:
-          context: .
-          file: service/user/docker/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ${{ steps.meta.outputs.image_tag_latest }}
-            ${{ steps.meta.outputs.image_tag_sha }}
-            ${{ steps.meta.outputs.image_tag_version }}
-          cache-from: |
-            type=local,src=/tmp/.buildx-cache
-            type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache
-            type=inline
-          cache-to: |
-            type=local,dest=/tmp/.buildx-cache-new,mode=max
-            type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max,compression=zstd
-            type=inline
-          build-args: |
-            VERSION=${{ steps.meta.outputs.version }}
-            BUILDKIT_INLINE_CACHE=1
-
-      - name: Build summary
-        if: always()
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔨 Docker Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ steps.docker-build.outcome }}" == "success" ]; then
+
+          # Enable BuildKit
+          export DOCKER_BUILDKIT=1
+          export BUILDKIT_PROGRESS=plain
+
+          # Build the image with BuildKit cache
+          docker buildx build \
+            --platform linux/amd64 \
+            --file service/user/docker/Dockerfile \
+            --tag ${{ steps.meta.outputs.image_tag_latest }} \
+            --tag ${{ steps.meta.outputs.image_tag_sha }} \
+            --tag ${{ steps.meta.outputs.image_tag_version }} \
+            --cache-from type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache \
+            --cache-to type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg VERSION=${{ steps.meta.outputs.version }} \
+            --progress=plain \
+            --load \
+            . > docker-build.log 2>&1 || DOCKER_BUILD_EXIT_CODE=$?
+
+          if [ -z "$DOCKER_BUILD_EXIT_CODE" ]; then
             echo "✅ **Build Status:** Successful" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Get image size
+            IMAGE_SIZE=$(docker image inspect ${{ steps.meta.outputs.image_tag_latest }} --format='{{.Size}}' | numfmt --to=iec-i --suffix=B)
+            echo "**Image Size:** $IMAGE_SIZE" >> $GITHUB_STEP_SUMMARY
             echo "**Build Cache:** Enabled (BuildKit)" >> $GITHUB_STEP_SUMMARY
-            echo "**Cache Strategy:** Multi-level (local + registry + inline)" >> $GITHUB_STEP_SUMMARY
-            echo "**Platform:** linux/amd64" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Build Errors:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 50 docker-build.log | grep -E "(ERROR|error:|FAILED|Step)" >> $GITHUB_STEP_SUMMARY || tail -n 30 docker-build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $DOCKER_BUILD_EXIT_CODE
           fi
 
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Verify pushed images
-        id: docker-verify
+      - name: Push Docker images to ECR
+        id: docker-push
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📤 Push to ECR" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Record build time
-          BUILD_TIME="${{ steps.docker-build.outputs.metadata }}"
-          if [ -n "$BUILD_TIME" ]; then
-            echo "**Build Metadata:** Available" >> $GITHUB_STEP_SUMMARY
+
+          # Push latest tag
+          echo "Pushing latest tag..." >> $GITHUB_STEP_SUMMARY
+          docker push ${{ steps.meta.outputs.image_tag_latest }} > push-latest.log 2>&1 || PUSH_LATEST_EXIT_CODE=$?
+
+          if [ -z "$PUSH_LATEST_EXIT_CODE" ]; then
+            echo "✅ **Latest tag:** Pushed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Latest tag:** Push failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 push-latest.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $PUSH_LATEST_EXIT_CODE
           fi
-          
-          echo "✅ **All tags pushed successfully during build**" >> $GITHUB_STEP_SUMMARY
+
+          # Push SHA tag
+          echo "Pushing SHA tag..." >> $GITHUB_STEP_SUMMARY
+          docker push ${{ steps.meta.outputs.image_tag_sha }} > push-sha.log 2>&1 || PUSH_SHA_EXIT_CODE=$?
+
+          if [ -z "$PUSH_SHA_EXIT_CODE" ]; then
+            echo "✅ **SHA tag (${{ steps.meta.outputs.short_sha }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **SHA tag:** Push failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 push-sha.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $PUSH_SHA_EXIT_CODE
+          fi
+
+          # Push Version tag
+          echo "Pushing Version tag..." >> $GITHUB_STEP_SUMMARY
+          docker push ${{ steps.meta.outputs.image_tag_version }} > push-version.log 2>&1 || PUSH_VERSION_EXIT_CODE=$?
+
+          if [ -z "$PUSH_VERSION_EXIT_CODE" ]; then
+            echo "✅ **Version tag (${{ steps.meta.outputs.version }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Version tag:** Push failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 push-version.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $PUSH_VERSION_EXIT_CODE
+          fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Image Details" >> $GITHUB_STEP_SUMMARY
           echo "- **Registry:** \`${{ secrets.ECR_REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
@@ -535,6 +542,9 @@ jobs:
         with:
           name: docker-build-logs
           path: |
+            docker-build.log
+            push-latest.log
+            push-sha.log
             ecr-login.log
 
       - name: Save version info
@@ -561,7 +571,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     name: CI Summary
-    
+
     steps:
       - name: Generate final summary
         run: |
@@ -569,11 +579,11 @@ jobs:
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Overall CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Check job statuses
           ALL_SUCCESS=true
-          if [ "${{ needs.linter.result }}" == "success" ] && 
-             [ "${{ needs.test.result }}" == "success" ] && 
+          if [ "${{ needs.linter.result }}" == "success" ] &&
+             [ "${{ needs.test.result }}" == "success" ] &&
              [ "${{ needs.compile-check.result }}" == "success" ]; then
             # Check Docker job only if it was supposed to run
             if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
@@ -588,20 +598,20 @@ jobs:
           else
             ALL_SUCCESS=false
           fi
-          
+
           if [ "$ALL_SUCCESS" == "false" ]; then
             echo "### ❌ Some CI checks failed:" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.linter.result }}" != "success" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.test.result }}" != "success" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.compile-check.result }}" != "success" ] && echo "- ❌ Compile Check: ${{ needs.compile-check.result }}" >> $GITHUB_STEP_SUMMARY
-            
+
             # Show Docker status only if it was supposed to run
             if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
               [ "${{ needs.docker-build-push.result }}" != "success" ] && [ "${{ needs.docker-build-push.result }}" != "skipped" ] && echo "- ❌ Docker Build & Push: ${{ needs.docker-build-push.result }}" >> $GITHUB_STEP_SUMMARY
             fi
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Total Duration:** ~${{ github.run_number }} minutes" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
@@ -615,29 +625,29 @@ jobs:
             const testResult = '${{ needs.test.result }}';
             const compileResult = '${{ needs.compile-check.result }}';
             const dockerResult = '${{ needs.docker-build-push.result }}';
-            
+
             const statusEmoji = (result) => result === 'success' ? '✅' : '❌';
-            
+
             let tableRows = `| Code Style (ktlint) | ${statusEmoji(linterResult)} ${linterResult} |
             | Tests | ${statusEmoji(testResult)} ${testResult} |
             | Compile Check | ${statusEmoji(compileResult)} ${compileResult} |`;
-            
+
             // Note: Docker build/push only runs on main branch push, not on PRs
             const dockerNote = `
-            
+
             > **Note:** Docker image build and push to ECR will run automatically when this PR is merged to the main branch.`;
-            
+
             const comment = `## CI Results for User Service
-            
+
             | Check | Status |
             |-------|--------|
             ${tableRows}
             ${dockerNote}
-            
+
             **Commit:** \`${context.sha.substring(0, 7)}\`
             **Workflow Run:** [#${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
             `;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
