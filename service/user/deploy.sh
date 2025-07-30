@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail  # Exit on error, undefined vars, and pipe failures
 
 # User Service Deployment Script
 # This script handles the deployment of the User Service with comprehensive checks
@@ -14,7 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/health}"
 HEALTH_CHECK_TIMEOUT=30
-DOCKER_COMPOSE_CMD="docker-compose --env-file .env.tag --env-file .env.aws --env-file .env.base --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml"
+DOCKER_COMPOSE_CMD="docker-compose --env-file .env.tag --env-file .env.base --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml"
 DEPLOYMENT_HISTORY_FILE="deployments.json"
 MAX_HISTORY_ENTRIES=10
 
@@ -94,8 +95,11 @@ save_deployment_history() {
         '{version: $v, status: $s, commit: $c, timestamp: $t}')
 
     # Add to history and keep only last MAX_HISTORY_ENTRIES
-    jq ". += [$new_entry] | .[-$MAX_HISTORY_ENTRIES:]" "$DEPLOYMENT_HISTORY_FILE" > "${DEPLOYMENT_HISTORY_FILE}.tmp" && \
+    if jq ". += [$new_entry] | .[-$MAX_HISTORY_ENTRIES:]" "$DEPLOYMENT_HISTORY_FILE" > "${DEPLOYMENT_HISTORY_FILE}.tmp"; then
         mv "${DEPLOYMENT_HISTORY_FILE}.tmp" "$DEPLOYMENT_HISTORY_FILE"
+    else
+        print_error "Failed to save deployment history"
+    fi
 }
 
 # Function to get last successful deployment
@@ -272,13 +276,14 @@ if command_exists aws; then
         if aws ecr get-login-password --region $AWS_REGION 2>/dev/null | docker login --username AWS --password-stdin $ECR_REGISTRY >/dev/null 2>&1; then
             print_success "Successfully authenticated with AWS ECR"
         else
-            print_warning "Failed to authenticate with AWS ECR"
+            print_error "Failed to authenticate with AWS ECR"
             echo "This might be due to:"
             echo "  - Missing AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)"
             echo "  - Incorrect AWS_REGION or ECR_REGISTRY"
             echo "  - IAM permissions issue"
             echo ""
-            echo "Continuing with deployment (images might need to be pulled from ECR)..."
+            echo "Cannot proceed without ECR access when using ECR registry."
+            exit 1
         fi
     else
         print_warning "AWS_REGION or ECR_REGISTRY not set"
@@ -519,16 +524,32 @@ if [ "$ALL_HEALTHY" = true ] && [ "$HTTP_STATUS" = "200" ]; then
     echo -e "\n${GREEN}All systems are operational.${NC}"
     save_deployment_history "$IMAGE_TAG" "success"
     print_info "Deployment history saved (version: $IMAGE_TAG)"
+    
+    echo -e "\n${BLUE}Useful commands:${NC}"
+    echo "  - View logs: $DOCKER_COMPOSE_CMD logs -f"
+    echo "  - Stop services: $DOCKER_COMPOSE_CMD down"
+    echo "  - Restart services: $DOCKER_COMPOSE_CMD restart"
+    echo "  - Check status: $DOCKER_COMPOSE_CMD ps"
+    
+    exit 0
 else
-    print_warning "Deployment completed with warnings"
-    echo -e "\n${YELLOW}Please check the issues mentioned above.${NC}"
+    print_error "Deployment failed with errors"
+    echo -e "\n${RED}Deployment did not complete successfully.${NC}"
     save_deployment_history "$IMAGE_TAG" "failed"
+    
+    if [ "$ALL_HEALTHY" = false ]; then
+        echo -e "${RED}Container health check failed for: ${UNHEALTHY_CONTAINERS[*]}${NC}"
+    fi
+    
+    if [ "$HTTP_STATUS" != "200" ]; then
+        echo -e "${RED}Application health check failed (HTTP status: ${HTTP_STATUS:-N/A})${NC}"
+    fi
+    
+    echo -e "\n${BLUE}Debug commands:${NC}"
+    echo "  - View logs: $DOCKER_COMPOSE_CMD logs -f"
+    echo "  - Check specific service: $DOCKER_COMPOSE_CMD logs <service-name>"
+    echo "  - Check container status: $DOCKER_COMPOSE_CMD ps"
+    echo "  - Rollback to previous version: ./deploy.sh --rollback"
+    
+    exit 1
 fi
-
-echo -e "\n${BLUE}Useful commands:${NC}"
-echo "  - View logs: $DOCKER_COMPOSE_CMD logs -f"
-echo "  - Stop services: $DOCKER_COMPOSE_CMD down"
-echo "  - Restart services: $DOCKER_COMPOSE_CMD restart"
-echo "  - Check status: $DOCKER_COMPOSE_CMD ps"
-
-exit 0

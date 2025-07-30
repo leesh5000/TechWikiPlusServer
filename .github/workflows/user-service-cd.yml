@@ -13,6 +13,11 @@ on:
         required: false
         default: 'Manual deployment triggered'
 
+# Set defaults for all jobs - ensure pipeline fails fast
+defaults:
+  run:
+    shell: bash -euo pipefail {0}
+
 jobs:
   prepare-deployment:
     runs-on: ubuntu-latest
@@ -148,7 +153,6 @@ jobs:
 
       - name: Test SSH connection
         id: test_ssh
-        continue-on-error: true
         run: |
           echo "## 🔗 Testing SSH connection" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -212,11 +216,6 @@ jobs:
           echo "passed=true" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_STEP_SUMMARY
 
-      - name: Fail if SSH test failed
-        if: steps.test_ssh.outputs.passed != 'true'
-        run: |
-          echo "SSH connection test failed. Cannot proceed with deployment."
-          exit 1
 
 
       - name: Check Docker installation on EC2
@@ -248,6 +247,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Application
     needs: [prepare-deployment, validate-infrastructure]
+    # Only run if previous jobs succeeded
+    if: ${{ needs.prepare-deployment.result == 'success' && needs.validate-infrastructure.result == 'success' }}
     environment: AWS
     outputs:
       deploy_exit_code: ${{ steps.execute_deploy.outputs.exit_code }}
@@ -261,26 +262,30 @@ jobs:
 
       - name: Setup SSH key
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || {
+            echo "❌ Failed to add host to known_hosts"
+            exit 1
+          }
 
       - name: Create .env.tag file
         run: |
           echo "## 📝 Creating .env.tag file" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Create .env.tag file with IMAGE_TAG
           echo "IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}" > .env.tag
-          
+
           echo "**Created .env.tag with content:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           cat .env.tag >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Also output to workflow logs
           echo "::notice title=.env.tag Created::IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}"
 
@@ -288,14 +293,14 @@ jobs:
         run: |
           echo "## 🌐 Creating .env.aws file" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Create .env.aws file with AWS configuration
           cat > .env.aws << EOF
-# AWS Configuration for deployment
-AWS_REGION=${{ secrets.AWS_REGION }}
-ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
-EOF
-          
+          # AWS Configuration for deployment
+          AWS_REGION=${{ secrets.AWS_REGION }}
+          ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
+          EOF
+
           echo "**Created .env.aws with content:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           # Show content but mask sensitive values
@@ -304,22 +309,23 @@ EOF
           echo "ECR_REGISTRY=***" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Also output to workflow logs
           echo "::notice title=.env.aws Created::AWS configuration file created successfully"
 
       - name: Create deployment directory on EC2
         id: create_dir
         run: |
+          set -euo pipefail
           echo "## 📁 Preparing deployment directory" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          ssh -o StrictHostKeyChecking=no \
+          if ! ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "mkdir -p ${{ secrets.EC2_DEPLOY_PATH }}" || {
+            "mkdir -p ${{ secrets.EC2_DEPLOY_PATH }}"; then
               echo "❌ Failed to create deployment directory" >> $GITHUB_STEP_SUMMARY
               exit 1
-            }
+          fi
 
           echo "✅ Deployment directory ready: ${{ secrets.EC2_DEPLOY_PATH }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -327,60 +333,33 @@ EOF
       - name: Transfer deployment files
         id: transfer_files
         run: |
+          set -euo pipefail
           echo "## 📤 Transferring deployment files" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Transfer deploy.sh
-          echo "Transferring deploy.sh..." >> $GITHUB_STEP_SUMMARY
-          scp -o StrictHostKeyChecking=no \
-            service/user/deploy.sh \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
-              echo "❌ Failed to transfer deploy.sh" >> $GITHUB_STEP_SUMMARY
-              exit 1
-            }
-          echo "✅ deploy.sh transferred" >> $GITHUB_STEP_SUMMARY
+          # Function to transfer file with proper error handling
+          transfer_file() {
+            local src="$1"
+            local filename=$(basename "$src")
+            echo "Transferring $filename..." >> $GITHUB_STEP_SUMMARY
 
-          # Transfer docker-compose.base.yml
-          echo "Transferring docker-compose.base.yml..." >> $GITHUB_STEP_SUMMARY
-          scp -o StrictHostKeyChecking=no \
-            service/user/docker/docker-compose.base.yml \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
-              echo "❌ Failed to transfer docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
-              exit 1
-            }
-          echo "✅ docker-compose.base.yml transferred" >> $GITHUB_STEP_SUMMARY
+            if ! scp -o StrictHostKeyChecking=no \
+              "$src" \
+              "${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/"; then
+                echo "❌ Failed to transfer $filename" >> $GITHUB_STEP_SUMMARY
+                exit 1
+            fi
+            echo "✅ $filename transferred" >> $GITHUB_STEP_SUMMARY
+          }
 
-          # Transfer docker-compose.user-service.yml
-          echo "Transferring docker-compose.user-service.yml..." >> $GITHUB_STEP_SUMMARY
-          scp -o StrictHostKeyChecking=no \
-            service/user/docker/docker-compose.user-service.yml \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
-              echo "❌ Failed to transfer docker-compose.user-service.yml" >> $GITHUB_STEP_SUMMARY
-              exit 1
-            }
-          echo "✅ docker-compose.user-service.yml transferred" >> $GITHUB_STEP_SUMMARY
+          # Transfer all required files
+          transfer_file "service/user/deploy.sh"
+          transfer_file "service/user/docker/docker-compose.base.yml"
+          transfer_file "service/user/docker/docker-compose.user-service.yml"
+          transfer_file ".env.tag"
+          transfer_file ".env.aws"
 
-          # Transfer .env.tag
-          echo "Transferring .env.tag..." >> $GITHUB_STEP_SUMMARY
-          scp -o StrictHostKeyChecking=no \
-            .env.tag \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
-              echo "❌ Failed to transfer .env.tag" >> $GITHUB_STEP_SUMMARY
-              exit 1
-            }
-          echo "✅ .env.tag transferred" >> $GITHUB_STEP_SUMMARY
-
-          # Transfer .env.aws
-          echo "Transferring .env.aws..." >> $GITHUB_STEP_SUMMARY
-          scp -o StrictHostKeyChecking=no \
-            .env.aws \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
-              echo "❌ Failed to transfer .env.aws" >> $GITHUB_STEP_SUMMARY
-              exit 1
-            }
-          echo "✅ .env.aws transferred" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
           echo "### 📋 Files transferred successfully:" >> $GITHUB_STEP_SUMMARY
           echo "- deploy.sh" >> $GITHUB_STEP_SUMMARY
           echo "- docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
@@ -391,9 +370,13 @@ EOF
 
       - name: Make deploy.sh executable
         run: |
-          ssh -o StrictHostKeyChecking=no \
+          set -euo pipefail
+          if ! ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "cd ${{ secrets.EC2_DEPLOY_PATH }} && chmod +x deploy.sh"
+            "cd ${{ secrets.EC2_DEPLOY_PATH }} && chmod +x deploy.sh"; then
+              echo "❌ Failed to make deploy.sh executable" >> $GITHUB_STEP_SUMMARY
+              exit 1
+          fi
 
           echo "✅ deploy.sh is now executable" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -401,6 +384,7 @@ EOF
       - name: Execute deployment script
         id: execute_deploy
         run: |
+          set -euo pipefail
           echo "## 🚀 Executing deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Running deploy.sh on EC2..." >> $GITHUB_STEP_SUMMARY
@@ -416,14 +400,16 @@ EOF
           # Create a deployment log file
           DEPLOY_LOG="deploy_$(date +%Y%m%d_%H%M%S).log"
 
-          # Execute deployment script and capture output
+          # Execute deployment script with proper error handling
+          set +e  # Temporarily disable errexit to capture exit code
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "cd ${{ secrets.EC2_DEPLOY_PATH }} && \
              echo \"Deployment started (IMAGE_TAG and AWS config will be loaded from .env files)\" && \
              ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
 
-          DEPLOY_EXIT_CODE=${PIPESTATUS[0]}
+          DEPLOY_EXIT_CODE=$?
+          set -e  # Re-enable errexit
 
           # Check deployment result
           if [ $DEPLOY_EXIT_CODE -eq 0 ]; then
@@ -453,7 +439,8 @@ EOF
     runs-on: ubuntu-latest
     name: Post Deployment
     needs: [prepare-deployment, validate-infrastructure, deploy-application]
-    if: always()
+    # Always run this job for summary, but only if deploy-application ran or was skipped
+    if: always() && (needs.deploy-application.result == 'success' || needs.deploy-application.result == 'failure' || needs.deploy-application.result == 'skipped')
     environment: AWS
 
     steps:
@@ -465,11 +452,12 @@ EOF
       - name: Setup SSH key
         if: needs.deploy-application.outputs.deploy_success == 'true'
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || true
 
       - name: Verify deployment
         if: needs.deploy-application.outputs.deploy_success == 'true'
@@ -493,7 +481,6 @@ EOF
         with:
           name: deployment-logs
           path: ./logs
-        continue-on-error: true
 
       - name: Final summary
         if: always()
