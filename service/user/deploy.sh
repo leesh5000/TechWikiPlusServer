@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 # Configuration
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/health}"
 HEALTH_CHECK_TIMEOUT=30
-DOCKER_COMPOSE_CMD="docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml"
+DOCKER_COMPOSE_CMD="IMAGE_TAG=$IMAGE_TAG docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml"
 DEPLOYMENT_HISTORY_FILE="deployments.json"
 MAX_HISTORY_ENTRIES=10
 
