@@ -16,6 +16,8 @@ dependencies {
 
     // Spring Boot 테스트 지원
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // WebTestClient를 위한 WebFlux 의존성
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     // TestContainers 핵심 라이브러리
     testImplementation("org.testcontainers:testcontainers")
     // JUnit5 통합을 위한 TestContainers 확장
