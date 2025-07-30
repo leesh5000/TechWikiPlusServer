@@ -46,6 +46,29 @@ jobs:
           echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
+      - name: Download CI artifacts
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-info
+          path: ./deployment-info
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load deployment version
+        id: version
+        run: |
+          # For automated deployment, use CI-generated version
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ -f "./deployment-info/deployment-info.env" ]; then
+            source ./deployment-info/deployment-info.env
+            echo "image_tag=${VERSION}" >> $GITHUB_OUTPUT
+            echo "Using CI-generated version: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          else
+            # For manual deployment, use latest tag
+            echo "image_tag=latest" >> $GITHUB_OUTPUT
+            echo "Using latest tag for manual deployment" >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Setup SSH key
         run: |
           echo "## 🔐 Setting up SSH connection" >> $GITHUB_STEP_SUMMARY
@@ -236,6 +259,7 @@ jobs:
              export AWS_REGION=${{ secrets.AWS_REGION }} && \
              export ECR_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
              export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service && \
+             export IMAGE_TAG=${{ steps.version.outputs.image_tag }} && \
              ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
           
           DEPLOY_EXIT_CODE=${PIPESTATUS[0]}

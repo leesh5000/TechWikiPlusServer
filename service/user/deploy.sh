@@ -15,6 +15,27 @@ NC='\033[0m' # No Color
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/health}"
 HEALTH_CHECK_TIMEOUT=30
 DOCKER_COMPOSE_CMD="docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml"
+DEPLOYMENT_HISTORY_FILE="deployments.json"
+MAX_HISTORY_ENTRIES=10
+
+# Parse command line arguments
+ROLLBACK_MODE=false
+ROLLBACK_VERSION=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --rollback)
+            ROLLBACK_MODE=true
+            shift
+            if [[ -n "$1" ]] && [[ ! "$1" =~ ^-- ]]; then
+                ROLLBACK_VERSION="$1"
+                shift
+            fi
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
 # Helper functions
 print_step() {
@@ -44,6 +65,51 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Function to save deployment history
+save_deployment_history() {
+    local version=$1
+    local status=$2
+    local commit_sha=${COMMIT_SHA:-"unknown"}
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    
+    # Initialize history file if it doesn't exist
+    if [ ! -f "$DEPLOYMENT_HISTORY_FILE" ]; then
+        echo "[]" > "$DEPLOYMENT_HISTORY_FILE"
+    fi
+    
+    # Create new entry
+    local new_entry=$(jq -n \
+        --arg v "$version" \
+        --arg s "$status" \
+        --arg c "$commit_sha" \
+        --arg t "$timestamp" \
+        '{version: $v, status: $s, commit: $c, timestamp: $t}')
+    
+    # Add to history and keep only last MAX_HISTORY_ENTRIES
+    jq ". += [$new_entry] | .[-$MAX_HISTORY_ENTRIES:]" "$DEPLOYMENT_HISTORY_FILE" > "${DEPLOYMENT_HISTORY_FILE}.tmp" && \
+        mv "${DEPLOYMENT_HISTORY_FILE}.tmp" "$DEPLOYMENT_HISTORY_FILE"
+}
+
+# Function to get last successful deployment
+get_last_successful_version() {
+    if [ -f "$DEPLOYMENT_HISTORY_FILE" ]; then
+        jq -r '.[] | select(.status == "success") | .version' "$DEPLOYMENT_HISTORY_FILE" | tail -1
+    else
+        echo ""
+    fi
+}
+
+# Function to display deployment history
+show_deployment_history() {
+    if [ -f "$DEPLOYMENT_HISTORY_FILE" ]; then
+        echo -e "\n${BLUE}Recent Deployment History:${NC}"
+        jq -r '.[] | "\(.timestamp) | \(.version) | \(.status) | \(.commit)"' "$DEPLOYMENT_HISTORY_FILE" | \
+            column -t -s "|" | tail -10
+    else
+        print_warning "No deployment history found"
+    fi
+}
+
 # Start deployment
 echo -e "${PURPLE}"
 echo "╔═══════════════════════════════════════════════════╗"
@@ -53,6 +119,34 @@ echo "║  This script will deploy the User Service with    ║"
 echo "║  comprehensive checks and validations.            ║"
 echo "╚═══════════════════════════════════════════════════╝"
 echo -e "${NC}"
+
+# Handle rollback mode
+if [ "$ROLLBACK_MODE" = true ]; then
+    print_step "ROLLBACK" "Initiating rollback procedure"
+    
+    if [ -z "$ROLLBACK_VERSION" ]; then
+        # Get last successful version
+        ROLLBACK_VERSION=$(get_last_successful_version)
+        if [ -z "$ROLLBACK_VERSION" ]; then
+            print_error "No successful deployment history found for rollback"
+            exit 1
+        fi
+        print_info "Rolling back to last successful version: $ROLLBACK_VERSION"
+    else
+        print_info "Rolling back to specified version: $ROLLBACK_VERSION"
+    fi
+    
+    export IMAGE_TAG="$ROLLBACK_VERSION"
+    show_deployment_history
+else
+    # Normal deployment
+    if [ -z "$IMAGE_TAG" ]; then
+        print_warning "IMAGE_TAG not specified, using 'latest'"
+        export IMAGE_TAG="latest"
+    else
+        print_info "Using IMAGE_TAG: $IMAGE_TAG"
+    fi
+fi
 
 # Step 1: Check Docker and Docker Compose installation
 print_step "1" "Checking Docker and Docker Compose installation"
@@ -161,6 +255,9 @@ print_info "Pulling latest images and starting services..."
 
 # Capture current images before deployment
 BEFORE_IMAGES=$(docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v "<none>")
+
+# Export IMAGE_TAG for docker-compose
+export IMAGE_TAG
 
 # Run docker-compose up
 if $DOCKER_COMPOSE_CMD up -d --build 2>&1 | tee deploy.log; then
@@ -344,9 +441,12 @@ echo -e "${NC}"
 if [ "$ALL_HEALTHY" = true ] && [ "$HTTP_STATUS" = "200" ]; then
     print_success "Deployment completed successfully! 🎉"
     echo -e "\n${GREEN}All systems are operational.${NC}"
+    save_deployment_history "$IMAGE_TAG" "success"
+    print_info "Deployment history saved (version: $IMAGE_TAG)"
 else
     print_warning "Deployment completed with warnings"
     echo -e "\n${YELLOW}Please check the issues mentioned above.${NC}"
+    save_deployment_history "$IMAGE_TAG" "failed"
 fi
 
 echo -e "\n${BLUE}Useful commands:${NC}"

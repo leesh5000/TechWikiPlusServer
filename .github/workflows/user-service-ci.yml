@@ -20,7 +20,7 @@ on:
 
 env:
   JAVA_VERSION: '21'
-  GRADLE_VERSION: '8.5'
+  GRADLE_VERSION: '8.14.2'  # Match gradle-wrapper.properties version
 
 jobs:
   ci:
@@ -44,6 +44,17 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          gradle-home-cache-cleanup: true
+          gradle-home-cache-strict-match: false
+        continue-on-error: true  # Continue if cache fails
+      
+      - name: Fallback Gradle Cache Setup
+        if: failure()
+        run: |
+          echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          mkdir -p ~/.gradle/caches
+          mkdir -p ~/.gradle/wrapper
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -76,6 +87,17 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          gradle-home-cache-cleanup: true
+          gradle-home-cache-strict-match: false
+        continue-on-error: true  # Continue if cache fails
+      
+      - name: Fallback Gradle Cache Setup
+        if: failure()
+        run: |
+          echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          mkdir -p ~/.gradle/caches
+          mkdir -p ~/.gradle/wrapper
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -140,6 +162,17 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          gradle-home-cache-cleanup: true
+          gradle-home-cache-strict-match: false
+        continue-on-error: true  # Continue if cache fails
+      
+      - name: Fallback Gradle Cache Setup
+        if: failure()
+        run: |
+          echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          mkdir -p ~/.gradle/caches
+          mkdir -p ~/.gradle/wrapper
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -227,6 +260,17 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          gradle-home-cache-cleanup: true
+          gradle-home-cache-strict-match: false
+        continue-on-error: true  # Continue if cache fails
+      
+      - name: Fallback Gradle Cache Setup
+        if: failure()
+        run: |
+          echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          mkdir -p ~/.gradle/caches
+          mkdir -p ~/.gradle/wrapper
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -275,6 +319,9 @@ jobs:
     name: Build and Push Docker Image
     environment: AWS
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      image_tag: ${{ steps.meta.outputs.image_tag_version }}
     
     steps:
       - name: Checkout repository
@@ -482,6 +529,25 @@ jobs:
             push-latest.log
             push-sha.log
             ecr-login.log
+
+      - name: Save version info
+        if: success()
+        run: |
+          echo "${{ steps.meta.outputs.version }}" > version.txt
+          echo "VERSION=${{ steps.meta.outputs.version }}" > deployment-info.env
+          echo "IMAGE_TAG=${{ steps.meta.outputs.image_tag_version }}" >> deployment-info.env
+          echo "COMMIT_SHA=${{ github.sha }}" >> deployment-info.env
+          echo "TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> deployment-info.env
+
+      - name: Upload deployment info
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-info
+          path: |
+            version.txt
+            deployment-info.env
+          retention-days: 7
 
   summary:
     needs: [linter, test, compile-check, docker-build-push]
