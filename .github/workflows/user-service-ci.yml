@@ -257,7 +257,7 @@ jobs:
             test-output.log
 
   compile-check:
-    needs: [linter, test]
+    needs: ci
     runs-on: ubuntu-latest
     name: Compile Check
 
