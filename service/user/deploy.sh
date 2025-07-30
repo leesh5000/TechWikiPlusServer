@@ -14,9 +14,17 @@ NC='\033[0m' # No Color
 # Configuration
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/health}"
 HEALTH_CHECK_TIMEOUT=30
-DOCKER_COMPOSE_CMD="docker-compose --env-file .env.tag --env-file .env --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml"
+DOCKER_COMPOSE_CMD="docker-compose --env-file .env.tag --env-file .env.aws --env-file .env.base --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml"
 DEPLOYMENT_HISTORY_FILE="deployments.json"
 MAX_HISTORY_ENTRIES=10
+
+# Source AWS configuration if available
+if [ -f ".env.aws" ]; then
+    set -a  # automatically export all variables
+    source .env.aws
+    set +a  # turn off automatic export
+    echo -e "${GREEN}✅ AWS configuration loaded from .env.aws${NC}"
+fi
 
 # Parse command line arguments
 ROLLBACK_MODE=false
@@ -287,6 +295,7 @@ print_step "3" "Checking required configuration files"
 
 REQUIRED_FILES=(
     ".env.tag"
+    ".env.aws"
     ".env.base"
     ".env.user-service"
     "docker-compose.base.yml"
@@ -309,9 +318,10 @@ if [ "$ALL_FILES_EXIST" = false ]; then
     echo "Please ensure all required files are present in the current directory:"
     echo "  - docker-compose.base.yml: Base Docker Compose configuration"
     echo "  - docker-compose.user-service.yml: User service specific configuration"
-    echo "  - .env: Base environment variables"
+    echo "  - .env.base: Base environment variables"
     echo "  - .env.user-service: User service specific environment variables"
     echo "  - .env.tag: Docker image tag (created by CD pipeline)"
+    echo "  - .env.aws: AWS configuration (created by CD pipeline)"
     exit 1
 fi
 

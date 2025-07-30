@@ -32,19 +32,39 @@
 ### 2. 필수 파일
 배포 디렉토리에 다음 파일들이 필요합니다:
 - `docker-compose.base.yml` - 기본 Docker Compose 설정
-- `docker-compose.prod.yml` - 프로덕션 환경 설정
-- `.env` - 기본 환경 변수
-- `.env.prod` - 프로덕션 환경 변수
+- `docker-compose.user-service.yml` - User Service 전용 설정
+- `.env.base` - 기본 환경 변수
+- `.env.user-service` - User Service 환경 변수
+- `.env.tag` - Docker 이미지 태그 (CD 파이프라인에서 생성)
+- `.env.aws` - AWS 설정 (CD 파이프라인에서 생성)
 
 ### 3. 환경 변수
+
+#### CD 파이프라인에서 자동 생성되는 파일들
+
+**.env.tag** (IMAGE_TAG 포함):
 ```bash
-# AWS ECR 관련 (선택사항)
-export AWS_REGION=ap-northeast-2
-export ECR_REGISTRY=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/user-service
+# CI/CD 배포 시: YYYYMMDDHHmm 형식 (예: 202507301230)
+# 수동 배포 시: latest
+IMAGE_TAG=202507301230
+```
+
+**.env.aws** (AWS 설정 포함):
+```bash
+# AWS Region for ECR authentication
+AWS_REGION=ap-northeast-2
+
+# ECR Registry URL (includes repository path)
+ECR_REGISTRY=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/techwikiplus-user-service
+```
+
+#### 추가 환경 변수 (선택사항)
+```bash
+# AWS 자격 증명 (EC2 IAM Role 사용 시 불필요)
 export AWS_ACCESS_KEY_ID=your-access-key
 export AWS_SECRET_ACCESS_KEY=your-secret-key
 
-# 헬스체크 URL (기본값: http://localhost:8080/health)
+# 헬스체크 URL (기본값: http://localhost:9000/health)
 export HEALTH_CHECK_URL=http://your-domain.com/health
 ```
 
@@ -165,10 +185,29 @@ docker stats
 
 ## CI/CD 통합
 
-이 스크립트는 GitHub Actions CD 파이프라인에서 사용될 예정입니다:
-1. CI 단계 성공 후 실행
-2. SSH를 통해 배포 서버에서 실행
-3. 배포 결과를 GitHub Actions에 리포트
+이 스크립트는 GitHub Actions CD 파이프라인에서 사용됩니다:
+
+### 파이프라인 프로세스
+1. CI 단계 성공 후 자동 실행
+2. 배포 관련 파일 생성:
+   - `.env.tag` - Docker 이미지 태그 설정
+   - `.env.aws` - AWS 지역 및 ECR 레지스트리 설정
+3. SSH를 통해 EC2 인스턴스로 파일 전송
+4. 배포 스크립트 실행
+5. 배포 결과를 GitHub Actions에 리포트
+
+### GitHub Secrets 설정 필요
+```yaml
+# EC2 접속 정보
+EC2_HOST: EC2 인스턴스 IP 또는 도메인
+EC2_USERNAME: SSH 접속 사용자명 (예: ubuntu, ec2-user)
+EC2_SSH_KEY: EC2 인스턴스 SSH 프라이빗 키
+EC2_DEPLOY_PATH: 배포 디렉토리 경로
+
+# AWS 설정
+AWS_REGION: AWS 리전 (예: ap-northeast-2)
+ECR_REGISTRY: ECR 레지스트리 URL (리포지토리 경로 포함)
+```
 
 ## 향후 개선사항
 

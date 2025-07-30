@@ -284,6 +284,30 @@ jobs:
           # Also output to workflow logs
           echo "::notice title=.env.tag Created::IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}"
 
+      - name: Create .env.aws file
+        run: |
+          echo "## 🌐 Creating .env.aws file" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create .env.aws file with AWS configuration
+          cat > .env.aws << EOF
+# AWS Configuration for deployment
+AWS_REGION=${{ secrets.AWS_REGION }}
+ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
+EOF
+          
+          echo "**Created .env.aws with content:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          # Show content but mask sensitive values
+          echo "# AWS Configuration for deployment" >> $GITHUB_STEP_SUMMARY
+          echo "AWS_REGION=***" >> $GITHUB_STEP_SUMMARY
+          echo "ECR_REGISTRY=***" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Also output to workflow logs
+          echo "::notice title=.env.aws Created::AWS configuration file created successfully"
+
       - name: Create deployment directory on EC2
         id: create_dir
         run: |
@@ -345,6 +369,16 @@ jobs:
               exit 1
             }
           echo "✅ .env.tag transferred" >> $GITHUB_STEP_SUMMARY
+
+          # Transfer .env.aws
+          echo "Transferring .env.aws..." >> $GITHUB_STEP_SUMMARY
+          scp -o StrictHostKeyChecking=no \
+            .env.aws \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
+              echo "❌ Failed to transfer .env.aws" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
+          echo "✅ .env.aws transferred" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### 📋 Files transferred successfully:" >> $GITHUB_STEP_SUMMARY
@@ -352,6 +386,7 @@ jobs:
           echo "- docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
           echo "- docker-compose.user-service.yml" >> $GITHUB_STEP_SUMMARY
           echo "- .env.tag" >> $GITHUB_STEP_SUMMARY
+          echo "- .env.aws" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Make deploy.sh executable
@@ -385,10 +420,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "cd ${{ secrets.EC2_DEPLOY_PATH }} && \
-             export AWS_REGION=${{ secrets.AWS_REGION }} && \
-             export ECR_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
-             export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
-             echo \"Deployment started (IMAGE_TAG will be loaded from .env.tag)\" && \
+             echo \"Deployment started (IMAGE_TAG and AWS config will be loaded from .env files)\" && \
              ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
 
           DEPLOY_EXIT_CODE=${PIPESTATUS[0]}
