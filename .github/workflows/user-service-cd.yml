@@ -14,17 +14,31 @@ on:
         default: 'Manual deployment triggered'
 
 jobs:
-  deploy:
+  prepare-deployment:
     runs-on: ubuntu-latest
-    name: Deploy to EC2
-    environment: AWS
+    name: Prepare Deployment
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    outputs:
+      image_tag: ${{ steps.version.outputs.image_tag }}
+      deployment_type: ${{ steps.deployment_type.outputs.type }}
+      deployment_info: ${{ steps.deployment_type.outputs.info }}
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Determine deployment type
+        id: deployment_type
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "type=manual" >> $GITHUB_OUTPUT
+            echo "info=Manual deployment: ${{ github.event.inputs.deploy_message }}" >> $GITHUB_OUTPUT
+          else
+            echo "type=automated" >> $GITHUB_OUTPUT
+            echo "info=CI Run #${{ github.event.workflow_run.id }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Generate deployment info
         id: deploy_info
@@ -33,7 +47,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Deployment trigger info
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          if [ "${{ steps.deployment_type.outputs.type }}" == "manual" ]; then
             echo "**Trigger:** Manual deployment" >> $GITHUB_STEP_SUMMARY
             echo "**Message:** ${{ github.event.inputs.deploy_message }}" >> $GITHUB_STEP_SUMMARY
           else
@@ -94,6 +108,22 @@ jobs:
           
           echo "" >> $GITHUB_STEP_SUMMARY
 
+  validate-infrastructure:
+    runs-on: ubuntu-latest
+    name: Validate Infrastructure
+    needs: prepare-deployment
+    environment: AWS
+    outputs:
+      ssh_test_passed: ${{ steps.test_ssh.outputs.passed }}
+      docker_installed: ${{ steps.check_docker.outputs.installed }}
+      docker_version: ${{ steps.check_docker.outputs.version }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Setup SSH key
         run: |
           echo "## 🔐 Setting up SSH connection" >> $GITHUB_STEP_SUMMARY
@@ -117,6 +147,7 @@ jobs:
 
       - name: Test SSH connection
         id: test_ssh
+        continue-on-error: true
         run: |
           echo "## 🔗 Testing SSH connection" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -174,9 +205,66 @@ jobs:
             echo "4. **Network**:" >> $GITHUB_STEP_SUMMARY
             echo "   - [ ] No Network ACL blocking port 22" >> $GITHUB_STEP_SUMMARY
             echo "   - [ ] Route table has internet gateway route" >> $GITHUB_STEP_SUMMARY
+            echo "passed=false" >> $GITHUB_OUTPUT
             exit 1
           fi
+          echo "passed=true" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if SSH test failed
+        if: steps.test_ssh.outputs.passed != 'true'
+        run: |
+          echo "SSH connection test failed. Cannot proceed with deployment."
+          exit 1
+
+
+      - name: Check Docker installation on EC2
+        id: check_docker
+        run: |
+          echo "## 🐳 Checking Docker installation on EC2" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          DOCKER_CHECK=$(ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "command -v docker >/dev/null 2>&1 && echo 'installed' || echo 'not-installed'")
+          
+          if [ "$DOCKER_CHECK" = "installed" ]; then
+            DOCKER_VERSION=$(ssh -o StrictHostKeyChecking=no \
+              ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+              "docker --version")
+            echo "✅ Docker is installed: $DOCKER_VERSION" >> $GITHUB_STEP_SUMMARY
+            echo "installed=true" >> $GITHUB_OUTPUT
+            echo "version=$DOCKER_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Docker is not installed on EC2" >> $GITHUB_STEP_SUMMARY
+            echo "The deployment script will check and provide installation instructions" >> $GITHUB_STEP_SUMMARY
+            echo "installed=false" >> $GITHUB_OUTPUT
+            echo "version=not-installed" >> $GITHUB_OUTPUT
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+  deploy-application:
+    runs-on: ubuntu-latest
+    name: Deploy Application
+    needs: [prepare-deployment, validate-infrastructure]
+    environment: AWS
+    outputs:
+      deploy_exit_code: ${{ steps.execute_deploy.outputs.exit_code }}
+      deploy_success: ${{ steps.execute_deploy.outputs.success }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Create deployment directory on EC2
         id: create_dir
@@ -192,26 +280,6 @@ jobs:
             }
           
           echo "✅ Deployment directory ready: ${{ secrets.EC2_DEPLOY_PATH }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-      - name: Check Docker installation on EC2
-        run: |
-          echo "## 🐳 Checking Docker installation on EC2" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          DOCKER_CHECK=$(ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "command -v docker >/dev/null 2>&1 && echo 'installed' || echo 'not-installed'")
-          
-          if [ "$DOCKER_CHECK" = "installed" ]; then
-            DOCKER_VERSION=$(ssh -o StrictHostKeyChecking=no \
-              ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-              "docker --version")
-            echo "✅ Docker is installed: $DOCKER_VERSION" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Docker is not installed on EC2" >> $GITHUB_STEP_SUMMARY
-            echo "The deployment script will check and provide installation instructions" >> $GITHUB_STEP_SUMMARY
-          fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Transfer deployment files
@@ -277,8 +345,8 @@ jobs:
           # Display deployment configuration
           echo "### Deployment Configuration:" >> $GITHUB_STEP_SUMMARY
           echo "- **Docker Registry:** \`${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image Tag:** \`${{ steps.version.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Full Image:** \`${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service:${{ steps.version.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** \`${{ needs.prepare-deployment.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Full Image:** \`${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service:${{ needs.prepare-deployment.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Create a deployment log file
@@ -291,7 +359,7 @@ jobs:
              export AWS_REGION=${{ secrets.AWS_REGION }} && \
              export ECR_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
              export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service && \
-             export IMAGE_TAG=${{ steps.version.outputs.image_tag }} && \
+             export IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }} && \
              echo \"Deployment started with IMAGE_TAG: \$IMAGE_TAG\" && \
              ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
           
@@ -301,16 +369,50 @@ jobs:
           if [ $DEPLOY_EXIT_CODE -eq 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### ✅ Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "exit_code=0" >> $GITHUB_OUTPUT
+            echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### ❌ Deployment failed with exit code: $DEPLOY_EXIT_CODE" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Please check the deployment logs above for details." >> $GITHUB_STEP_SUMMARY
+            echo "exit_code=$DEPLOY_EXIT_CODE" >> $GITHUB_OUTPUT
+            echo "success=false" >> $GITHUB_OUTPUT
             exit $DEPLOY_EXIT_CODE
           fi
 
+      - name: Upload deployment logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-logs
+          path: |
+            deployment_output.log
+
+  post-deployment:
+    runs-on: ubuntu-latest
+    name: Post Deployment
+    needs: [prepare-deployment, validate-infrastructure, deploy-application]
+    if: always()
+    environment: AWS
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup SSH key
+        if: needs.deploy-application.outputs.deploy_success == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
       - name: Verify deployment
-        if: success()
+        if: needs.deploy-application.outputs.deploy_success == 'true'
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🔍 Post-deployment verification" >> $GITHUB_STEP_SUMMARY
@@ -325,13 +427,13 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload deployment logs
+      - name: Download deployment logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/download-artifact@v4
         with:
           name: deployment-logs
-          path: |
-            deployment_output.log
+          path: ./logs
+        continue-on-error: true
 
       - name: Final summary
         if: always()
@@ -341,7 +443,30 @@ jobs:
           echo "## 📊 Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ job.status }}" == "success" ]; then
+          # Deployment type and info
+          echo "### Deployment Details:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type:** ${{ needs.prepare-deployment.outputs.deployment_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** ${{ needs.prepare-deployment.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Info:** ${{ needs.prepare-deployment.outputs.deployment_info }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Infrastructure validation results
+          echo "### Infrastructure Validation:" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate-infrastructure.outputs.ssh_test_passed }}" == "true" ]; then
+            echo "- ✅ SSH Connection: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ SSH Connection: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.validate-infrastructure.outputs.docker_installed }}" == "true" ]; then
+            echo "- ✅ Docker: ${{ needs.validate-infrastructure.outputs.docker_version }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ Docker: Not installed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Final deployment status
+          if [ "${{ needs.deploy-application.outputs.deploy_success }}" == "true" ]; then
             echo "### ✅ Deployment Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "The User Service has been successfully deployed to production!" >> $GITHUB_STEP_SUMMARY

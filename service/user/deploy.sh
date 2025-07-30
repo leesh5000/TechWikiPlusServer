@@ -120,6 +120,11 @@ echo "║  comprehensive checks and validations.            ║"
 echo "╚═══════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
+# Display deployment information
+echo -e "\n${BLUE}╔═══════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║           DEPLOYMENT INFORMATION                  ║${NC}"
+echo -e "${BLUE}╚═══════════════════════════════════════════════════╝${NC}"
+
 # Handle rollback mode
 if [ "$ROLLBACK_MODE" = true ]; then
     print_step "ROLLBACK" "Initiating rollback procedure"
@@ -139,14 +144,71 @@ if [ "$ROLLBACK_MODE" = true ]; then
     export IMAGE_TAG="$ROLLBACK_VERSION"
     show_deployment_history
 else
-    # Normal deployment
+    # Normal deployment - validate IMAGE_TAG
+    echo -e "\n${PURPLE}Image Tag Configuration:${NC}"
+    echo -e "${BLUE}───────────────────────────────────────────────────${NC}"
+    
     if [ -z "$IMAGE_TAG" ]; then
-        print_warning "IMAGE_TAG not specified, using 'latest'"
+        print_warning "IMAGE_TAG environment variable is not set!"
+        echo -e "${YELLOW}  → Using default tag: 'latest'${NC}"
         export IMAGE_TAG="latest"
     else
-        print_info "Using IMAGE_TAG: $IMAGE_TAG"
+        print_success "IMAGE_TAG is properly set"
+        echo -e "${GREEN}  → Current IMAGE_TAG: ${PURPLE}${IMAGE_TAG}${NC}"
+    fi
+    
+    # Display deployment type based on IMAGE_TAG pattern
+    if [[ "$IMAGE_TAG" =~ ^[0-9]{12}$ ]]; then
+        echo -e "${BLUE}  → Deployment Type: ${GREEN}Automated CI/CD Deployment${NC}"
+        echo -e "${BLUE}  → Version Format: Timestamp (YYYYMMDDHHmm)${NC}"
+    elif [ "$IMAGE_TAG" = "latest" ]; then
+        echo -e "${BLUE}  → Deployment Type: ${YELLOW}Manual/Development Deployment${NC}"
+        echo -e "${BLUE}  → Version Format: Latest available image${NC}"
+    else
+        echo -e "${BLUE}  → Deployment Type: ${PURPLE}Custom Tag Deployment${NC}"
+        echo -e "${BLUE}  → Version Format: User-defined tag${NC}"
     fi
 fi
+
+# Display Docker image information
+echo -e "\n${PURPLE}Docker Image Information:${NC}"
+echo -e "${BLUE}───────────────────────────────────────────────────${NC}"
+
+# Check if ECR_REGISTRY is set and construct full image path
+if [ -n "$ECR_REGISTRY" ]; then
+    FULL_IMAGE_PATH="${ECR_REGISTRY}/techwikiplus/user-service:${IMAGE_TAG}"
+    echo -e "${BLUE}  → Registry: ${NC}${ECR_REGISTRY}"
+    echo -e "${BLUE}  → Repository: ${NC}techwikiplus/user-service"
+    echo -e "${BLUE}  → Tag: ${NC}${IMAGE_TAG}"
+    echo -e "${GREEN}  → Full Image Path: ${NC}${FULL_IMAGE_PATH}"
+else
+    print_warning "ECR_REGISTRY not set - using local/default registry"
+    FULL_IMAGE_PATH="techwikiplus/user-service:${IMAGE_TAG}"
+    echo -e "${BLUE}  → Repository: ${NC}techwikiplus/user-service"
+    echo -e "${BLUE}  → Tag: ${NC}${IMAGE_TAG}"
+    echo -e "${GREEN}  → Full Image Path: ${NC}${FULL_IMAGE_PATH}"
+fi
+
+# Display additional deployment context if available
+echo -e "\n${PURPLE}Deployment Context:${NC}"
+echo -e "${BLUE}───────────────────────────────────────────────────${NC}"
+
+if [ -n "$COMMIT_SHA" ]; then
+    echo -e "${BLUE}  → Git Commit SHA: ${NC}${COMMIT_SHA}"
+else
+    echo -e "${YELLOW}  → Git Commit SHA: ${NC}Not available"
+fi
+
+if [ -n "$GITHUB_RUN_NUMBER" ]; then
+    echo -e "${BLUE}  → GitHub Actions Run #: ${NC}${GITHUB_RUN_NUMBER}"
+fi
+
+if [ -n "$GITHUB_ACTOR" ]; then
+    echo -e "${BLUE}  → Triggered by: ${NC}${GITHUB_ACTOR}"
+fi
+
+echo -e "${BLUE}  → Deployment Time: ${NC}$(date '+%Y-%m-%d %H:%M:%S %Z')"
+echo -e "${BLUE}───────────────────────────────────────────────────${NC}\n"
 
 # Step 1: Check Docker and Docker Compose installation
 print_step "1" "Checking Docker and Docker Compose installation"
