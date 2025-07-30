@@ -42,7 +42,9 @@ RUN mkdir -p common/snowflake/src/main/kotlin service/user/src/main/kotlin
 # 재빌드 시 의존성을 다시 다운로드하지 않음
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    gradle :service:user:dependencies --no-daemon --parallel
+    --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/workspace/.gradle \
+    gradle :service:user:dependencies --no-daemon --parallel --build-cache
 
 # ===== Stage 2: Build application =====
 # 애플리케이션 빌드 스테이지
@@ -64,7 +66,9 @@ COPY --chown=gradle:gradle service/user /workspace/service/user
 # bootJar: Spring Boot 실행 가능한 JAR 생성
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    gradle :service:user:bootJar --no-daemon --parallel -x test
+    --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/workspace/.gradle \
+    gradle :service:user:bootJar --no-daemon --parallel -x test --build-cache
 
 # ===== Stage 3: Runtime =====
 # 최종 실행 이미지 (최소 크기)

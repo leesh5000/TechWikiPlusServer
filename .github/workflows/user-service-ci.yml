@@ -352,6 +352,14 @@ jobs:
           driver-opts: |
             image=moby/buildkit:latest
             network=host
+          buildkitd-flags: --debug
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 4
+            [registry."${{ secrets.ECR_REGISTRY }}"]
+              mirrors = ["${{ secrets.ECR_REGISTRY }}"]
+              http = false
+              insecure = false
 
       - name: Debug - Check if secrets are available
         run: |
@@ -392,6 +400,24 @@ jobs:
             cat aws-identity.log
             exit $AWS_VERIFY_EXIT_CODE
           fi
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -434,99 +460,66 @@ jobs:
           echo "image_tag_sha=${{ secrets.ECR_REGISTRY }}:$SHORT_SHA" >> $GITHUB_OUTPUT
           echo "image_tag_version=${{ secrets.ECR_REGISTRY }}:$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         id: docker-build
+        with:
+          context: .
+          file: service/user/docker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image_tag_latest }}
+            ${{ steps.meta.outputs.image_tag_sha }}
+            ${{ steps.meta.outputs.image_tag_version }}
+          cache-from: |
+            type=local,src=/tmp/.buildx-cache
+            type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache
+            type=inline
+          cache-to: |
+            type=local,dest=/tmp/.buildx-cache-new,mode=max
+            type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max,compression=zstd
+            type=inline
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: Build summary
+        if: always()
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔨 Docker Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Enable BuildKit
-          export DOCKER_BUILDKIT=1
-          export BUILDKIT_PROGRESS=plain
-          
-          # Build the image with BuildKit cache
-          docker buildx build \
-            --platform linux/amd64 \
-            --file service/user/docker/Dockerfile \
-            --tag ${{ steps.meta.outputs.image_tag_latest }} \
-            --tag ${{ steps.meta.outputs.image_tag_sha }} \
-            --tag ${{ steps.meta.outputs.image_tag_version }} \
-            --cache-from type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache \
-            --cache-to type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --build-arg VERSION=${{ steps.meta.outputs.version }} \
-            --progress=plain \
-            --load \
-            . > docker-build.log 2>&1 || DOCKER_BUILD_EXIT_CODE=$?
-          
-          if [ -z "$DOCKER_BUILD_EXIT_CODE" ]; then
+          if [ "${{ steps.docker-build.outcome }}" == "success" ]; then
             echo "✅ **Build Status:** Successful" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            
-            # Get image size
-            IMAGE_SIZE=$(docker image inspect ${{ steps.meta.outputs.image_tag_latest }} --format='{{.Size}}' | numfmt --to=iec-i --suffix=B)
-            echo "**Image Size:** $IMAGE_SIZE" >> $GITHUB_STEP_SUMMARY
             echo "**Build Cache:** Enabled (BuildKit)" >> $GITHUB_STEP_SUMMARY
+            echo "**Cache Strategy:** Multi-level (local + registry + inline)" >> $GITHUB_STEP_SUMMARY
+            echo "**Platform:** linux/amd64" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Build Errors:" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 50 docker-build.log | grep -E "(ERROR|error:|FAILED|Step)" >> $GITHUB_STEP_SUMMARY || tail -n 30 docker-build.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $DOCKER_BUILD_EXIT_CODE
           fi
 
-      - name: Push Docker images to ECR
-        id: docker-push
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Verify pushed images
+        id: docker-verify
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📤 Push to ECR" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Push latest tag
-          echo "Pushing latest tag..." >> $GITHUB_STEP_SUMMARY
-          docker push ${{ steps.meta.outputs.image_tag_latest }} > push-latest.log 2>&1 || PUSH_LATEST_EXIT_CODE=$?
-          
-          if [ -z "$PUSH_LATEST_EXIT_CODE" ]; then
-            echo "✅ **Latest tag:** Pushed successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Latest tag:** Push failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 20 push-latest.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $PUSH_LATEST_EXIT_CODE
+          # Record build time
+          BUILD_TIME="${{ steps.docker-build.outputs.metadata }}"
+          if [ -n "$BUILD_TIME" ]; then
+            echo "**Build Metadata:** Available" >> $GITHUB_STEP_SUMMARY
           fi
           
-          # Push SHA tag
-          echo "Pushing SHA tag..." >> $GITHUB_STEP_SUMMARY
-          docker push ${{ steps.meta.outputs.image_tag_sha }} > push-sha.log 2>&1 || PUSH_SHA_EXIT_CODE=$?
-          
-          if [ -z "$PUSH_SHA_EXIT_CODE" ]; then
-            echo "✅ **SHA tag (${{ steps.meta.outputs.short_sha }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **SHA tag:** Push failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 20 push-sha.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $PUSH_SHA_EXIT_CODE
-          fi
-          
-          # Push Version tag
-          echo "Pushing Version tag..." >> $GITHUB_STEP_SUMMARY
-          docker push ${{ steps.meta.outputs.image_tag_version }} > push-version.log 2>&1 || PUSH_VERSION_EXIT_CODE=$?
-          
-          if [ -z "$PUSH_VERSION_EXIT_CODE" ]; then
-            echo "✅ **Version tag (${{ steps.meta.outputs.version }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Version tag:** Push failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 20 push-version.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $PUSH_VERSION_EXIT_CODE
-          fi
-          
+          echo "✅ **All tags pushed successfully during build**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Image Details" >> $GITHUB_STEP_SUMMARY
           echo "- **Registry:** \`${{ secrets.ECR_REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
@@ -542,9 +535,6 @@ jobs:
         with:
           name: docker-build-logs
           path: |
-            docker-build.log
-            push-latest.log
-            push-sha.log
             ecr-login.log
 
       - name: Save version info

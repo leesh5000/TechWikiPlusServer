@@ -108,30 +108,6 @@ jobs:
 
           echo "" >> $GITHUB_STEP_SUMMARY
 
-      - name: Create .env.tag file
-        id: create_env_tag
-        run: |
-          echo "## 📝 Creating .env.tag file" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Create .env.tag file with IMAGE_TAG
-          echo "IMAGE_TAG=${{ steps.version.outputs.image_tag }}" > .env.tag
-          
-          echo "**Created .env.tag with content:**" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat .env.tag >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Also output to workflow logs
-          echo "::notice title=.env.tag Created::IMAGE_TAG=${{ steps.version.outputs.image_tag }}"
-
-      - name: Upload .env.tag artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: env-tag-file
-          path: .env.tag
-          retention-days: 1
 
   validate-infrastructure:
     runs-on: ubuntu-latest
@@ -291,11 +267,22 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Download .env.tag artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: env-tag-file
-          path: ./
+      - name: Create .env.tag file
+        run: |
+          echo "## 📝 Creating .env.tag file" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create .env.tag file with IMAGE_TAG
+          echo "IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}" > .env.tag
+          
+          echo "**Created .env.tag with content:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat .env.tag >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Also output to workflow logs
+          echo "::notice title=.env.tag Created::IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}"
 
       - name: Create deployment directory on EC2
         id: create_dir

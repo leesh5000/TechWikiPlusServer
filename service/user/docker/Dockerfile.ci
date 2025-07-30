@@ -1,0 +1,123 @@
+# syntax=docker/dockerfile:1
+# Optimized Dockerfile for CI/CD with enhanced caching
+#
+# This Dockerfile uses advanced BuildKit features for faster builds:
+# - Layer caching with cache mounts
+# - Parallel dependency downloads
+# - Optimized COPY operations
+# - Inline caching for better performance
+
+ARG GRADLE_VERSION=8.14.2
+ARG JDK_VERSION=21
+ARG VERSION=LOCAL_VERSION
+
+# ===== Stage 1: Base image with pre-installed tools =====
+FROM gradle:${GRADLE_VERSION}-jdk${JDK_VERSION}-jammy AS base
+
+# Install required tools for better caching
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Gradle properties for better performance
+ENV GRADLE_OPTS="-Dorg.gradle.daemon=false \
+    -Dorg.gradle.parallel=true \
+    -Dorg.gradle.caching=true \
+    -Dorg.gradle.jvmargs=-Xmx2g"
+
+WORKDIR /workspace
+
+# ===== Stage 2: Dependencies caching =====
+FROM base AS dependencies
+
+# Copy only dependency-related files first
+# This ensures cache is only invalidated when dependencies change
+COPY --chown=gradle:gradle gradle.properties* build.gradle.kts settings.gradle.kts /workspace/
+COPY --chown=gradle:gradle gradle /workspace/gradle
+COPY --chown=gradle:gradle gradlew* /workspace/
+
+# Copy build files for each module (without source code)
+COPY --chown=gradle:gradle common/snowflake/build.gradle.kts /workspace/common/snowflake/
+COPY --chown=gradle:gradle service/user/build.gradle.kts /workspace/service/user/
+
+# Create source directories
+RUN mkdir -p common/snowflake/src/main/kotlin \
+             common/snowflake/src/main/resources \
+             service/user/src/main/kotlin \
+             service/user/src/main/resources
+
+# Download dependencies with enhanced caching
+RUN --mount=type=cache,target=/home/gradle/.gradle,sharing=locked \
+    --mount=type=cache,target=/workspace/.gradle,sharing=locked \
+    gradle :service:user:dependencies \
+           :common:snowflake:dependencies \
+           --no-daemon \
+           --parallel \
+           --build-cache \
+           --max-workers=4
+
+# ===== Stage 3: Build application =====
+FROM base AS build
+
+# Copy cached dependencies
+COPY --from=dependencies --chown=gradle:gradle /workspace /workspace
+COPY --from=dependencies --chown=gradle:gradle /home/gradle/.gradle /home/gradle/.gradle
+
+# Copy source code in order of change frequency
+# Resources change less frequently than code
+COPY --chown=gradle:gradle common/snowflake/src/main/resources /workspace/common/snowflake/src/main/resources
+COPY --chown=gradle:gradle service/user/src/main/resources /workspace/service/user/src/main/resources
+
+# Copy Kotlin source code
+COPY --chown=gradle:gradle common/snowflake/src/main/kotlin /workspace/common/snowflake/src/main/kotlin
+COPY --chown=gradle:gradle service/user/src/main/kotlin /workspace/service/user/src/main/kotlin
+
+# Build application with enhanced caching
+RUN --mount=type=cache,target=/home/gradle/.gradle,sharing=locked \
+    --mount=type=cache,target=/workspace/.gradle,sharing=locked \
+    gradle :service:user:bootJar \
+           --no-daemon \
+           --parallel \
+           --build-cache \
+           --max-workers=4 \
+           -x test
+
+# ===== Stage 4: Runtime (unchanged) =====
+FROM eclipse-temurin:${JDK_VERSION}-jre-alpine AS runtime
+
+RUN apk add --no-cache \
+    curl \
+    tzdata \
+    && addgroup -g 1001 -S appgroup \
+    && adduser -u 1001 -S appuser -G appgroup
+
+ENV TZ=Asia/Seoul
+
+ARG VERSION
+ENV PROJECT_VERSION=${VERSION}
+
+WORKDIR /app
+
+COPY --from=build --chown=appuser:appgroup /workspace/service/user/build/libs/*.jar app.jar
+
+RUN mkdir -p /app/logs /app/temp \
+    && chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 9000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:9000/health || exit 1
+
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -XX:InitialRAMPercentage=50.0 \
+    -XX:+UseG1GC \
+    -XX:+UseStringDeduplication \
+    -XX:+ExitOnOutOfMemoryError \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.backgroundpreinitializer.ignore=true \
+    -Dfile.encoding=UTF-8"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

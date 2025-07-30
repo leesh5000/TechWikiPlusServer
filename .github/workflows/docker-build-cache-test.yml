@@ -1,0 +1,222 @@
+name: Docker Build Cache Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      use_optimized_dockerfile:
+        description: 'Use optimized Dockerfile.ci'
+        required: true
+        type: boolean
+        default: true
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    name: Test Docker Build Performance
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:master
+            network=host
+          buildkitd-flags: --debug
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 4
+            [registry."docker.io"]
+              mirrors = ["mirror.gcr.io"]
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        continue-on-error: true
+
+      - name: Set up GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+        continue-on-error: true
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        run: |
+          if [ -n "${{ secrets.ECR_REGISTRY }}" ]; then
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }} || true
+          fi
+        continue-on-error: true
+
+      - name: Prepare build metadata
+        id: meta
+        run: |
+          # Use GitHub Container Registry for testing
+          REGISTRY="ghcr.io/${{ github.repository_owner }}/techwikiplus-user-service"
+          echo "registry=$REGISTRY" >> $GITHUB_OUTPUT
+          
+          # Generate version
+          VERSION=test-$(date +%Y%m%d%H%M%S)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Select Dockerfile
+          if [ "${{ github.event.inputs.use_optimized_dockerfile }}" = "true" ]; then
+            echo "dockerfile=service/user/docker/Dockerfile.ci" >> $GITHUB_OUTPUT
+            echo "cache_suffix=ci" >> $GITHUB_OUTPUT
+          else
+            echo "dockerfile=service/user/docker/Dockerfile" >> $GITHUB_OUTPUT
+            echo "cache_suffix=orig" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build with timing
+        id: build
+        run: |
+          echo "## 🐳 Docker Build Performance Test" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Dockerfile:** \`${{ steps.meta.outputs.dockerfile }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** \`${{ steps.meta.outputs.registry }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Record start time
+          START_TIME=$(date +%s)
+          
+          # Build with multiple cache sources
+          docker buildx build \
+            --platform linux/amd64 \
+            --file ${{ steps.meta.outputs.dockerfile }} \
+            --tag ${{ steps.meta.outputs.registry }}:${{ steps.meta.outputs.version }} \
+            --tag ${{ steps.meta.outputs.registry }}:cache-test-latest \
+            --cache-from type=gha,scope=buildkit-${{ steps.meta.outputs.cache_suffix }} \
+            --cache-from type=registry,ref=${{ steps.meta.outputs.registry }}:buildcache-${{ steps.meta.outputs.cache_suffix }} \
+            --cache-from type=registry,ref=ghcr.io/${{ github.repository_owner }}/techwikiplus-user-service:buildcache-${{ steps.meta.outputs.cache_suffix }} \
+            --cache-to type=gha,mode=max,scope=buildkit-${{ steps.meta.outputs.cache_suffix }} \
+            --cache-to type=registry,ref=${{ steps.meta.outputs.registry }}:buildcache-${{ steps.meta.outputs.cache_suffix }},mode=max \
+            --cache-to type=inline \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg VERSION=${{ steps.meta.outputs.version }} \
+            --progress=plain \
+            --push \
+            . 2>&1 | tee build.log
+          
+          # Record end time
+          END_TIME=$(date +%s)
+          BUILD_TIME=$((END_TIME - START_TIME))
+          
+          echo "build_time=$BUILD_TIME" >> $GITHUB_OUTPUT
+          
+          # Format time
+          MINUTES=$((BUILD_TIME / 60))
+          SECONDS=$((BUILD_TIME % 60))
+          
+          echo "### ⏱️ Build Performance" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Build Time:** ${MINUTES}m ${SECONDS}s" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Analyze build stages
+          echo "### 📊 Build Stage Analysis" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -E "(STEP|CACHED|DONE)" build.log | tail -20 >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Test with local cache mount
+        if: success()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔄 Local Cache Mount Test" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create cache directory
+          mkdir -p /tmp/buildkit-cache
+          
+          START_TIME=$(date +%s)
+          
+          # Build with local cache
+          docker buildx build \
+            --platform linux/amd64 \
+            --file ${{ steps.meta.outputs.dockerfile }} \
+            --tag test-local-cache:latest \
+            --cache-from type=local,src=/tmp/buildkit-cache \
+            --cache-to type=local,dest=/tmp/buildkit-cache,mode=max \
+            --progress=plain \
+            . 2>&1 | tee build-local.log
+          
+          END_TIME=$(date +%s)
+          BUILD_TIME=$((END_TIME - START_TIME))
+          MINUTES=$((BUILD_TIME / 60))
+          SECONDS=$((BUILD_TIME % 60))
+          
+          echo "**Local Cache Build Time:** ${MINUTES}m ${SECONDS}s" >> $GITHUB_STEP_SUMMARY
+          
+          # Show cache size
+          CACHE_SIZE=$(du -sh /tmp/buildkit-cache | cut -f1)
+          echo "**Cache Size:** $CACHE_SIZE" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate recommendations
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 💡 Performance Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          BUILD_TIME=${{ steps.build.outputs.build_time }}
+          
+          if [ "$BUILD_TIME" -gt 600 ]; then
+            echo "⚠️ **Build time exceeds 10 minutes**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Consider these optimizations:" >> $GITHUB_STEP_SUMMARY
+            echo "- Use the optimized Dockerfile.ci" >> $GITHUB_STEP_SUMMARY
+            echo "- Enable GitHub Actions cache (gha)" >> $GITHUB_STEP_SUMMARY
+            echo "- Use registry caching with ghcr.io" >> $GITHUB_STEP_SUMMARY
+            echo "- Implement layer caching strategies" >> $GITHUB_STEP_SUMMARY
+          elif [ "$BUILD_TIME" -gt 300 ]; then
+            echo "⚡ **Build time is acceptable but can be improved**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Additional optimizations:" >> $GITHUB_STEP_SUMMARY
+            echo "- Consider using distributed BuildKit" >> $GITHUB_STEP_SUMMARY
+            echo "- Optimize Gradle build configuration" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Build time is optimal (under 5 minutes)**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Cache Strategy Comparison" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache Type | Status | Notes |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| GitHub Actions (gha) | ✅ Enabled | Best for GitHub-hosted runners |" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry (ghcr.io) | ✅ Enabled | Good for distributed teams |" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry (ECR) | ${{ steps.login-ecr.outcome == 'success' && '✅ Available' || '❌ Not configured' }} | Production cache |" >> $GITHUB_STEP_SUMMARY
+          echo "| Inline | ✅ Enabled | Embedded in image |" >> $GITHUB_STEP_SUMMARY
+          echo "| Local | ✅ Tested | Best for self-hosted runners |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-build-performance-logs
+          path: |
+            build.log
+            build-local.log
