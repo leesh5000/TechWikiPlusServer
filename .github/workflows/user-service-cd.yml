@@ -159,8 +159,6 @@ jobs:
 
           # Debug information (sanitized)
           echo "### Debug Information:" >> $GITHUB_STEP_SUMMARY
-          echo "- Host length: ${#EC2_HOST}" >> $GITHUB_STEP_SUMMARY
-          echo "- Username length: ${#EC2_USERNAME}" >> $GITHUB_STEP_SUMMARY
           echo "- SSH key first line: $(echo "${{ secrets.EC2_SSH_KEY }}" | head -n 1)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 

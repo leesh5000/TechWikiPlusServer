@@ -413,6 +413,15 @@ print_info "Docker disk usage after cleanup: $AFTER_DISK"
 # Step 6: Verify container status
 print_step "6" "Verifying container status"
 
+print_info "Waiting 30 seconds for containers to initialize..."
+
+# Show countdown
+for i in {30..1}; do
+    echo -ne "\r${BLUE}Waiting: $i seconds remaining...${NC}"
+    sleep 1
+done
+echo -e "\r${GREEN}Wait complete!                       ${NC}"
+
 print_info "Checking container health..."
 
 # Get all containers from the compose project
