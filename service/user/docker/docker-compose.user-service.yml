@@ -28,7 +28,7 @@ services:
 
     # 빌드된 이미지 태그
     # CI/CD에서는 이 값을 ${IMAGE_TAG} 등으로 동적 변경 가능
-    image: ${DOCKER_REGISTRY}:${IMAGE_TAG:-latest}
+    image: ${DOCKER_REGISTRY}:${IMAGE_TAG}
     # 컨테이너 재시작 정책
     # unless-stopped: 수동으로 중지하지 않는 한 항상 재시작
     restart: unless-stopped

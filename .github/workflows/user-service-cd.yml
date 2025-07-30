@@ -108,6 +108,31 @@ jobs:
 
           echo "" >> $GITHUB_STEP_SUMMARY
 
+      - name: Create .env.tag file
+        id: create_env_tag
+        run: |
+          echo "## 📝 Creating .env.tag file" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create .env.tag file with IMAGE_TAG
+          echo "IMAGE_TAG=${{ steps.version.outputs.image_tag }}" > .env.tag
+          
+          echo "**Created .env.tag with content:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat .env.tag >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Also output to workflow logs
+          echo "::notice title=.env.tag Created::IMAGE_TAG=${{ steps.version.outputs.image_tag }}"
+
+      - name: Upload .env.tag artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: env-tag-file
+          path: .env.tag
+          retention-days: 1
+
   validate-infrastructure:
     runs-on: ubuntu-latest
     name: Validate Infrastructure
@@ -266,6 +291,12 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Download .env.tag artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: env-tag-file
+          path: ./
+
       - name: Create deployment directory on EC2
         id: create_dir
         run: |
@@ -308,21 +339,32 @@ jobs:
             }
           echo "✅ docker-compose.base.yml transferred" >> $GITHUB_STEP_SUMMARY
 
-          # Transfer docker-compose.prod.yml
-          echo "Transferring docker-compose.prod.yml..." >> $GITHUB_STEP_SUMMARY
+          # Transfer docker-compose.user-service.yml
+          echo "Transferring docker-compose.user-service.yml..." >> $GITHUB_STEP_SUMMARY
           scp -o StrictHostKeyChecking=no \
-            service/user/docker/docker-compose.prod.yml \
+            service/user/docker/docker-compose.user-service.yml \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
-              echo "❌ Failed to transfer docker-compose.prod.yml" >> $GITHUB_STEP_SUMMARY
+              echo "❌ Failed to transfer docker-compose.user-service.yml" >> $GITHUB_STEP_SUMMARY
               exit 1
             }
-          echo "✅ docker-compose.prod.yml transferred" >> $GITHUB_STEP_SUMMARY
+          echo "✅ docker-compose.user-service.yml transferred" >> $GITHUB_STEP_SUMMARY
+
+          # Transfer .env.tag
+          echo "Transferring .env.tag..." >> $GITHUB_STEP_SUMMARY
+          scp -o StrictHostKeyChecking=no \
+            .env.tag \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
+              echo "❌ Failed to transfer .env.tag" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
+          echo "✅ .env.tag transferred" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### 📋 Files transferred successfully:" >> $GITHUB_STEP_SUMMARY
           echo "- deploy.sh" >> $GITHUB_STEP_SUMMARY
           echo "- docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
-          echo "- docker-compose.prod.yml" >> $GITHUB_STEP_SUMMARY
+          echo "- docker-compose.user-service.yml" >> $GITHUB_STEP_SUMMARY
+          echo "- .env.tag" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Make deploy.sh executable
@@ -344,9 +386,9 @@ jobs:
 
           # Display deployment configuration
           echo "### Deployment Configuration:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Docker Registry:** \`${{ secrets.ECR_REGISTRY }}/techwikiplus/server/user-service\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Registry:** \`${{ secrets.ECR_REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Image Tag:** \`${{ needs.prepare-deployment.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Full Image:** \`${{ secrets.ECR_REGISTRY }}/techwikiplus/server/user-service:${{ needs.prepare-deployment.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Full Image:** \`${{ secrets.ECR_REGISTRY }}:${{ needs.prepare-deployment.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Create a deployment log file
@@ -358,9 +400,8 @@ jobs:
             "cd ${{ secrets.EC2_DEPLOY_PATH }} && \
              export AWS_REGION=${{ secrets.AWS_REGION }} && \
              export ECR_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
-             export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}/techwikiplus/server/user-service && \
-             export IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }} && \
-             echo \"Deployment started with IMAGE_TAG: \$IMAGE_TAG\" && \
+             export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
+             echo \"Deployment started (IMAGE_TAG will be loaded from .env.tag)\" && \
              ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
 
           DEPLOY_EXIT_CODE=${PIPESTATUS[0]}

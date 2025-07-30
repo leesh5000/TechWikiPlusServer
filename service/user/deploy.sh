@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 # Configuration
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/health}"
 HEALTH_CHECK_TIMEOUT=30
-DOCKER_COMPOSE_CMD="IMAGE_TAG=$IMAGE_TAG docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml"
+DOCKER_COMPOSE_CMD="docker-compose --env-file .env.tag --env-file .env --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml"
 DEPLOYMENT_HISTORY_FILE="deployments.json"
 MAX_HISTORY_ENTRIES=10
 
@@ -284,9 +284,10 @@ print_step "3" "Checking required configuration files"
 
 REQUIRED_FILES=(
     "docker-compose.base.yml"
-    "docker-compose.prod.yml"
+    "docker-compose.user-service.yml"
     ".env"
-    ".env.prod"
+    ".env.user-service"
+    ".env.tag"
 )
 
 ALL_FILES_EXIST=true
@@ -304,9 +305,10 @@ if [ "$ALL_FILES_EXIST" = false ]; then
     print_error "Some required files are missing!"
     echo "Please ensure all required files are present in the current directory:"
     echo "  - docker-compose.base.yml: Base Docker Compose configuration"
-    echo "  - docker-compose.prod.yml: Production-specific overrides"
+    echo "  - docker-compose.user-service.yml: User service specific configuration"
     echo "  - .env: Base environment variables"
-    echo "  - .env.prod: Production environment variables"
+    echo "  - .env.user-service: User service specific environment variables"
+    echo "  - .env.tag: Docker image tag (created by CD pipeline)"
     exit 1
 fi
 
