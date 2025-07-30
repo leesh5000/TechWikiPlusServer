@@ -1,0 +1,257 @@
+name: User Service CD
+
+on:
+  workflow_run:
+    workflows: ["User Service CI"]
+    branches: [main]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      deploy_message:
+        description: 'Deployment message'
+        required: false
+        default: 'Manual deployment triggered'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to EC2
+    environment: AWS
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate deployment info
+        id: deploy_info
+        run: |
+          echo "## 🚀 Deployment Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Deployment trigger info
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "**Trigger:** Manual deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Message:** ${{ github.event.inputs.deploy_message }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Trigger:** Automated deployment after CI success" >> $GITHUB_STEP_SUMMARY
+            echo "**CI Run:** [#${{ github.event.workflow_run.id }}](${{ github.event.workflow_run.html_url }})" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "**Branch:** main" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup SSH key
+        run: |
+          echo "## 🔐 Setting up SSH connection" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create SSH directory
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          
+          # Write SSH private key
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Add EC2 host to known hosts to avoid SSH prompt
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || {
+            echo "⚠️ Warning: Failed to add host to known_hosts" >> $GITHUB_STEP_SUMMARY
+          }
+          
+          echo "✅ SSH key configured" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Test SSH connection
+        id: test_ssh
+        run: |
+          echo "## 🔗 Testing SSH connection" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Test SSH connection
+          if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "echo 'SSH connection successful' && uname -a"; then
+            echo "✅ Successfully connected to EC2 instance" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Failed to connect to EC2 instance" >> $GITHUB_STEP_SUMMARY
+            echo "Please check:" >> $GITHUB_STEP_SUMMARY
+            echo "- EC2_HOST is correct" >> $GITHUB_STEP_SUMMARY
+            echo "- EC2_USERNAME is correct" >> $GITHUB_STEP_SUMMARY
+            echo "- EC2_SSH_KEY is valid" >> $GITHUB_STEP_SUMMARY
+            echo "- EC2 security group allows SSH from GitHub Actions" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create deployment directory on EC2
+        id: create_dir
+        run: |
+          echo "## 📁 Preparing deployment directory" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "mkdir -p ${{ secrets.EC2_DEPLOY_PATH }}" || {
+              echo "❌ Failed to create deployment directory" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
+          
+          echo "✅ Deployment directory ready: ${{ secrets.EC2_DEPLOY_PATH }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check Docker installation on EC2
+        run: |
+          echo "## 🐳 Checking Docker installation on EC2" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          DOCKER_CHECK=$(ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "command -v docker >/dev/null 2>&1 && echo 'installed' || echo 'not-installed'")
+          
+          if [ "$DOCKER_CHECK" = "installed" ]; then
+            DOCKER_VERSION=$(ssh -o StrictHostKeyChecking=no \
+              ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+              "docker --version")
+            echo "✅ Docker is installed: $DOCKER_VERSION" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Docker is not installed on EC2" >> $GITHUB_STEP_SUMMARY
+            echo "The deployment script will check and provide installation instructions" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Transfer deployment files
+        id: transfer_files
+        run: |
+          echo "## 📤 Transferring deployment files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Transfer deploy.sh
+          echo "Transferring deploy.sh..." >> $GITHUB_STEP_SUMMARY
+          scp -o StrictHostKeyChecking=no \
+            service/user/deploy.sh \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
+              echo "❌ Failed to transfer deploy.sh" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
+          echo "✅ deploy.sh transferred" >> $GITHUB_STEP_SUMMARY
+          
+          # Transfer docker-compose.base.yml
+          echo "Transferring docker-compose.base.yml..." >> $GITHUB_STEP_SUMMARY
+          scp -o StrictHostKeyChecking=no \
+            service/user/docker/docker-compose.base.yml \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
+              echo "❌ Failed to transfer docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
+          echo "✅ docker-compose.base.yml transferred" >> $GITHUB_STEP_SUMMARY
+          
+          # Transfer docker-compose.prod.yml
+          echo "Transferring docker-compose.prod.yml..." >> $GITHUB_STEP_SUMMARY
+          scp -o StrictHostKeyChecking=no \
+            service/user/docker/docker-compose.prod.yml \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/ || {
+              echo "❌ Failed to transfer docker-compose.prod.yml" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
+          echo "✅ docker-compose.prod.yml transferred" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 📋 Files transferred successfully:" >> $GITHUB_STEP_SUMMARY
+          echo "- deploy.sh" >> $GITHUB_STEP_SUMMARY
+          echo "- docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
+          echo "- docker-compose.prod.yml" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Make deploy.sh executable
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "cd ${{ secrets.EC2_DEPLOY_PATH }} && chmod +x deploy.sh"
+          
+          echo "✅ deploy.sh is now executable" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Execute deployment script
+        id: execute_deploy
+        run: |
+          echo "## 🚀 Executing deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Running deploy.sh on EC2..." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create a deployment log file
+          DEPLOY_LOG="deploy_$(date +%Y%m%d_%H%M%S).log"
+          
+          # Execute deployment script and capture output
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "cd ${{ secrets.EC2_DEPLOY_PATH }} && \
+             export AWS_REGION=${{ secrets.AWS_REGION }} && \
+             export ECR_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
+             export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service && \
+             ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
+          
+          DEPLOY_EXIT_CODE=${PIPESTATUS[0]}
+          
+          # Check deployment result
+          if [ $DEPLOY_EXIT_CODE -eq 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ Deployment failed with exit code: $DEPLOY_EXIT_CODE" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please check the deployment logs above for details." >> $GITHUB_STEP_SUMMARY
+            exit $DEPLOY_EXIT_CODE
+          fi
+
+      - name: Verify deployment
+        if: success()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 Post-deployment verification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check running containers
+          echo "### Running containers:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "cd ${{ secrets.EC2_DEPLOY_PATH }} && docker-compose ps" >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload deployment logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-logs
+          path: |
+            deployment_output.log
+
+      - name: Final summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "### ✅ Deployment Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The User Service has been successfully deployed to production!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Deployment Status: FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The deployment encountered issues. Please check the logs and try again." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment artifacts:** Check the uploaded deployment logs for detailed information." >> $GITHUB_STEP_SUMMARY
