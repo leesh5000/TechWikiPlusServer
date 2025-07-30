@@ -1,0 +1,107 @@
+name: User Service CD (Alternative - AWS Systems Manager)
+
+on:
+  workflow_run:
+    workflows: ["User Service CI"]
+    branches: [main]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  deploy-via-ssm:
+    runs-on: ubuntu-latest
+    name: Deploy via AWS Systems Manager
+    environment: AWS
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy using SSM Run Command
+        run: |
+          # Send deployment command to EC2 instance via SSM
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd ${{ secrets.EC2_DEPLOY_PATH }}",
+              "aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}",
+              "docker-compose pull",
+              "docker-compose up -d",
+              "docker system prune -f"
+            ]' \
+            --output text --query "Command.CommandId")
+          
+          echo "Command ID: $COMMAND_ID"
+          
+          # Wait for command to complete
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+          
+          # Get command output
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+
+  deploy-via-codedeploy:
+    runs-on: ubuntu-latest
+    name: Deploy via AWS CodeDeploy
+    environment: AWS
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create deployment package
+        run: |
+          # Create appspec.yml for CodeDeploy
+          cat > appspec.yml << 'EOF'
+          version: 0.0
+          os: linux
+          files:
+            - source: service/user/deploy.sh
+              destination: /home/ubuntu/app
+            - source: service/user/docker/
+              destination: /home/ubuntu/app
+          permissions:
+            - object: /home/ubuntu/app/deploy.sh
+              mode: 755
+          hooks:
+            ApplicationStart:
+              - location: deploy.sh
+                timeout: 300
+                runas: ubuntu
+          EOF
+          
+          # Create deployment archive
+          zip -r deployment.zip appspec.yml service/
+
+      - name: Upload to S3
+        run: |
+          BUCKET_NAME="${{ secrets.CODEDEPLOY_BUCKET }}"
+          KEY="deployments/user-service/${GITHUB_SHA}.zip"
+          
+          aws s3 cp deployment.zip s3://${BUCKET_NAME}/${KEY}
+
+      - name: Create CodeDeploy deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name "${{ secrets.CODEDEPLOY_APP_NAME }}" \
+            --deployment-group-name "${{ secrets.CODEDEPLOY_GROUP_NAME }}" \
+            --s3-location bucket=${{ secrets.CODEDEPLOY_BUCKET }},key=deployments/user-service/${GITHUB_SHA}.zip,bundleType=zip \
+            --description "Deployment from GitHub Actions - ${GITHUB_SHA}"

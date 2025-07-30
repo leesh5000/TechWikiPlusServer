@@ -73,18 +73,59 @@ jobs:
           echo "## 🔗 Testing SSH connection" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Test SSH connection
-          if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+          # Debug information (sanitized)
+          echo "### Debug Information:" >> $GITHUB_STEP_SUMMARY
+          echo "- Host length: ${#EC2_HOST}" >> $GITHUB_STEP_SUMMARY
+          echo "- Username length: ${#EC2_USERNAME}" >> $GITHUB_STEP_SUMMARY
+          echo "- SSH key first line: $(echo "${{ secrets.EC2_SSH_KEY }}" | head -n 1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Test network connectivity first
+          echo "### Network connectivity test:" >> $GITHUB_STEP_SUMMARY
+          if ping -c 1 -W 5 ${{ secrets.EC2_HOST }} > /dev/null 2>&1; then
+            echo "✅ Host is reachable via ping" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Host is not reachable via ping (this might be normal if ICMP is blocked)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Test SSH port specifically
+          if nc -zv -w 10 ${{ secrets.EC2_HOST }} 22 2>&1 | grep -q "succeeded"; then
+            echo "✅ Port 22 is open" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Port 22 appears to be closed or filtered" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Test SSH connection with verbose output
+          echo "### SSH connection test:" >> $GITHUB_STEP_SUMMARY
+          if ssh -vv -o ConnectTimeout=30 -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o LogLevel=ERROR \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "echo 'SSH connection successful' && uname -a"; then
+            "echo 'SSH connection successful' && uname -a" 2>&1; then
             echo "✅ Successfully connected to EC2 instance" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Failed to connect to EC2 instance" >> $GITHUB_STEP_SUMMARY
-            echo "Please check:" >> $GITHUB_STEP_SUMMARY
-            echo "- EC2_HOST is correct" >> $GITHUB_STEP_SUMMARY
-            echo "- EC2_USERNAME is correct" >> $GITHUB_STEP_SUMMARY
-            echo "- EC2_SSH_KEY is valid" >> $GITHUB_STEP_SUMMARY
-            echo "- EC2 security group allows SSH from GitHub Actions" >> $GITHUB_STEP_SUMMARY
+            SSH_EXIT_CODE=$?
+            echo "❌ Failed to connect to EC2 instance (Exit code: $SSH_EXIT_CODE)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Troubleshooting checklist:" >> $GITHUB_STEP_SUMMARY
+            echo "1. **EC2 Instance**:" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] Instance is in 'running' state" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] Instance has a public IP address" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] Instance is in a public subnet" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "2. **Security Group**:" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] Inbound rule for SSH (port 22) exists" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] Source is 0.0.0.0/0 or includes GitHub Actions IPs" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "3. **GitHub Secrets**:" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] EC2_HOST contains valid IP/hostname" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] EC2_USERNAME is correct (ubuntu/ec2-user/etc)" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] EC2_SSH_KEY contains full PEM key with headers" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "4. **Network**:" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] No Network ACL blocking port 22" >> $GITHUB_STEP_SUMMARY
+            echo "   - [ ] Route table has internet gateway route" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
           echo "" >> $GITHUB_STEP_SUMMARY

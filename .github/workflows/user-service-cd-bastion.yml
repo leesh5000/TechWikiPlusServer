@@ -1,0 +1,86 @@
+name: User Service CD (via Bastion)
+
+on:
+  workflow_run:
+    workflows: ["User Service CI"]
+    branches: [main]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  deploy-via-bastion:
+    runs-on: ubuntu-latest
+    name: Deploy via Bastion Host
+    environment: AWS
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH keys
+        run: |
+          # Setup bastion key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
+          chmod 600 ~/.ssh/bastion_key
+          
+          # Setup EC2 key
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          
+          # Configure SSH to use bastion as jump host
+          cat > ~/.ssh/config << EOF
+          Host bastion
+            HostName ${{ secrets.BASTION_HOST }}
+            User ${{ secrets.BASTION_USERNAME }}
+            IdentityFile ~/.ssh/bastion_key
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          
+          Host ec2-instance
+            HostName ${{ secrets.EC2_PRIVATE_IP }}
+            User ${{ secrets.EC2_USERNAME }}
+            IdentityFile ~/.ssh/ec2_key
+            ProxyJump bastion
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Test connection through bastion
+        run: |
+          echo "Testing connection to EC2 via bastion..."
+          ssh ec2-instance "echo 'Connection successful' && hostname"
+
+      - name: Transfer files through bastion
+        run: |
+          # Create deployment package
+          tar -czf deployment.tar.gz \
+            service/user/deploy.sh \
+            service/user/docker/docker-compose.base.yml \
+            service/user/docker/docker-compose.prod.yml
+          
+          # Transfer through bastion
+          scp deployment.tar.gz ec2-instance:~/
+          
+          # Extract on target
+          ssh ec2-instance "
+            mkdir -p ${{ secrets.EC2_DEPLOY_PATH }}
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            tar -xzf ~/deployment.tar.gz
+            rm ~/deployment.tar.gz
+          "
+
+      - name: Execute deployment
+        run: |
+          ssh ec2-instance "
+            cd ${{ secrets.EC2_DEPLOY_PATH }}
+            chmod +x service/user/deploy.sh
+            
+            export AWS_REGION=${{ secrets.AWS_REGION }}
+            export ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
+            export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service
+            
+            ./service/user/deploy.sh
+          "
