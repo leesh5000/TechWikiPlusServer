@@ -14,7 +14,6 @@ NC='\033[0m' # No Color
 
 # Configuration
 HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-http://localhost:9000/health}"
-HEALTH_CHECK_TIMEOUT=30
 DOCKER_COMPOSE_CMD="docker-compose --env-file .env.tag --env-file .env.base --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml"
 DEPLOYMENT_HISTORY_FILE="deployments.json"
 MAX_HISTORY_ENTRIES=10
@@ -79,7 +78,8 @@ save_deployment_history() {
     local version=$1
     local status=$2
     local commit_sha=${COMMIT_SHA:-"unknown"}
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     # Initialize history file if it doesn't exist
     if [ ! -f "$DEPLOYMENT_HISTORY_FILE" ]; then
@@ -87,7 +87,8 @@ save_deployment_history() {
     fi
 
     # Create new entry
-    local new_entry=$(jq -n \
+    local new_entry
+    new_entry=$(jq -n \
         --arg v "$version" \
         --arg s "$status" \
         --arg c "$commit_sha" \
@@ -533,32 +534,32 @@ if [ "$ALL_HEALTHY" = true ] && [ "$HTTP_STATUS" = "200" ]; then
     echo -e "\n${GREEN}All systems are operational.${NC}"
     save_deployment_history "$IMAGE_TAG" "success"
     print_info "Deployment history saved (version: $IMAGE_TAG)"
-    
+
     echo -e "\n${BLUE}Useful commands:${NC}"
     echo "  - View logs: $DOCKER_COMPOSE_CMD logs -f"
     echo "  - Stop services: $DOCKER_COMPOSE_CMD down"
     echo "  - Restart services: $DOCKER_COMPOSE_CMD restart"
     echo "  - Check status: $DOCKER_COMPOSE_CMD ps"
-    
+
     exit 0
 else
     print_error "Deployment failed with errors"
     echo -e "\n${RED}Deployment did not complete successfully.${NC}"
     save_deployment_history "$IMAGE_TAG" "failed"
-    
+
     if [ "$ALL_HEALTHY" = false ]; then
         echo -e "${RED}Container health check failed for: ${UNHEALTHY_CONTAINERS[*]}${NC}"
     fi
-    
+
     if [ "$HTTP_STATUS" != "200" ]; then
         echo -e "${RED}Application health check failed (HTTP status: ${HTTP_STATUS:-N/A})${NC}"
     fi
-    
+
     echo -e "\n${BLUE}Debug commands:${NC}"
     echo "  - View logs: $DOCKER_COMPOSE_CMD logs -f"
     echo "  - Check specific service: $DOCKER_COMPOSE_CMD logs <service-name>"
     echo "  - Check container status: $DOCKER_COMPOSE_CMD ps"
     echo "  - Rollback to previous version: ./deploy.sh --rollback"
-    
+
     exit 1
 fi
