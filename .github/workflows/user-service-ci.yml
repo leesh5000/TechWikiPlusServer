@@ -1,5 +1,10 @@
 name: User Service CI
 
+# Updated 2025-07-30: Upgraded gradle/actions/setup-gradle from v3 to v4
+# to resolve GitHub Actions cache service migration issues.
+# Removed deprecated cache-encryption-key and gradle-home-cache-strict-match options.
+# Added enhanced debugging for build failures.
+
 on:
   push:
     branches: [ main ]
@@ -20,7 +25,8 @@ on:
 
 env:
   JAVA_VERSION: '21'
-  GRADLE_VERSION: '8.14.2'  # Match gradle-wrapper.properties version
+  GRADLE_VERSION: '8.14.2'  # Must match gradle-wrapper.properties version
+  # Using gradle/actions/setup-gradle@v4 for GitHub Actions cache service compatibility (2025)
 
 jobs:
   ci:
@@ -40,24 +46,32 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           gradle-home-cache-cleanup: true
-          gradle-home-cache-strict-match: false
         continue-on-error: true  # Continue if cache fails
       
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
           echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          echo "This is expected during GitHub Actions cache service migration (2025)"
           mkdir -p ~/.gradle/caches
           mkdir -p ~/.gradle/wrapper
+          # Clear any potentially corrupted cache files
+          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: Verify Gradle Setup
+        run: |
+          echo "Gradle Version: $(./gradlew --version | grep "Gradle" | head -1)"
+          echo "Java Version: $(java --version | head -1)"
+          echo "Gradle Wrapper Properties:"
+          cat gradle/wrapper/gradle-wrapper.properties | grep "distributionUrl"
 
       - name: Initialize Job Summary
         run: |
@@ -83,21 +97,22 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           gradle-home-cache-cleanup: true
-          gradle-home-cache-strict-match: false
         continue-on-error: true  # Continue if cache fails
       
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
           echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          echo "This is expected during GitHub Actions cache service migration (2025)"
           mkdir -p ~/.gradle/caches
           mkdir -p ~/.gradle/wrapper
+          # Clear any potentially corrupted cache files
+          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -109,7 +124,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Run ktlint and capture output
-          ./gradlew ktlintCheck --no-daemon > ktlint-output.log 2>&1 || KTLINT_EXIT_CODE=$?
+          ./gradlew ktlintCheck --no-daemon --stacktrace --info > ktlint-output.log 2>&1 || KTLINT_EXIT_CODE=$?
           
           if [ -z "$KTLINT_EXIT_CODE" ]; then
             echo "✅ **Status:** Passed" >> $GITHUB_STEP_SUMMARY
@@ -158,21 +173,22 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           gradle-home-cache-cleanup: true
-          gradle-home-cache-strict-match: false
         continue-on-error: true  # Continue if cache fails
       
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
           echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          echo "This is expected during GitHub Actions cache service migration (2025)"
           mkdir -p ~/.gradle/caches
           mkdir -p ~/.gradle/wrapper
+          # Clear any potentially corrupted cache files
+          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -256,21 +272,22 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           gradle-home-cache-cleanup: true
-          gradle-home-cache-strict-match: false
         continue-on-error: true  # Continue if cache fails
       
       - name: Fallback Gradle Cache Setup
         if: failure()
         run: |
           echo "Primary Gradle cache setup failed, using fallback cache strategy"
+          echo "This is expected during GitHub Actions cache service migration (2025)"
           mkdir -p ~/.gradle/caches
           mkdir -p ~/.gradle/wrapper
+          # Clear any potentially corrupted cache files
+          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -282,7 +299,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Compile the application (both common and user service)
-          ./gradlew :common:snowflake:compileKotlin :service:user:compileKotlin --no-daemon --stacktrace > compile-output.log 2>&1 || COMPILE_EXIT_CODE=$?
+          ./gradlew :common:snowflake:compileKotlin :service:user:compileKotlin --no-daemon --stacktrace --info > compile-output.log 2>&1 || COMPILE_EXIT_CODE=$?
           
           if [ -z "$COMPILE_EXIT_CODE" ]; then
             echo "✅ **Status:** Compilation successful" >> $GITHUB_STEP_SUMMARY
