@@ -141,20 +141,23 @@ if [ "$ROLLBACK_MODE" = true ]; then
         print_info "Rolling back to specified version: $ROLLBACK_VERSION"
     fi
 
-    export IMAGE_TAG="$ROLLBACK_VERSION"
+    # Update .env.tag with rollback version
+    echo "IMAGE_TAG=$ROLLBACK_VERSION" > .env.tag
+    print_success "Updated .env.tag with rollback version: $ROLLBACK_VERSION"
     show_deployment_history
 else
-    # Normal deployment - validate IMAGE_TAG
+    # Normal deployment - read IMAGE_TAG from .env.tag
     echo -e "\n${PURPLE}Image Tag Configuration:${NC}"
     echo -e "${BLUE}───────────────────────────────────────────────────${NC}"
 
-    if [ -z "$IMAGE_TAG" ]; then
-        print_warning "IMAGE_TAG environment variable is not set!"
-        echo -e "${YELLOW}  → Using default tag: 'latest'${NC}"
-        export IMAGE_TAG="latest"
-    else
-        print_success "IMAGE_TAG is properly set"
+    # Read IMAGE_TAG from .env.tag file
+    if [ -f ".env.tag" ] && [ -n "$(grep '^IMAGE_TAG=' .env.tag)" ]; then
+        IMAGE_TAG=$(grep '^IMAGE_TAG=' .env.tag | cut -d'=' -f2)
+        print_success "IMAGE_TAG loaded from .env.tag"
         echo -e "${GREEN}  → Current IMAGE_TAG: ${PURPLE}${IMAGE_TAG}${NC}"
+    else
+        print_error "IMAGE_TAG not found in .env.tag file!"
+        exit 1
     fi
 
     # Display deployment type based on IMAGE_TAG pattern
@@ -320,8 +323,7 @@ print_info "Pulling latest images and starting services..."
 # Capture current images before deployment
 BEFORE_IMAGES=$(docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v "<none>")
 
-# Export IMAGE_TAG for docker-compose
-export IMAGE_TAG
+# IMAGE_TAG is already available from .env.tag via --env-file flag
 
 # Run docker-compose up
 if $DOCKER_COMPOSE_CMD up -d --build 2>&1 | tee deploy.log; then
