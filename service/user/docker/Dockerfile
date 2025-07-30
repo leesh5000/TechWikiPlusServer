@@ -9,7 +9,6 @@
 # 빌드 인자 (Build arguments)
 ARG GRADLE_VERSION=8.14.2
 ARG JDK_VERSION=21
-ARG VERSION=LOCAL_VERSION
 
 # ===== Stage 1: Dependencies caching =====
 # 의존성 다운로드를 별도 스테이지로 분리하여 캐싱 효율 극대화
@@ -42,9 +41,7 @@ RUN mkdir -p common/snowflake/src/main/kotlin service/user/src/main/kotlin
 # 재빌드 시 의존성을 다시 다운로드하지 않음
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    --mount=type=cache,target=/root/.gradle/caches \
-    --mount=type=cache,target=/workspace/.gradle \
-    gradle :service:user:dependencies --no-daemon --parallel --build-cache
+    gradle :service:user:dependencies --no-daemon --parallel
 
 # ===== Stage 2: Build application =====
 # 애플리케이션 빌드 스테이지
@@ -66,9 +63,7 @@ COPY --chown=gradle:gradle service/user /workspace/service/user
 # bootJar: Spring Boot 실행 가능한 JAR 생성
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     --mount=type=cache,target=/home/gradle/.gradle/wrapper \
-    --mount=type=cache,target=/root/.gradle/caches \
-    --mount=type=cache,target=/workspace/.gradle \
-    gradle :service:user:bootJar --no-daemon --parallel -x test --build-cache
+    gradle :service:user:bootJar --no-daemon --parallel -x test
 
 # ===== Stage 3: Runtime =====
 # 최종 실행 이미지 (최소 크기)
@@ -85,10 +80,6 @@ RUN apk add --no-cache \
 
 # 시간대 설정 (한국 표준시)
 ENV TZ=Asia/Seoul
-
-# 애플리케이션 버전 설정
-ARG VERSION
-ENV PROJECT_VERSION=${VERSION}
 
 # 애플리케이션 디렉토리 생성
 WORKDIR /app

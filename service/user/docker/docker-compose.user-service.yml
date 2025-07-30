@@ -38,6 +38,8 @@ services:
     # 환경 변수 설정
     # .env 및 .env.prod 파일에서 값을 읽어옴
     environment:
+      # 애플리케이션 설정
+      - IMAGE_TAG=${IMAGE_TAG}              # 이미지 태그 (CI/CD에서 동적 변경 가능)
       # MySQL 연결 설정
       - MYSQL_HOST=${MYSQL_HOST}            # MySQL 서버 주소
       - MYSQL_PORT=${MYSQL_PORT}            # MySQL 포트 (기본: 3306)
