@@ -290,6 +290,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     name: Build and Push Docker Image
+    environment: AWS
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
@@ -305,12 +306,45 @@ jobs:
             image=moby/buildkit:latest
             network=host
 
+      - name: Debug - Check if secrets are available
+        run: |
+          echo "Checking if AWS secrets are configured..."
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
+            echo "ERROR: AWS_ACCESS_KEY_ID secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "ERROR: AWS_SECRET_ACCESS_KEY secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.ECR_REGISTRY }}" ]; then
+            echo "ERROR: ECR_REGISTRY secret is not set"
+            exit 1
+          fi
+          echo "All required secrets are configured"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
+
+      - name: Verify AWS credentials
+        run: |
+          echo "Verifying AWS credentials configuration..."
+          aws sts get-caller-identity > aws-identity.log 2>&1 || AWS_VERIFY_EXIT_CODE=$?
+          
+          if [ -z "$AWS_VERIFY_EXIT_CODE" ]; then
+            echo "✅ AWS credentials configured successfully"
+            echo "Account info:"
+            cat aws-identity.log
+          else
+            echo "❌ Failed to verify AWS credentials"
+            echo "Error details:"
+            cat aws-identity.log
+            exit $AWS_VERIFY_EXIT_CODE
+          fi
 
       - name: Login to Amazon ECR
         id: login-ecr
