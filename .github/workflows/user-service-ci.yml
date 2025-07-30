@@ -361,9 +361,14 @@ jobs:
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
           
+          # Generate version with date/time (YYYYMMDDHHMM format)
+          VERSION=$(date +%Y%m%d%H%M)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
           # Set image tags
           echo "image_tag_latest=${{ secrets.ECR_REGISTRY }}:latest" >> $GITHUB_OUTPUT
           echo "image_tag_sha=${{ secrets.ECR_REGISTRY }}:$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "image_tag_version=${{ secrets.ECR_REGISTRY }}:$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
         id: docker-build
@@ -382,9 +387,11 @@ jobs:
             --file service/user/docker/Dockerfile \
             --tag ${{ steps.meta.outputs.image_tag_latest }} \
             --tag ${{ steps.meta.outputs.image_tag_sha }} \
+            --tag ${{ steps.meta.outputs.image_tag_version }} \
             --cache-from type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache \
             --cache-to type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg VERSION=${{ steps.meta.outputs.version }} \
             --progress=plain \
             --load \
             . > docker-build.log 2>&1 || DOCKER_BUILD_EXIT_CODE=$?
@@ -442,11 +449,26 @@ jobs:
             exit $PUSH_SHA_EXIT_CODE
           fi
           
+          # Push Version tag
+          echo "Pushing Version tag..." >> $GITHUB_STEP_SUMMARY
+          docker push ${{ steps.meta.outputs.image_tag_version }} > push-version.log 2>&1 || PUSH_VERSION_EXIT_CODE=$?
+          
+          if [ -z "$PUSH_VERSION_EXIT_CODE" ]; then
+            echo "✅ **Version tag (${{ steps.meta.outputs.version }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Version tag:** Push failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 20 push-version.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit $PUSH_VERSION_EXIT_CODE
+          fi
+          
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Image Details" >> $GITHUB_STEP_SUMMARY
           echo "- **Registry:** \`${{ secrets.ECR_REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Latest Tag:** \`latest\`" >> $GITHUB_STEP_SUMMARY
           echo "- **SHA Tag:** \`${{ steps.meta.outputs.short_sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Tag:** \`${{ steps.meta.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Full SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 

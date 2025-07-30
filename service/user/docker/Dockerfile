@@ -9,6 +9,7 @@
 # 빌드 인자 (Build arguments)
 ARG GRADLE_VERSION=8.14.2
 ARG JDK_VERSION=21
+ARG VERSION=LOCAL_VERSION
 
 # ===== Stage 1: Dependencies caching =====
 # 의존성 다운로드를 별도 스테이지로 분리하여 캐싱 효율 극대화
@@ -80,6 +81,10 @@ RUN apk add --no-cache \
 
 # 시간대 설정 (한국 표준시)
 ENV TZ=Asia/Seoul
+
+# 애플리케이션 버전 설정
+ARG VERSION
+ENV PROJECT_VERSION=${VERSION}
 
 # 애플리케이션 디렉토리 생성
 WORKDIR /app

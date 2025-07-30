@@ -3,7 +3,7 @@ server:
 spring:
   application:
     name: techwikiplus-user
-    version: ${PROJECT_VERSION:0.0.1}
+    version: ${PROJECT_VERSION:LOCAL_VERSION}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:13306}/${MYSQL_DATABASE:techwikiplus-user}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
