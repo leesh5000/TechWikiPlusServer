@@ -18,12 +18,12 @@ DOCKER_COMPOSE_CMD="docker-compose --env-file .env.tag --env-file .env.base --en
 DEPLOYMENT_HISTORY_FILE="deployments.json"
 MAX_HISTORY_ENTRIES=10
 
-# Source AWS configuration if available
-if [ -f ".env.aws" ]; then
+# Source GitHub Actions configuration if available
+if [ -f ".env.github-actions" ]; then
     set -a  # automatically export all variables
-    source .env.aws
+    source .env.github-actions
     set +a  # turn off automatic export
-    echo -e "${GREEN}✅ AWS configuration loaded from .env.aws${NC}"
+    echo -e "${GREEN}✅ GitHub Actions configuration loaded from .env.github-actions${NC}"
 fi
 
 # Parse command line arguments
@@ -301,7 +301,7 @@ print_step "3" "Checking required configuration files"
 
 REQUIRED_FILES=(
     ".env.tag"
-    ".env.aws"
+    ".env.github-actions"
     ".env.base"
     ".env.user-service"
     "docker-compose.base.yml"
@@ -327,7 +327,7 @@ if [ "$ALL_FILES_EXIST" = false ]; then
     echo "  - .env.base: Base environment variables"
     echo "  - .env.user-service: User service specific environment variables"
     echo "  - .env.tag: Docker image tag (created by CD pipeline)"
-    echo "  - .env.aws: AWS configuration (created by CD pipeline)"
+    echo "  - .env.github-actions: AWS configuration and GitHub Actions metadata (created by CD pipeline)"
     exit 1
 fi
 

@@ -36,7 +36,7 @@
 - `.env.base` - 기본 환경 변수
 - `.env.user-service` - User Service 환경 변수
 - `.env.tag` - Docker 이미지 태그 (CD 파이프라인에서 생성)
-- `.env.aws` - AWS 설정 (CD 파이프라인에서 생성)
+- `.env.github-actions` - AWS 설정 및 GitHub Actions 메타데이터 (CD 파이프라인에서 생성)
 
 ### 3. 환경 변수
 
@@ -49,13 +49,16 @@
 IMAGE_TAG=202507301230
 ```
 
-**.env.aws** (AWS 설정 포함):
+**.env.github-actions** (AWS 설정 및 GitHub Actions 메타데이터 포함):
 ```bash
-# AWS Region for ECR authentication
+# AWS Configuration for deployment
 AWS_REGION=ap-northeast-2
-
-# ECR Registry URL (includes repository path)
 ECR_REGISTRY=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/techwikiplus-user-service
+
+# GitHub Actions metadata
+COMMIT_SHA=abc123...
+GITHUB_RUN_NUMBER=123
+GITHUB_ACTOR=username
 ```
 
 #### 추가 환경 변수 (선택사항)
@@ -191,7 +194,7 @@ docker stats
 1. CI 단계 성공 후 자동 실행
 2. 배포 관련 파일 생성:
    - `.env.tag` - Docker 이미지 태그 설정
-   - `.env.aws` - AWS 지역 및 ECR 레지스트리 설정
+   - `.env.github-actions` - AWS 지역, ECR 레지스트리 및 GitHub Actions 메타데이터 설정
 3. SSH를 통해 EC2 인스턴스로 파일 전송
 4. 배포 스크립트 실행
 5. 배포 결과를 GitHub Actions에 리포트
@@ -200,12 +203,12 @@ docker stats
 ```yaml
 # EC2 접속 정보
 EC2_HOST: EC2 인스턴스 IP 또는 도메인
-EC2_USERNAME: SSH 접속 사용자명 (예: ubuntu, ec2-user)
+EC2_USERNAME: SSH 접속 사용자명
 EC2_SSH_KEY: EC2 인스턴스 SSH 프라이빗 키
 EC2_DEPLOY_PATH: 배포 디렉토리 경로
 
 # AWS 설정
-AWS_REGION: AWS 리전 (예: ap-northeast-2)
+AWS_REGION: AWS 리전
 ECR_REGISTRY: ECR 레지스트리 URL (리포지토리 경로 포함)
 ```
 

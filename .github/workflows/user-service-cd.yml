@@ -287,29 +287,39 @@ jobs:
           # Also output to workflow logs
           echo "::notice title=.env.tag Created::IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}"
 
-      - name: Create .env.aws file
+      - name: Create .env.github-actions file
         run: |
-          echo "## 🌐 Creating .env.aws file" >> $GITHUB_STEP_SUMMARY
+          echo "## 🌐 Creating .env.github-actions file" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Create .env.aws file with AWS configuration
-          cat > .env.aws << EOF
+          # Create .env.github-actions file with AWS configuration and GitHub Actions metadata
+          cat > .env.github-actions << EOF
           # AWS Configuration for deployment
           AWS_REGION=${{ secrets.AWS_REGION }}
           ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
+          
+          # GitHub Actions metadata
+          COMMIT_SHA=${{ github.sha }}
+          GITHUB_RUN_NUMBER=${{ github.run_number }}
+          GITHUB_ACTOR=${{ github.actor }}
           EOF
 
-          echo "**Created .env.aws with content:**" >> $GITHUB_STEP_SUMMARY
+          echo "**Created .env.github-actions with content:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           # Show content but mask sensitive values
           echo "# AWS Configuration for deployment" >> $GITHUB_STEP_SUMMARY
           echo "AWS_REGION=***" >> $GITHUB_STEP_SUMMARY
           echo "ECR_REGISTRY=***" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# GitHub Actions metadata" >> $GITHUB_STEP_SUMMARY
+          echo "COMMIT_SHA=${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "GITHUB_RUN_NUMBER=${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "GITHUB_ACTOR=${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Also output to workflow logs
-          echo "::notice title=.env.aws Created::AWS configuration file created successfully"
+          echo "::notice title=.env.github-actions Created::AWS configuration and GitHub Actions metadata file created successfully"
 
       - name: Create deployment directory on EC2
         id: create_dir
@@ -355,7 +365,7 @@ jobs:
           transfer_file "service/user/docker/docker-compose.base.yml"
           transfer_file "service/user/docker/docker-compose.user-service.yml"
           transfer_file ".env.tag"
-          transfer_file ".env.aws"
+          transfer_file ".env.github-actions"
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📋 Files transferred successfully:" >> $GITHUB_STEP_SUMMARY
@@ -363,7 +373,7 @@ jobs:
           echo "- docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
           echo "- docker-compose.user-service.yml" >> $GITHUB_STEP_SUMMARY
           echo "- .env.tag" >> $GITHUB_STEP_SUMMARY
-          echo "- .env.aws" >> $GITHUB_STEP_SUMMARY
+          echo "- .env.github-actions" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Make deploy.sh executable
