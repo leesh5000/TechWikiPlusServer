@@ -4,6 +4,7 @@ name: User Service CI
 # to resolve GitHub Actions cache service migration issues.
 # Removed deprecated cache-encryption-key and gradle-home-cache-strict-match options.
 # Added enhanced debugging for build failures.
+# Updated 2025-07-30: Replaced deprecated gradle-home-cache-cleanup with cache-cleanup parameter.
 
 on:
   push:
@@ -50,7 +51,7 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          gradle-home-cache-cleanup: true
+          cache-cleanup: on-success
         continue-on-error: true  # Continue if cache fails
 
       - name: Fallback Gradle Cache Setup
@@ -101,7 +102,7 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          gradle-home-cache-cleanup: true
+          cache-cleanup: on-success
         continue-on-error: true  # Continue if cache fails
 
       - name: Fallback Gradle Cache Setup
@@ -177,7 +178,7 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          gradle-home-cache-cleanup: true
+          cache-cleanup: on-success
         continue-on-error: true  # Continue if cache fails
 
       - name: Fallback Gradle Cache Setup
@@ -276,7 +277,7 @@ jobs:
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          gradle-home-cache-cleanup: true
+          cache-cleanup: on-success
         continue-on-error: true  # Continue if cache fails
 
       - name: Fallback Gradle Cache Setup
