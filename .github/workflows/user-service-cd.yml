@@ -58,16 +58,41 @@ jobs:
       - name: Load deployment version
         id: version
         run: |
+          echo "## 📦 Deployment Version Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           # For automated deployment, use CI-generated version
           if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ -f "./deployment-info/deployment-info.env" ]; then
             source ./deployment-info/deployment-info.env
             echo "image_tag=${VERSION}" >> $GITHUB_OUTPUT
-            echo "Using CI-generated version: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+            
+            # Display all version-related information
+            echo "**Deployment Type:** Automated (CI-triggered)" >> $GITHUB_STEP_SUMMARY
+            echo "**Version:** \`${VERSION}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Image Tag:** \`${IMAGE_TAG}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Commit SHA:** \`${COMMIT_SHA}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**CI Timestamp:** \`${TIMESTAMP}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Deployment Info Contents:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat ./deployment-info/deployment-info.env >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            
+            # Also output to workflow logs
+            echo "::notice title=Deployment Version::Using CI-generated version: ${VERSION}"
           else
             # For manual deployment, use latest tag
             echo "image_tag=latest" >> $GITHUB_OUTPUT
-            echo "Using latest tag for manual deployment" >> $GITHUB_STEP_SUMMARY
+            
+            echo "**Deployment Type:** Manual (workflow_dispatch)" >> $GITHUB_STEP_SUMMARY
+            echo "**Version:** \`latest\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Note:** Using latest tag for manual deployment" >> $GITHUB_STEP_SUMMARY
+            
+            # Also output to workflow logs
+            echo "::notice title=Deployment Version::Using latest tag for manual deployment"
           fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Setup SSH key
         run: |
@@ -249,6 +274,13 @@ jobs:
           echo "Running deploy.sh on EC2..." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
+          # Display deployment configuration
+          echo "### Deployment Configuration:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Registry:** \`${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** \`${{ steps.version.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Full Image:** \`${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service:${{ steps.version.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           # Create a deployment log file
           DEPLOY_LOG="deploy_$(date +%Y%m%d_%H%M%S).log"
           
@@ -260,6 +292,7 @@ jobs:
              export ECR_REGISTRY=${{ secrets.ECR_REGISTRY }} && \
              export DOCKER_REGISTRY=${{ secrets.ECR_REGISTRY }}/techwikiplus-user-service && \
              export IMAGE_TAG=${{ steps.version.outputs.image_tag }} && \
+             echo \"Deployment started with IMAGE_TAG: \$IMAGE_TAG\" && \
              ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
           
           DEPLOY_EXIT_CODE=${PIPESTATUS[0]}

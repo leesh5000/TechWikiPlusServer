@@ -71,12 +71,12 @@ save_deployment_history() {
     local status=$2
     local commit_sha=${COMMIT_SHA:-"unknown"}
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    
+
     # Initialize history file if it doesn't exist
     if [ ! -f "$DEPLOYMENT_HISTORY_FILE" ]; then
         echo "[]" > "$DEPLOYMENT_HISTORY_FILE"
     fi
-    
+
     # Create new entry
     local new_entry=$(jq -n \
         --arg v "$version" \
@@ -84,7 +84,7 @@ save_deployment_history() {
         --arg c "$commit_sha" \
         --arg t "$timestamp" \
         '{version: $v, status: $s, commit: $c, timestamp: $t}')
-    
+
     # Add to history and keep only last MAX_HISTORY_ENTRIES
     jq ". += [$new_entry] | .[-$MAX_HISTORY_ENTRIES:]" "$DEPLOYMENT_HISTORY_FILE" > "${DEPLOYMENT_HISTORY_FILE}.tmp" && \
         mv "${DEPLOYMENT_HISTORY_FILE}.tmp" "$DEPLOYMENT_HISTORY_FILE"
@@ -123,7 +123,7 @@ echo -e "${NC}"
 # Handle rollback mode
 if [ "$ROLLBACK_MODE" = true ]; then
     print_step "ROLLBACK" "Initiating rollback procedure"
-    
+
     if [ -z "$ROLLBACK_VERSION" ]; then
         # Get last successful version
         ROLLBACK_VERSION=$(get_last_successful_version)
@@ -135,7 +135,7 @@ if [ "$ROLLBACK_MODE" = true ]; then
     else
         print_info "Rolling back to specified version: $ROLLBACK_VERSION"
     fi
-    
+
     export IMAGE_TAG="$ROLLBACK_VERSION"
     show_deployment_history
 else
