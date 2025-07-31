@@ -16,5 +16,6 @@ class StaticRoutingConfiguration : WebMvcConfigurer {
         registry
             .addResourceHandler("/api-docs/**")
             .addResourceLocations("classpath:/static/api-docs/")
+            .setCachePeriod(3600) // 1시간 동안 캐시
     }
 }

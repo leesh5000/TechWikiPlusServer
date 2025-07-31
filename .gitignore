@@ -46,4 +46,4 @@ build
 
 ### User Service ###
 service/user/.env
-service/user/src/main/resources/static/api-docs/openapi3.yml
+service/user/src/main/resources/static/api-docs/
