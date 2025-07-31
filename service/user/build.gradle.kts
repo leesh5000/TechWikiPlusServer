@@ -50,16 +50,16 @@ dependencies {
 
 // OpenAPI 3.0.1 문서 생성 설정
 openapi3 {
-    val port = System.getenv("PORT") ?: "9000"
-    val host = System.getenv("HOST") ?: "localhost"
     val protocol = System.getenv("PROTOCOL") ?: "http"
+    val host = System.getenv("SERVER_HOST") ?: "localhost"
+    val port = System.getenv("SERVER_PORT") ?: "9000"
 
     // 단일 서버 설정
     setServer("$protocol://$host:$port")
 
     title = "TechWikiPlus User Service API"
     description = "User Service API Documentation"
-    version = System.getenv("VERSION") ?: "LOCAL_VERSION"
+    version = System.getenv("IMAGE_TAG") ?: "LOCAL_VERSION"
     format = "yml"
     outputDirectory = "build/api-spec"
     snippetsDirectory = "build/generated-snippets"

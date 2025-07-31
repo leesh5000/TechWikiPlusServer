@@ -40,6 +40,10 @@ services:
     environment:
       # 애플리케이션 설정
       - IMAGE_TAG=${IMAGE_TAG}              # 이미지 태그 (CI/CD에서 동적 변경 가능)
+      - PROTOCOL=${PROTOCOL}              # 프로토콜 (http 또는 https)
+      - SERVER_HOST=${SERVER_HOST}          # 애플리케이션 호스트 (기본: localhost)
+      - SERVER_PORT=${SERVER_PORT}          # 애플리케이션 포트 (기본: 9000)
+
       # MySQL 연결 설정
       - MYSQL_HOST=${MYSQL_HOST}            # MySQL 서버 주소
       - MYSQL_PORT=${MYSQL_PORT}            # MySQL 포트 (기본: 3306)
