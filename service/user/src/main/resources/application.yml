@@ -42,14 +42,13 @@ spring:
           use_jdbc_metadata_defaults: false
 
 # Springdoc OpenAPI 설정
+# REST Docs로 생성된 OpenAPI 문서를 Swagger UI로 표시
 # API 문서 접근 경로:
-# - OpenAPI JSON: http://localhost:9000/v3/api-docs
-# - OpenAPI YAML: http://localhost:9000/v3/api-docs.yaml
+# - OpenAPI YAML: http://localhost:9000/api-docs/openapi3.yml (REST Docs로 생성)
 # - Swagger UI: http://localhost:9000/swagger-ui/index.html
 springdoc:
   api-docs:
-    enabled: true
-    path: /v3/api-docs
+    enabled: true  # Swagger UI가 작동하려면 활성화 필요
   swagger-ui:
     enabled: true
-    path: /swagger-ui.html
+    url: /api-docs/openapi3.yml  # REST Docs로 생성된 OpenAPI 문서 경로 지정
