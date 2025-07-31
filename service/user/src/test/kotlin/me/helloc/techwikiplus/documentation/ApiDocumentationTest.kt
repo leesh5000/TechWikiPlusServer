@@ -4,6 +4,7 @@ import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.epages.restdocs.apispec.ResourceDocumentation
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.fasterxml.jackson.databind.ObjectMapper
+import me.helloc.techwikiplus.test.config.TestContainersInitializer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,9 +16,12 @@ import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentati
 import org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest
 import org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse
 import org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
 /**
@@ -25,10 +29,14 @@ import org.springframework.web.context.WebApplicationContext
  *
  * 이 클래스는 REST Docs와 restdocs-api-spec을 사용하여
  * API 문서를 자동으로 생성하는 테스트의 기반 클래스입니다.
+ * TestContainers를 통해 실제 DB 환경에서 문서를 생성합니다.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(RestDocumentationExtension::class)
+@ActiveProfiles("integration-test")
+@ContextConfiguration(initializers = [TestContainersInitializer::class])
+@Transactional
 abstract class ApiDocumentationTest {
     @Autowired
     protected lateinit var mockMvc: MockMvc
