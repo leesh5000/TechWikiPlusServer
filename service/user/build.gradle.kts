@@ -8,6 +8,9 @@ dependencies {
     // Spring Boot Data JPA - 데이터베이스 연동
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
+    // Spring Security - 비밀번호 암호화를 위한 BCrypt
+    implementation("org.springframework.security:spring-security-crypto")
+
     // Common modules
     implementation(project(":common:snowflake"))
 
