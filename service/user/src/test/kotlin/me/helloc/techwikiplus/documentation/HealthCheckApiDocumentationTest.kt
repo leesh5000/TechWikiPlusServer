@@ -1,6 +1,8 @@
 package me.helloc.techwikiplus.documentation
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
+import com.epages.restdocs.apispec.Schema.Companion.schema
+import me.helloc.techwikiplus.interfaces.dto.HealthCheckResponse
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.restdocs.payload.JsonFieldType
@@ -19,18 +21,18 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @TestPropertySource(
     properties = [
         "spring.application.name=techwikiplus-user",
-        "spring.application.version=1.0.0",
+        "spring.application.version=TEST_VERSION",
     ],
 )
 class HealthCheckApiDocumentationTest : ApiDocumentationTest() {
     @Test
-    fun `GET health - 서비스 상태 조회`() {
+    fun `GET health - retrieve service status`() {
         // given
         val expectedStatus = "UP"
-        val expectedVersion = "1.0.0"
+        val expectedVersion = "TEST_VERSION"
         val expectedServiceName = "techwikiplus-user"
 
-        // when & then
+        // when and then
         mockMvc.perform(
             get("/health")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -49,7 +51,7 @@ class HealthCheckApiDocumentationTest : ApiDocumentationTest() {
                         .description(
                             """
                             서비스의 현재 상태를 확인합니다.
-                            
+
                             이 엔드포인트는 로드 밸런서나 모니터링 시스템에서
                             서비스의 가용성을 확인하는 데 사용됩니다.
                             """.trimIndent(),
@@ -64,6 +66,9 @@ class HealthCheckApiDocumentationTest : ApiDocumentationTest() {
                             fieldWithPath("serviceName")
                                 .type(JsonFieldType.STRING)
                                 .description("서비스 이름"),
+                        )
+                        .responseSchema(
+                            schema(HealthCheckResponse::class.java.simpleName),
                         )
                         .build(),
                 ),
