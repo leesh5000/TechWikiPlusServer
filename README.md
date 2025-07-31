@@ -125,16 +125,16 @@ DOCKER_BUILDKIT=1 docker build -f service/user/Dockerfile -t techwikiplus-user:l
 ```bash
 # 개발 환경
 cd service/user
-docker-compose --env-file .env --env-file .env.local -f docker-compose.base.yml -f docker-compose.local.yml up -d
+docker-compose --env-file .env.base --env-file .env.local -f docker-compose.base.yml -f docker-compose.local.yml up -d
 
 # 프로덕션 환경
-docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml up -d
+docker-compose --env-file .env.base --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml up -d
 
 # 로그 확인
-docker-compose --env-file .env --env-file .env.local -f docker-compose.base.yml -f docker-compose.local.yml logs -f
+docker-compose --env-file .env.base --env-file .env.local -f docker-compose.base.yml -f docker-compose.local.yml logs -f
 
 # 중지
-docker-compose --env-file .env --env-file .env.local -f docker-compose.base.yml -f docker-compose.local.yml down
+docker-compose --env-file .env.base --env-file .env.local -f docker-compose.base.yml -f docker-compose.local.yml down
 ```
 
 ## CI/CD (GitHub Actions)
@@ -235,8 +235,8 @@ CI 파이프라인과 동일한 검사를 로컬에서 실행:
 
 ```bash
 cd service/user
-cp .env.example .env
-# .env 파일 편집
+cp .env.example .env.base
+# .env.base 파일 편집
 ```
 
 ### 주요 환경 변수

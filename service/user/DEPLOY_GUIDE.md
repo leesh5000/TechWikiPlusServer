@@ -142,10 +142,10 @@ sudo kill -9 <PID>
 ### 로그 확인
 ```bash
 # 모든 서비스 로그
-docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml logs -f
+docker-compose --env-file .env.base --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml logs -f
 
 # 특정 서비스 로그
-docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml logs -f user-service
+docker-compose --env-file .env.base --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml logs -f user-service
 ```
 
 ## 유용한 명령어
@@ -153,19 +153,19 @@ docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -
 ### 서비스 관리
 ```bash
 # 서비스 중지
-docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml down
+docker-compose --env-file .env.base --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml down
 
 # 서비스 재시작
-docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml restart
+docker-compose --env-file .env.base --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml restart
 
 # 특정 서비스만 재시작
-docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml restart user-service
+docker-compose --env-file .env.base --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml restart user-service
 ```
 
 ### 상태 확인
 ```bash
 # 컨테이너 상태
-docker-compose --env-file .env --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml ps
+docker-compose --env-file .env.base --env-file .env.prod -f docker-compose.base.yml -f docker-compose.prod.yml ps
 
 # 리소스 사용량
 docker stats
