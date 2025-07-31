@@ -16,7 +16,7 @@ spring:
       idle-timeout: 600000 # 유휴 커넥션 타임아웃 (10분)
       max-lifetime: 1800000 # 커넥션 최대 생명주기 (30분)
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
     show-sql: ${JPA_SHOW_SQL:false}  # 성능 최적화를 위해 비활성화
     hibernate:
@@ -40,3 +40,16 @@ spring:
         # 메타데이터 최적화
         temp:
           use_jdbc_metadata_defaults: false
+
+# Springdoc OpenAPI 설정
+# API 문서 접근 경로:
+# - OpenAPI JSON: http://localhost:9000/v3/api-docs
+# - OpenAPI YAML: http://localhost:9000/v3/api-docs.yaml
+# - Swagger UI: http://localhost:9000/swagger-ui/index.html
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
