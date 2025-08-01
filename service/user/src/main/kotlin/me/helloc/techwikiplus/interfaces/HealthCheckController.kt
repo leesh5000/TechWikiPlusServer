@@ -18,7 +18,6 @@ class HealthCheckController(
             status = "UP",
             version = version,
             serviceName = serviceName,
-            timestamp = System.currentTimeMillis(),
         )
     }
 }
