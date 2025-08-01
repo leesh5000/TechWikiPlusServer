@@ -590,8 +590,69 @@ jobs:
             deployment-info.env
           retention-days: 7
 
+  prepare-deployment-info:
+    needs: ci
+    runs-on: ubuntu-latest
+    name: Prepare Deployment Info for CD
+    environment: AWS
+    # Only run on merge commits to main branch
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.ci.outputs.is_merge_commit == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate deployment info for merge commit
+        id: meta
+        run: |
+          echo "## 🔄 Generating deployment info for merge commit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Generate version with date/time (YYYYMMDDHHMM format)
+          VERSION=$(date +%Y%m%d%H%M)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Extract short SHA
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          
+          echo "**Merge Commit Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- SHA: $SHORT_SHA" >> $GITHUB_STEP_SUMMARY
+          echo "- Full SHA: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This deployment info will be used by the CD pipeline to deploy the Docker image that was built during the PR." >> $GITHUB_STEP_SUMMARY
+
+      - name: Save deployment info
+        run: |
+          # For merge commits, we'll use the 'latest' tag since the image was already built during PR
+          echo "latest" > version.txt
+          echo "VERSION=latest" > deployment-info.env
+          echo "IMAGE_TAG=${{ secrets.ECR_REGISTRY }}:latest" >> deployment-info.env
+          echo "COMMIT_SHA=${{ github.sha }}" >> deployment-info.env
+          echo "TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> deployment-info.env
+          echo "MERGE_COMMIT=true" >> deployment-info.env
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📄 deployment-info.env contents:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat deployment-info.env >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Using 'latest' tag for merge commit deployment since the image was already built and pushed during the PR." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload deployment info
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-info
+          path: |
+            version.txt
+            deployment-info.env
+          retention-days: 7
+
   summary:
-    needs: [ci, linter, test, compile-check, docker-build-push]
+    needs: [ci, linter, test, compile-check, docker-build-push, prepare-deployment-info]
     if: always()
     runs-on: ubuntu-latest
     name: CI Summary
