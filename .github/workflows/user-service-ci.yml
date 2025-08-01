@@ -16,6 +16,9 @@ on:
       - 'service/user/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
       - 'gradle/wrapper/**'
       - 'gradle/libs.versions.toml'
       - '.github/workflows/user-service-ci.yml'
@@ -44,7 +47,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Need parent info to detect merge commits
+          # 전체 부모 정보를 확보해야 merge commit 탐지가 안정적입니다
+          fetch-depth: 0  # full history
 
       - name: Detect merge commit
         id: detect-merge
@@ -60,7 +64,6 @@ jobs:
           else
             echo "is_merge_commit=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
