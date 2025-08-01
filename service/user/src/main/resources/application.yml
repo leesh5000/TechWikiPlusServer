@@ -6,7 +6,7 @@ spring:
     version: ${IMAGE_TAG:LOCAL_VERSION}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:13306}/${MYSQL_DATABASE:techwikiplus-user}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
+    url: jdbc:mysql://${MYSQL_HOST:13.124.188.47}:${MYSQL_PORT:13306}/${MYSQL_DATABASE:techwikiplus-user}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
     username: ${MYSQL_USER:techwikiplus}
     password: ${MYSQL_PASSWORD:techwikiplus}
     hikari:
@@ -40,6 +40,8 @@ spring:
         # JDBC 메타데이터 접근 허용 (자동 dialect 감지를 위해 필요)
         boot:
           allow_jdbc_metadata_access: true
+        # MySQL 8.x에 최적화된 Dialect 사용
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
 # Springdoc OpenAPI 설정
 # REST Docs로 생성된 OpenAPI 문서를 Swagger UI로 표시
