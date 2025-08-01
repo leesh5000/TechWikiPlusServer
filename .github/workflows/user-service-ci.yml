@@ -5,9 +5,18 @@ name: User Service CI
 # Removed deprecated cache-encryption-key and gradle-home-cache-strict-match options.
 # Added enhanced debugging for build failures.
 # Updated 2025-07-30: Replaced deprecated gradle-home-cache-cleanup with cache-cleanup parameter.
-# Updated 2025-08-01: Removed push trigger to prevent duplicate CI runs on PR merge
+# Updated 2025-08-01: Added push trigger back with proper filtering to maintain CD pipeline
+# The push trigger is required because CD workflow depends on CI completion on main branch
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'common/**'
+      - 'service/user/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - '.github/workflows/user-service-ci.yml'
   pull_request:
     types: [ opened, synchronize, reopened ]
     paths:
@@ -78,6 +87,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     name: Code Style Check (ktlint)
+    # Skip on merge commits since PR already ran these checks
+    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'Merge pull request') }}
 
     steps:
       - name: Checkout repository
@@ -153,6 +164,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     name: Run Tests
+    # Skip on merge commits since PR already ran these checks
+    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'Merge pull request') }}
 
     steps:
       - name: Checkout repository
@@ -251,6 +264,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     name: Compile Check
+    # Skip on merge commits since PR already ran these checks
+    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'Merge pull request') }}
 
     steps:
       - name: Checkout repository
@@ -573,27 +588,35 @@ jobs:
           echo "## 📊 Overall CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Check job statuses
-          ALL_SUCCESS=true
-          if [ "${{ needs.linter.result }}" == "success" ] &&
-             [ "${{ needs.test.result }}" == "success" ] &&
-             [ "${{ needs.compile-check.result }}" == "success" ]; then
-            # Check Docker job result
-            if [ "${{ needs.docker-build-push.result }}" == "success" ] || [ "${{ needs.docker-build-push.result }}" == "skipped" ]; then
-              echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+          # Check if this is a merge commit
+          if [[ "${{ github.event.head_commit.message }}" == *"Merge pull request"* ]] && [ "${{ github.event_name }}" == "push" ]; then
+            echo "### ✅ Merge commit detected - CI run completed to trigger CD" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This is a merge commit from a PR. The actual CI checks were already performed on the PR." >> $GITHUB_STEP_SUMMARY
+            echo "This workflow run exists solely to trigger the CD pipeline." >> $GITHUB_STEP_SUMMARY
+          else
+            # Check job statuses for regular runs
+            ALL_SUCCESS=true
+            if [ "${{ needs.linter.result }}" == "success" ] &&
+               [ "${{ needs.test.result }}" == "success" ] &&
+               [ "${{ needs.compile-check.result }}" == "success" ]; then
+              # Check Docker job result
+              if [ "${{ needs.docker-build-push.result }}" == "success" ] || [ "${{ needs.docker-build-push.result }}" == "skipped" ]; then
+                echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+              else
+                ALL_SUCCESS=false
+              fi
             else
               ALL_SUCCESS=false
             fi
-          else
-            ALL_SUCCESS=false
           fi
 
-          if [ "$ALL_SUCCESS" == "false" ]; then
+          if [ "$ALL_SUCCESS" == "false" ] && [[ "${{ github.event.head_commit.message }}" != *"Merge pull request"* ]]; then
             echo "### ❌ Some CI checks failed:" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            [ "${{ needs.linter.result }}" != "success" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
-            [ "${{ needs.test.result }}" != "success" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
-            [ "${{ needs.compile-check.result }}" != "success" ] && echo "- ❌ Compile Check: ${{ needs.compile-check.result }}" >> $GITHUB_STEP_SUMMARY
+            [ "${{ needs.linter.result }}" != "success" ] && [ "${{ needs.linter.result }}" != "skipped" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
+            [ "${{ needs.test.result }}" != "success" ] && [ "${{ needs.test.result }}" != "skipped" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+            [ "${{ needs.compile-check.result }}" != "success" ] && [ "${{ needs.compile-check.result }}" != "skipped" ] && echo "- ❌ Compile Check: ${{ needs.compile-check.result }}" >> $GITHUB_STEP_SUMMARY
 
             # Show Docker status
             [ "${{ needs.docker-build-push.result }}" != "success" ] && [ "${{ needs.docker-build-push.result }}" != "skipped" ] && echo "- ❌ Docker Build & Push: ${{ needs.docker-build-push.result }}" >> $GITHUB_STEP_SUMMARY
