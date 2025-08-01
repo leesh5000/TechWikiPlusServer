@@ -167,9 +167,12 @@ On the EC2 instance, deployment logs are saved with timestamps:
 
 The CD pipeline is designed to work seamlessly with the CI pipeline:
 
-1. CI builds and tests the application
-2. CI pushes Docker images to ECR (only on main branch)
-3. CD triggers automatically after successful CI
-4. CD uses the same Docker images pushed by CI
+1. CI builds and tests the application during PR
+2. CI pushes Docker images to ECR during PR checks
+3. CD triggers automatically after PR is merged and CI completes
+4. CD uses the Docker images that were built and pushed during the PR
 
-This ensures that only tested and validated code is deployed to production.
+This ensures that:
+- Only tested and validated code is deployed to production
+- Docker images are pre-built during PR review, speeding up deployment
+- The exact same image tested in PR is deployed to production

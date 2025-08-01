@@ -5,16 +5,9 @@ name: User Service CI
 # Removed deprecated cache-encryption-key and gradle-home-cache-strict-match options.
 # Added enhanced debugging for build failures.
 # Updated 2025-07-30: Replaced deprecated gradle-home-cache-cleanup with cache-cleanup parameter.
+# Updated 2025-08-01: Removed push trigger to prevent duplicate CI runs on PR merge
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'common/**'
-      - 'service/user/**'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - '.github/workflows/user-service-ci.yml'
   pull_request:
     types: [ opened, synchronize, reopened ]
     paths:
@@ -332,7 +325,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Push Docker Image
     environment: AWS
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request'
     outputs:
       version: ${{ steps.meta.outputs.version }}
       image_tag: ${{ steps.meta.outputs.image_tag_version }}
@@ -585,15 +578,11 @@ jobs:
           if [ "${{ needs.linter.result }}" == "success" ] &&
              [ "${{ needs.test.result }}" == "success" ] &&
              [ "${{ needs.compile-check.result }}" == "success" ]; then
-            # Check Docker job only if it was supposed to run
-            if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
-              if [ "${{ needs.docker-build-push.result }}" == "success" ] || [ "${{ needs.docker-build-push.result }}" == "skipped" ]; then
-                echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
-              else
-                ALL_SUCCESS=false
-              fi
-            else
+            # Check Docker job result
+            if [ "${{ needs.docker-build-push.result }}" == "success" ] || [ "${{ needs.docker-build-push.result }}" == "skipped" ]; then
               echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+            else
+              ALL_SUCCESS=false
             fi
           else
             ALL_SUCCESS=false
@@ -606,10 +595,8 @@ jobs:
             [ "${{ needs.test.result }}" != "success" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.compile-check.result }}" != "success" ] && echo "- ❌ Compile Check: ${{ needs.compile-check.result }}" >> $GITHUB_STEP_SUMMARY
 
-            # Show Docker status only if it was supposed to run
-            if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
-              [ "${{ needs.docker-build-push.result }}" != "success" ] && [ "${{ needs.docker-build-push.result }}" != "skipped" ] && echo "- ❌ Docker Build & Push: ${{ needs.docker-build-push.result }}" >> $GITHUB_STEP_SUMMARY
-            fi
+            # Show Docker status
+            [ "${{ needs.docker-build-push.result }}" != "success" ] && [ "${{ needs.docker-build-push.result }}" != "skipped" ] && echo "- ❌ Docker Build & Push: ${{ needs.docker-build-push.result }}" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -632,10 +619,14 @@ jobs:
             | Tests | ${statusEmoji(testResult)} ${testResult} |
             | Compile Check | ${statusEmoji(compileResult)} ${compileResult} |`;
 
-            // Note: Docker build/push only runs on main branch push, not on PRs
+            // Add Docker build status to the table
+            if (dockerResult !== 'skipped') {
+              tableRows += `\n            | Docker Build & Push | ${statusEmoji(dockerResult)} ${dockerResult} |`;
+            }
+            
             const dockerNote = `
 
-            > **Note:** Docker image build and push to ECR will run automatically when this PR is merged to the main branch.`;
+            > **Note:** Docker images are built and pushed to ECR during PR checks. The images are tagged with commit SHA and timestamp.`;
 
             const comment = `## CI Results for User Service
 
