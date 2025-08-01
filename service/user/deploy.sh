@@ -229,6 +229,28 @@ echo -e "${BLUE}─────────────────────�
 # Step 1: Check Docker and Docker Compose installation
 print_step "1" "Checking Docker and Docker Compose installation"
 
+# Check for timeout command (required for preventing hangs)
+if ! command_exists timeout; then
+    print_error "timeout command is not available!"
+    echo "The timeout command is required to prevent the script from hanging."
+    echo "Please install it using:"
+    echo "  - Ubuntu/Debian: sudo apt-get install coreutils"
+    echo "  - CentOS/RHEL: sudo yum install coreutils"
+    echo "  - macOS: brew install coreutils"
+    exit 1
+fi
+
+# Check for jq command (required for JSON parsing)
+if ! command_exists jq; then
+    print_error "jq command is not available!"
+    echo "The jq command is required for parsing JSON output."
+    echo "Please install it using:"
+    echo "  - Ubuntu/Debian: sudo apt-get install jq"
+    echo "  - CentOS/RHEL: sudo yum install jq"
+    echo "  - macOS: brew install jq"
+    exit 1
+fi
+
 if command_exists docker; then
     DOCKER_VERSION=$(docker --version)
     print_success "Docker is installed: $DOCKER_VERSION"
@@ -345,29 +367,79 @@ if $DOCKER_COMPOSE_CMD up -d --build 2>&1 | tee deploy.log; then
     # Check for updated services
     print_info "Checking for updated services..."
 
-    # Get list of services that were recreated
-    RECREATED_SERVICES=$(grep -E "(Recreating|Creating)" deploy.log | awk '{print $2}' | sort | uniq)
-
-    if [ -n "$RECREATED_SERVICES" ]; then
-        echo -e "\n${GREEN}Updated/Created services:${NC}"
-        for service in $RECREATED_SERVICES; do
-            echo "  - $service"
-
-            # Try to get image info for the service
-            CONTAINER_ID=$(docker-compose ps -q $service 2>/dev/null)
-            if [ -n "$CONTAINER_ID" ]; then
-                IMAGE_INFO=$(docker inspect $CONTAINER_ID --format='{{.Config.Image}}' 2>/dev/null)
-                if [ -n "$IMAGE_INFO" ]; then
-                    echo "    Image: $IMAGE_INFO"
+    # Get list of all services from docker-compose
+    set +e  # Temporarily disable exit on error for this section
+    ALL_SERVICES=$(timeout 10s $DOCKER_COMPOSE_CMD ps --services 2>&1)
+    SERVICE_LIST_EXIT_CODE=$?
+    set -e  # Re-enable exit on error
+    
+    if [ $SERVICE_LIST_EXIT_CODE -eq 124 ]; then
+        print_warning "Timeout while retrieving service list"
+    elif [ $SERVICE_LIST_EXIT_CODE -ne 0 ]; then
+        print_warning "Failed to retrieve service list (exit code: $SERVICE_LIST_EXIT_CODE)"
+        if [ -n "$ALL_SERVICES" ]; then
+            echo "Error output: $ALL_SERVICES"
+        fi
+    elif [ -z "$ALL_SERVICES" ]; then
+        print_warning "Service list is empty"
+    else
+        echo -e "\n${GREEN}Service status:${NC}"
+        
+        # Check each service for recent updates
+        for service in $ALL_SERVICES; do
+            echo -e "\n  ${BLUE}Service: $service${NC}"
+            
+            # Get container ID for the service
+            set +e  # Temporarily disable exit on error
+            CONTAINER_ID=$(timeout 10s $DOCKER_COMPOSE_CMD ps -q "$service" 2>&1)
+            CONTAINER_ID_EXIT_CODE=$?
+            set -e  # Re-enable exit on error
+            
+            if [ $CONTAINER_ID_EXIT_CODE -eq 124 ]; then
+                print_warning "    Timeout while getting container ID for $service"
+                continue
+            elif [ $CONTAINER_ID_EXIT_CODE -ne 0 ]; then
+                print_warning "    Failed to get container ID for $service (exit code: $CONTAINER_ID_EXIT_CODE)"
+                continue
+            elif [ -z "$CONTAINER_ID" ]; then
+                print_warning "    Container ID is empty for $service"
+                continue
+            elif [[ ! "$CONTAINER_ID" =~ ^[a-f0-9]+$ ]]; then
+                print_warning "    Invalid container ID format for $service: $CONTAINER_ID"
+                continue
+            fi
+            
+            # Get container details
+            if CONTAINER_INFO=$(timeout 5s docker inspect "$CONTAINER_ID" 2>/dev/null); then
+                # Extract relevant information
+                IMAGE_NAME=$(echo "$CONTAINER_INFO" | jq -r '.[0].Config.Image' 2>/dev/null || echo "unknown")
+                CREATED_AT=$(echo "$CONTAINER_INFO" | jq -r '.[0].Created' 2>/dev/null || echo "unknown")
+                STATUS=$(echo "$CONTAINER_INFO" | jq -r '.[0].State.Status' 2>/dev/null || echo "unknown")
+                
+                echo "    Image: $IMAGE_NAME"
+                echo "    Status: $STATUS"
+                
+                # Check if container was recently created (within last 2 minutes)
+                if [ "$CREATED_AT" != "unknown" ] && command_exists date; then
+                    CREATED_TIMESTAMP=$(date -d "$CREATED_AT" +%s 2>/dev/null || echo "0")
+                    CURRENT_TIMESTAMP=$(date +%s)
+                    AGE_SECONDS=$((CURRENT_TIMESTAMP - CREATED_TIMESTAMP))
+                    
+                    if [ $AGE_SECONDS -lt 120 ]; then
+                        echo "    ${GREEN}Recently updated (${AGE_SECONDS}s ago)${NC}"
+                    else
+                        AGE_MINUTES=$((AGE_SECONDS / 60))
+                        echo "    Last updated: ${AGE_MINUTES} minutes ago"
+                    fi
                 fi
+            else
+                print_warning "    Could not inspect container"
             fi
         done
-    else
-        print_info "No services were updated (all services are up-to-date)"
     fi
 
-    # Clean up deployment log
-    rm -f deploy.log
+    # Clean up deployment log if it exists
+    [ -f deploy.log ] && rm -f deploy.log
 else
     print_error "Docker Compose deployment failed!"
     echo "Check the error messages above and the deploy.log file for details."
@@ -426,19 +498,19 @@ print_info "Checking container health..."
 ALL_HEALTHY=true
 UNHEALTHY_CONTAINERS=()
 
-# Get list of services
-SERVICES=$($DOCKER_COMPOSE_CMD ps --services 2>/dev/null)
+# Get list of services with timeout
+SERVICES=$(timeout 10s $DOCKER_COMPOSE_CMD ps --services 2>/dev/null)
 
 if [ -n "$SERVICES" ]; then
     for service in $SERVICES; do
-        CONTAINER_STATUS=$($DOCKER_COMPOSE_CMD ps $service 2>/dev/null | tail -n +2)
+        CONTAINER_STATUS=$(timeout 10s $DOCKER_COMPOSE_CMD ps "$service" 2>/dev/null | tail -n +2)
 
         if [ -n "$CONTAINER_STATUS" ]; then
             if echo "$CONTAINER_STATUS" | grep -qE "(Up|running)"; then
                 print_success "Service '$service' is running"
 
                 # Check if container has health check
-                CONTAINER_NAME=$($DOCKER_COMPOSE_CMD ps -q $service 2>/dev/null)
+                CONTAINER_NAME=$(timeout 10s $DOCKER_COMPOSE_CMD ps -q "$service" 2>/dev/null)
                 if [ -n "$CONTAINER_NAME" ]; then
                     HEALTH_STATUS=$(docker inspect $CONTAINER_NAME --format='{{.State.Health.Status}}' 2>/dev/null)
                     if [ -n "$HEALTH_STATUS" ] && [ "$HEALTH_STATUS" != "<no value>" ]; then
