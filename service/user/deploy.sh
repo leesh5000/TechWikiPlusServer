@@ -174,9 +174,12 @@ else
     fi
 
     # Display deployment type based on IMAGE_TAG pattern
-    if [[ "$IMAGE_TAG" =~ ^[0-9]{12}$ ]]; then
+    if [[ "$IMAGE_TAG" =~ ^[a-f0-9]{7}$ ]]; then
         echo -e "${BLUE}  → Deployment Type: ${GREEN}Automated CI/CD Deployment${NC}"
-        echo -e "${BLUE}  → Version Format: Timestamp (YYYYMMDDHHmm)${NC}"
+        echo -e "${BLUE}  → Version Format: Git Commit SHA (Short)${NC}"
+    elif [[ "$IMAGE_TAG" =~ ^[a-f0-9]{40}$ ]]; then
+        echo -e "${BLUE}  → Deployment Type: ${GREEN}Automated CI/CD Deployment${NC}"
+        echo -e "${BLUE}  → Version Format: Git Commit SHA (Full)${NC}"
     elif [ "$IMAGE_TAG" = "latest" ]; then
         echo -e "${BLUE}  → Deployment Type: ${YELLOW}Manual/Development Deployment${NC}"
         echo -e "${BLUE}  → Version Format: Latest available image${NC}"
@@ -323,11 +326,15 @@ print_step "3" "Checking required configuration files"
 
 REQUIRED_FILES=(
     ".env.tag"
-    ".env.github-actions"
     ".env.base"
     ".env.user-service"
     "docker-compose.base.yml"
     "docker-compose.user-service.yml"
+)
+
+# .env.github-actions is optional (only exists for automated deployments)
+OPTIONAL_FILES=(
+    ".env.github-actions"
 )
 
 ALL_FILES_EXIST=true
@@ -341,6 +348,15 @@ for file in "${REQUIRED_FILES[@]}"; do
     fi
 done
 
+# Check optional files
+for file in "${OPTIONAL_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        print_success "Found: $file (optional)"
+    else
+        print_info "Not found: $file (optional - this is OK for manual deployments)"
+    fi
+done
+
 if [ "$ALL_FILES_EXIST" = false ]; then
     print_error "Some required files are missing!"
     echo "Please ensure all required files are present in the current directory:"
@@ -348,7 +364,9 @@ if [ "$ALL_FILES_EXIST" = false ]; then
     echo "  - docker-compose.user-service.yml: User service specific configuration"
     echo "  - .env.base: Base environment variables"
     echo "  - .env.user-service: User service specific environment variables"
-    echo "  - .env.tag: Docker image tag (created by CD pipeline)"
+    echo "  - .env.tag: Docker image tag (created by CD pipeline or manually)"
+    echo ""
+    echo "Optional files:"
     echo "  - .env.github-actions: AWS configuration and GitHub Actions metadata (created by CD pipeline)"
     exit 1
 fi
