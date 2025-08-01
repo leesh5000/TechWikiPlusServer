@@ -16,6 +16,8 @@ on:
       - 'service/user/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
+      - 'gradle/wrapper/**'
+      - 'gradle/libs.versions.toml'
       - '.github/workflows/user-service-ci.yml'
   pull_request:
     types: [ opened, synchronize, reopened ]
