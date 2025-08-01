@@ -16,11 +16,10 @@ spring:
       idle-timeout: 600000 # 유휴 커넥션 타임아웃 (10분)
       max-lifetime: 1800000 # 커넥션 최대 생명주기 (30분)
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
     show-sql: ${JPA_SHOW_SQL:false}  # 성능 최적화를 위해 비활성화
     hibernate:
-      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:none}
+      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:validate}
     properties:
       hibernate:
         # 배치 처리 설정
@@ -38,5 +37,18 @@ spring:
           use_second_level_cache: false
           use_query_cache: false
         # 메타데이터 최적화
-        temp:
-          use_jdbc_metadata_defaults: false
+        # JDBC 메타데이터 접근 허용 (자동 dialect 감지를 위해 필요)
+        boot:
+          allow_jdbc_metadata_access: true
+
+# Springdoc OpenAPI 설정
+# REST Docs로 생성된 OpenAPI 문서를 Swagger UI로 표시
+# API 문서 접근 경로:
+# - OpenAPI YAML: http://localhost:9000/api-docs/openapi3.yml (REST Docs로 생성)
+# - Swagger UI: http://localhost:9000/swagger-ui/index.html
+springdoc:
+  api-docs:
+    enabled: true  # Swagger UI가 작동하려면 활성화 필요
+  swagger-ui:
+    enabled: true
+    url: /api-docs/openapi3.yml  # REST Docs로 생성된 OpenAPI 문서 경로 지정
