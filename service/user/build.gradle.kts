@@ -25,6 +25,14 @@ dependencies {
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
 
+    // Logging & Tracing
+    // Structured logging with JSON format for log aggregation
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+    // Coroutine MDC support for correlation ID propagation
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.6.0")
+    // Kotlin logging facade
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+
     // Spring Boot 테스트 지원
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     // WebTestClient를 위한 WebFlux 의존성
