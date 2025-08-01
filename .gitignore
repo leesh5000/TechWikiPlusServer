@@ -46,3 +46,7 @@ build
 
 ### User Service ###
 service/user/.env
+service/user/src/main/resources/static/api-docs/
+.env.base
+.env.user-service
+.env.mail
