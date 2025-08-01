@@ -1,11 +1,14 @@
 name: User Service CD
 
 on:
-  workflow_run:
-    workflows: ["User Service CI"]
+  pull_request:
+    types: [closed]
     branches: [main]
-    types:
-      - completed
+    paths:
+      - 'common/**'
+      - 'service/user/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
   workflow_dispatch:
     inputs:
       deploy_message:
@@ -22,7 +25,7 @@ jobs:
   prepare-deployment:
     runs-on: ubuntu-latest
     name: Prepare Deployment
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ (github.event.pull_request.merged == true && github.event.action == 'closed') || github.event_name == 'workflow_dispatch' }}
     outputs:
       image_tag: ${{ steps.version.outputs.image_tag }}
       deployment_type: ${{ steps.deployment_type.outputs.type }}
@@ -42,7 +45,7 @@ jobs:
             echo "info=Manual deployment: ${{ github.event.inputs.deploy_message }}" >> $GITHUB_OUTPUT
           else
             echo "type=automated" >> $GITHUB_OUTPUT
-            echo "info=CI Run #${{ github.event.workflow_run.id }}" >> $GITHUB_OUTPUT
+            echo "info=PR #${{ github.event.pull_request.number }} merged to main" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate deployment info
@@ -56,8 +59,8 @@ jobs:
             echo "**Trigger:** Manual deployment" >> $GITHUB_STEP_SUMMARY
             echo "**Message:** ${{ github.event.inputs.deploy_message }}" >> $GITHUB_STEP_SUMMARY
           else
-            echo "**Trigger:** Automated deployment after CI success" >> $GITHUB_STEP_SUMMARY
-            echo "**CI Run:** [#${{ github.event.workflow_run.id }}](${{ github.event.workflow_run.html_url }})" >> $GITHUB_STEP_SUMMARY
+            echo "**Trigger:** Automated deployment after PR merge" >> $GITHUB_STEP_SUMMARY
+            echo "**PR:** [#${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "**Branch:** main" >> $GITHUB_STEP_SUMMARY
@@ -65,14 +68,28 @@ jobs:
           echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-      - name: Download CI artifacts
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-info
-          path: ./deployment-info
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check PR CI status
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "## 🔍 Checking PR CI Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get the latest check runs for this PR
+          PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          echo "**PR Head SHA:** $PR_HEAD_SHA" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if all CI checks passed
+          CHECKS_PASSED=$(gh api repos/${{ github.repository }}/commits/$PR_HEAD_SHA/check-runs \
+            --jq '.check_runs[] | select(.name == "CI Pipeline" or .name == "Code Style Check (ktlint)" or .name == "Run Tests" or .name == "Compile Check") | .conclusion' \
+            | grep -v "success" || true)
+          
+          if [ -z "$CHECKS_PASSED" ]; then
+            echo "✅ All CI checks passed for this PR" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some CI checks did not pass. Deployment cancelled." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Load deployment version
         id: version
@@ -80,36 +97,21 @@ jobs:
           echo "## 📦 Deployment Version Configuration" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # For automated deployment, use CI-generated version
-          if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ -f "./deployment-info/deployment-info.env" ]; then
-            source ./deployment-info/deployment-info.env
-            echo "image_tag=${VERSION}" >> $GITHUB_OUTPUT
+          # Always use latest tag for deployments (built during PR)
+          echo "image_tag=latest" >> $GITHUB_OUTPUT
 
-            # Display all version-related information
-            echo "**Deployment Type:** Automated (CI-triggered)" >> $GITHUB_STEP_SUMMARY
-            echo "**Version:** \`${VERSION}\`" >> $GITHUB_STEP_SUMMARY
-            echo "**Image Tag:** \`${IMAGE_TAG}\`" >> $GITHUB_STEP_SUMMARY
-            echo "**Commit SHA:** \`${COMMIT_SHA}\`" >> $GITHUB_STEP_SUMMARY
-            echo "**CI Timestamp:** \`${TIMESTAMP}\`" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Deployment Info Contents:" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            cat ./deployment-info/deployment-info.env >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-            # Also output to workflow logs
-            echo "::notice title=Deployment Version::Using CI-generated version: ${VERSION}"
-          else
-            # For manual deployment, use latest tag
-            echo "image_tag=latest" >> $GITHUB_OUTPUT
-
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "**Deployment Type:** Manual (workflow_dispatch)" >> $GITHUB_STEP_SUMMARY
             echo "**Version:** \`latest\`" >> $GITHUB_STEP_SUMMARY
             echo "**Note:** Using latest tag for manual deployment" >> $GITHUB_STEP_SUMMARY
-
-            # Also output to workflow logs
-            echo "::notice title=Deployment Version::Using latest tag for manual deployment"
+          else
+            echo "**Deployment Type:** Automated (PR merge)" >> $GITHUB_STEP_SUMMARY
+            echo "**Version:** \`latest\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Note:** Using latest tag built during PR #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
           fi
+
+          # Also output to workflow logs
+          echo "::notice title=Deployment Version::Using latest tag for deployment"
 
           echo "" >> $GITHUB_STEP_SUMMARY
 

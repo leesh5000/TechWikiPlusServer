@@ -5,19 +5,10 @@ name: User Service CI
 # Removed deprecated cache-encryption-key and gradle-home-cache-strict-match options.
 # Added enhanced debugging for build failures.
 # Updated 2025-07-30: Replaced deprecated gradle-home-cache-cleanup with cache-cleanup parameter.
-# Updated 2025-08-01: Removed push trigger to prevent duplicate CI runs on PR merge
-# Updated 2025-08-01: Re-added push trigger for main branch only to enable CD workflow triggering
-# The docker-build-push job only runs on pull_request events, so no duplicate Docker builds occur
+# Updated 2025-08-01: CD now triggers on PR merge, not workflow_run
+# CI only runs during PR phase to avoid duplicate runs after merge
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'common/**'
-      - 'service/user/**'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - '.github/workflows/user-service-ci.yml'
   pull_request:
     types: [ opened, synchronize, reopened ]
     paths:
