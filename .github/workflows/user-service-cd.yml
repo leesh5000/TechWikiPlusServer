@@ -244,7 +244,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "cd ${{ secrets.EC2_DEPLOY_PATH }} && docker-compose ps" >> $GITHUB_STEP_SUMMARY
+            "cd ${{ secrets.EC2_DEPLOY_PATH }} && docker-compose --env-file .env.tag --env-file .env.base --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml ps" >> $GITHUB_STEP_SUMMARY || echo "Failed to check container status" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload deployment logs
