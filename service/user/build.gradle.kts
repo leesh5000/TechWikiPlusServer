@@ -37,6 +37,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     // WebTestClient를 위한 WebFlux 의존성
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
+    // Mockito-Kotlin for better Kotlin support
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     // TestContainers 핵심 라이브러리
     testImplementation("org.testcontainers:testcontainers")
     // JUnit5 통합을 위한 TestContainers 확장
