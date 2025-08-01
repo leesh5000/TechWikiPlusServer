@@ -37,12 +37,29 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     name: CI Pipeline
+    outputs:
+      is_merge_commit: ${{ steps.detect-merge.outputs.is_merge_commit }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2  # Need parent info to detect merge commits
+
+      - name: Detect merge commit
+        id: detect-merge
+        run: |
+          # Check if this is a merge commit by counting parents
+          if [ "${{ github.event_name }}" == "push" ]; then
+            PARENT_COUNT=$(git rev-list --parents -n1 HEAD | wc -w)
+            if [ $PARENT_COUNT -gt 2 ]; then
+              echo "is_merge_commit=true" >> $GITHUB_OUTPUT
+            else
+              echo "is_merge_commit=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "is_merge_commit=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -90,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Code Style Check (ktlint)
     # Skip on merge commits since PR already ran these checks
-    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'Merge pull request') }}
+    if: github.event_name == 'pull_request' || needs.ci.outputs.is_merge_commit != 'true'
 
     steps:
       - name: Checkout repository
@@ -167,7 +184,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Run Tests
     # Skip on merge commits since PR already ran these checks
-    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'Merge pull request') }}
+    if: github.event_name == 'pull_request' || needs.ci.outputs.is_merge_commit != 'true'
 
     steps:
       - name: Checkout repository
@@ -267,7 +284,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Compile Check
     # Skip on merge commits since PR already ran these checks
-    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'Merge pull request') }}
+    if: github.event_name == 'pull_request' || needs.ci.outputs.is_merge_commit != 'true'
 
     steps:
       - name: Checkout repository
@@ -574,7 +591,7 @@ jobs:
           retention-days: 7
 
   summary:
-    needs: [linter, test, compile-check, docker-build-push]
+    needs: [ci, linter, test, compile-check, docker-build-push]
     if: always()
     runs-on: ubuntu-latest
     name: CI Summary
@@ -585,13 +602,29 @@ jobs:
     steps:
       - name: Generate final summary
         run: |
+          # Calculate workflow duration
+          WORKFLOW_START_TIME="${{ github.event.head_commit.timestamp }}"
+          CURRENT_TIME=$(date -u +%s)
+          if [ -n "$WORKFLOW_START_TIME" ]; then
+            START_SECONDS=$(date -d "$WORKFLOW_START_TIME" +%s 2>/dev/null || echo "0")
+            if [ "$START_SECONDS" -ne "0" ]; then
+              DURATION_SECONDS=$((CURRENT_TIME - START_SECONDS))
+              DURATION_MINUTES=$((DURATION_SECONDS / 60))
+              DURATION_FORMATTED="${DURATION_MINUTES} minutes"
+            else
+              DURATION_FORMATTED="N/A"
+            fi
+          else
+            DURATION_FORMATTED="N/A"
+          fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Overall CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Check if this is a merge commit
-          if [[ "${{ github.event.head_commit.message }}" == *"Merge pull request"* ]] && [ "${{ github.event_name }}" == "push" ]; then
+          if [ "${{ needs.ci.outputs.is_merge_commit }}" == "true" ] && [ "${{ github.event_name }}" == "push" ]; then
             echo "### ✅ Merge commit detected - CI run completed to trigger CD" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "This is a merge commit from a PR. The actual CI checks were already performed on the PR." >> $GITHUB_STEP_SUMMARY
@@ -613,7 +646,7 @@ jobs:
             fi
           fi
 
-          if [ "$ALL_SUCCESS" == "false" ] && [[ "${{ github.event.head_commit.message }}" != *"Merge pull request"* ]]; then
+          if [ "$ALL_SUCCESS" == "false" ] && [ "${{ needs.ci.outputs.is_merge_commit }}" != "true" ]; then
             echo "### ❌ Some CI checks failed:" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             [ "${{ needs.linter.result }}" != "success" ] && [ "${{ needs.linter.result }}" != "skipped" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
@@ -625,7 +658,7 @@ jobs:
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total Duration:** ~${{ github.run_number }} minutes" >> $GITHUB_STEP_SUMMARY
+          echo "**Duration:** $DURATION_FORMATTED" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment PR with results
