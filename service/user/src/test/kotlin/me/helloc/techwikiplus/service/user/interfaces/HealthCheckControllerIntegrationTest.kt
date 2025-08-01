@@ -1,47 +1,51 @@
-package me.helloc.techwikiplus.documentation
+package me.helloc.techwikiplus.service.user.interfaces
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema.Companion.schema
 import me.helloc.techwikiplus.interfaces.dto.HealthCheckResponse
+import me.helloc.techwikiplus.test.BaseIntegrationTest
+import me.helloc.techwikiplus.test.annotations.IntegrationTest
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 /**
- * Health Check API 문서화 테스트
+ * HealthCheckController 통합 테스트
  *
- * 이 테스트는 Health Check API의 동작을 검증하고
- * 동시에 API 문서를 자동으로 생성합니다.
+ * - 전체 애플리케이션 컨텍스트 로드
+ * - TestContainers를 통한 실제 DB 연동
+ * - 운영 환경과 동일한 설정
+ * - End-to-End 검증
+ * - API 문서 자동 생성 (generateDocs = true)
  */
+@IntegrationTest(generateDocs = true)
 @TestPropertySource(
     properties = [
         "spring.application.name=techwikiplus-user",
-        "spring.application.version=TEST_VERSION",
+        "spring.application.version=1.0.0-INTEGRATION",
+        "api.documentation.enabled=true",
     ],
 )
-class HealthCheckApiDocumentationTest : ApiDocumentationTest() {
+class HealthCheckControllerIntegrationTest : BaseIntegrationTest() {
     @Test
-    fun `GET health - retrieve service status`() {
-        // given
-        val expectedStatus = "UP"
-        val expectedVersion = "TEST_VERSION"
-        val expectedServiceName = "techwikiplus-user"
-
-        // when and then
+    fun `GET health - should return UP status with full application context`() {
+        // when & then
         mockMvc.perform(
             get("/health")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.status").value(expectedStatus))
-            .andExpect(jsonPath("$.version").value(expectedVersion))
-            .andExpect(jsonPath("$.serviceName").value(expectedServiceName))
+            .andExpect(content().contentType("application/json"))
+            .andExpect(jsonPath("$.status").value("UP"))
+            .andExpect(jsonPath("$.version").value("1.0.0-INTEGRATION"))
+            .andExpect(jsonPath("$.serviceName").value("techwikiplus-user"))
             .andDo(
                 documentWithResource(
                     "health-check",
@@ -73,5 +77,18 @@ class HealthCheckApiDocumentationTest : ApiDocumentationTest() {
                         .build(),
                 ),
             )
+    }
+
+    @Test
+    fun `GET health - should work with database connection`() {
+        // given - DB connection is established via TestContainers
+
+        // when & then
+        mockMvc.perform(get("/health"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("UP"))
+
+        // This test verifies that the application can start with a real database
+        // and the health check endpoint works correctly
     }
 }
