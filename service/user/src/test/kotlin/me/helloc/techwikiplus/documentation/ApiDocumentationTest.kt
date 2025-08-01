@@ -38,6 +38,12 @@ import org.springframework.web.context.WebApplicationContext
 @ContextConfiguration(initializers = [TestContainersInitializer::class])
 @Transactional
 abstract class ApiDocumentationTest {
+    /**
+     * 테스트 클래스에서 필드 주입 사용 이유:
+     * - Spring 테스트 프레임워크의 제약으로 인해 테스트 클래스는 생성자 주입을 지원하지 않음
+     * - MockMvc와 같은 테스트 전용 빈은 Spring의 테스트 인프라에서 특별히 관리됨
+     * - 프로덕션 코드와 달리 테스트 코드에서는 필드 주입이 일반적이고 허용되는 패턴
+     */
     @Autowired
     protected lateinit var mockMvc: MockMvc
 

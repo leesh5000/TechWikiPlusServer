@@ -6,8 +6,9 @@ User Service의 GitHub Actions CI 파이프라인은 코드 품질을 보장하�
 ## 실행 조건
 
 ### 자동 실행
-1. **Main 브랜치 Push**: main 브랜치에 코드가 push될 때
-2. **Pull Request**: PR이 열리거나 업데이트될 때
+**Pull Request**: PR이 열리거나 업데이트될 때 (opened, synchronize, reopened)
+
+> **Note**: main 브랜치로의 직접 push는 프로젝트 정책상 금지되어 있으므로, CI는 오직 PR 이벤트에서만 실행됩니다.
 
 ### 모니터링 대상 경로
 - `common/**` - Common 모듈 변경사항
@@ -34,12 +35,20 @@ User Service의 GitHub Actions CI 파이프라인은 코드 품질을 보장하�
   - 실패한 테스트 케이스 상세 정보 표시
   - 테스트 리포트 아티팩트로 업로드
 
-### 3. Build
-- **목적**: 애플리케이션 JAR 파일 빌드
-- **실행 명령**: `./gradlew :service:user:build -x test`
-- **성공 시**: 
-  - JAR 파일을 아티팩트로 업로드 (7일 보관)
-  - 파일 크기 및 이름 표시
+### 3. Compile Check
+- **목적**: Kotlin 코드 컴파일 검증
+- **실행 명령**: `./gradlew :common:snowflake:compileKotlin :service:user:compileKotlin`
+- **실패 시 조치**:
+  - 컴파일 에러 상세 정보 표시
+  - 컴파일 로그 아티팩트로 업로드
+
+### 4. Docker Build & Push
+- **목적**: Docker 이미지 빌드 및 ECR 푸시
+- **실행 조건**: PR에서 모든 CI 검사 통과 후
+- **태그 전략**:
+  - `latest`: 최신 이미지
+  - `SHA`: 커밋 SHA 태그 (예: `a1b2c3d`)
+  - `Version`: 타임스탬프 태그 (예: `202508011430`)
 
 ## Job Summary
 각 CI 실행 시 GitHub Actions Summary에 다음 정보가 표시됩니다:
@@ -50,9 +59,12 @@ User Service의 GitHub Actions CI 파이프라인은 코드 품질을 보장하�
 
 ## Pull Request 코멘트
 PR에서는 자동으로 CI 결과가 코멘트로 추가됩니다:
-- 각 검사 항목의 성공/실패 상태
+- 각 검사 항목의 성공/실패 상태 (ktlint, 테스트, 컴파일, Docker 빌드)
+- Docker 이미지 빌드 결과 및 ECR 푸시 상태
 - 워크플로우 실행 링크
 - 커밋 해시
+
+> **Note**: Docker 이미지는 PR 단계에서 빌드되어 ECR에 푸시됩니다.
 
 ## 캐싱 전략
 - Gradle 의존성 캐시 활용
@@ -95,4 +107,5 @@ CI와 동일한 환경에서 테스트하려면:
 - [ ] 테스트 커버리지 리포트 추가
 - [ ] SonarQube 통합
 - [ ] 성능 벤치마크 추가
-- [ ] CD 파이프라인 구성
+- [x] CD 파이프라인 구성 (완료)
+- [x] CI 중복 실행 방지 (2025-08-01 완료)
