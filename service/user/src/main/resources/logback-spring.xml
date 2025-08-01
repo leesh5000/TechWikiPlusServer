@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 프로파일별 설정 -->
+    <springProfile name="default,local">
+        <!-- 콘솔 출력용 appender (개발 환경) -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{correlationId}] - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="me.helloc.techwikiplus" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="dev,staging,prod">
+        <!-- JSON 형식 출력용 appender (운영 환경) -->
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- 타임스탬프 설정 -->
+                <timeZone>Asia/Seoul</timeZone>
+                <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+                
+                <!-- 필드 이름 커스터마이징 -->
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <thread>thread_name</thread>
+                    <logger>logger_name</logger>
+                    <level>log_level</level>
+                    <levelValue>[ignore]</levelValue>
+                </fieldNames>
+                
+                <!-- MDC 필드 포함 -->
+                <includeMdcKeyName>correlationId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                
+                <!-- 추가 정적 필드 -->
+                <customFields>
+                    {
+                        "service_name": "${spring.application.name}",
+                        "service_version": "${spring.application.version}",
+                        "environment": "${spring.profiles.active}"
+                    }
+                </customFields>
+                
+                <!-- 스택 트레이스 설정 -->
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                    <maxLength>2048</maxLength>
+                    <shortenedClassNameLength>20</shortenedClassNameLength>
+                    <exclude>sun\.reflect\..*</exclude>
+                    <exclude>java\.lang\.reflect\..*</exclude>
+                    <rootCauseFirst>true</rootCauseFirst>
+                </throwableConverter>
+            </encoder>
+        </appender>
+
+        <!-- 성능을 위한 비동기 appender -->
+        <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="JSON_CONSOLE"/>
+            <queueSize>512</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+        </appender>
+
+        <logger name="me.helloc.techwikiplus" level="INFO"/>
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+        
+        <root level="INFO">
+            <appender-ref ref="ASYNC_JSON"/>
+        </root>
+    </springProfile>
+
+    <!-- 테스트 환경 설정 -->
+    <springProfile name="test,unit-test,integration-test">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{correlationId}] - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="me.helloc.techwikiplus" level="DEBUG"/>
+        <logger name="org.springframework.test" level="DEBUG"/>
+        <logger name="org.springframework.boot.test" level="DEBUG"/>
+        
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>
