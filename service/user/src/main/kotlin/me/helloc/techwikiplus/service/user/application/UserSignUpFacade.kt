@@ -1,6 +1,5 @@
 package me.helloc.techwikiplus.service.user.application
 
-import me.helloc.techwikiplus.service.user.application.usecase.UserSignUpUseCase
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
@@ -11,6 +10,7 @@ import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationC
 import me.helloc.techwikiplus.service.user.domain.service.UserPasswordService
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
 import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
+import me.helloc.techwikiplus.service.user.interfaces.usecase.UserSignUpUseCase
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -43,7 +43,7 @@ class UserSignUpFacade(
                 createdAt = auditor.generateCreateTime(),
                 modifiedAt = auditor.generateCreateTime(),
             )
-        val savedUser = writer.save(user)
+        val savedUser = writer.insert(user)
         userEmailVerificationCodeManager.sendVerifyMailTo(savedUser)
     }
 }
