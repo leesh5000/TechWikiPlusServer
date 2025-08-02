@@ -43,7 +43,7 @@ import org.springframework.web.context.WebApplicationContext
 @ActiveProfiles("integration-test")
 @ContextConfiguration(initializers = [TestContainersInitializer::class])
 @Transactional
-abstract class BaseIntegrationTest : ApiDocumentationSupport {
+abstract class BaseE2eTest : ApiDocumentationSupport {
     @Autowired
     protected lateinit var mockMvc: MockMvc
 

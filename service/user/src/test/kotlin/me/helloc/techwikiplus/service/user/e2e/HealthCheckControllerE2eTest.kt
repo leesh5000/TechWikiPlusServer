@@ -1,19 +1,17 @@
-package me.helloc.techwikiplus.service.user.interfaces
+package me.helloc.techwikiplus.service.user.e2e
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
-import com.epages.restdocs.apispec.Schema.Companion.schema
-import me.helloc.techwikiplus.service.user.config.BaseIntegrationTest
-import me.helloc.techwikiplus.service.user.config.annotations.IntegrationTest
-import me.helloc.techwikiplus.service.user.interfaces.dto.HealthCheckResponse
+import com.epages.restdocs.apispec.Schema
+import me.helloc.techwikiplus.service.user.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.interfaces.HealthCheckController
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.restdocs.payload.JsonFieldType
-import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
+import org.springframework.restdocs.payload.PayloadDocumentation
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 /**
  * HealthCheckController 통합 테스트
@@ -24,7 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
  * - End-to-End 검증
  * - API 문서 자동 생성 (generateDocs = true)
  */
-@IntegrationTest(generateDocs = true)
+@E2eTest(generateDocs = true)
 @TestPropertySource(
     properties = [
         "spring.application.name=techwikiplus-user",
@@ -32,24 +30,24 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
         "api.documentation.enabled=true",
     ],
 )
-class HealthCheckControllerIntegrationTest : BaseIntegrationTest() {
+class HealthCheckControllerE2eTest : BaseE2eTest() {
     @Test
-    fun `GET health - should return UP status with full application context`() {
+    fun `GET health - 전체 애플리케이션 컨텍스트로 UP 상태를 반환해야 한다`() {
         // when & then
         mockMvc.perform(
-            get("/health")
+            MockMvcRequestBuilders.get("/health")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
         )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType("application/json"))
-            .andExpect(jsonPath("$.status").value("UP"))
-            .andExpect(jsonPath("$.version").value("1.0.0-INTEGRATION"))
-            .andExpect(jsonPath("$.serviceName").value("techwikiplus-user"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("UP"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.version").value("1.0.0-INTEGRATION"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.serviceName").value("techwikiplus-user"))
             .andDo(
                 documentWithResource(
                     "health-check",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("Health Check")
                         .summary("서비스 상태 확인")
                         .description(
@@ -61,18 +59,18 @@ class HealthCheckControllerIntegrationTest : BaseIntegrationTest() {
                             """.trimIndent(),
                         )
                         .responseFields(
-                            fieldWithPath("status")
+                            PayloadDocumentation.fieldWithPath("status")
                                 .type(JsonFieldType.STRING)
                                 .description("서비스 상태 (UP/DOWN)"),
-                            fieldWithPath("version")
+                            PayloadDocumentation.fieldWithPath("version")
                                 .type(JsonFieldType.STRING)
                                 .description("서비스 버전"),
-                            fieldWithPath("serviceName")
+                            PayloadDocumentation.fieldWithPath("serviceName")
                                 .type(JsonFieldType.STRING)
                                 .description("서비스 이름"),
                         )
                         .responseSchema(
-                            schema(HealthCheckResponse::class.java.simpleName),
+                            Schema.Companion.schema(HealthCheckController.HealthCheckResponse::class.java.simpleName),
                         )
                         .build(),
                 ),
@@ -80,13 +78,13 @@ class HealthCheckControllerIntegrationTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `GET health - should work with database connection`() {
+    fun `GET health - 데이터베이스 연결과 함께 작동해야 한다`() {
         // given - DB connection is established via TestContainers
 
         // when & then
-        mockMvc.perform(get("/health"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.status").value("UP"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/health"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("UP"))
 
         // This test verifies that the application can start with a real database
         // and the health check endpoint works correctly
