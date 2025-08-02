@@ -1,17 +1,17 @@
 package me.helloc.techwikiplus.service.user.domain.model
 
-import me.helloc.techwikiplus.domain.model.type.UserRole
-import me.helloc.techwikiplus.domain.model.type.UserStatus
-import me.helloc.techwikiplus.domain.model.value.Email
-import me.helloc.techwikiplus.domain.model.value.Nickname
-import me.helloc.techwikiplus.domain.model.value.Password
+import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import java.time.Instant
 
 class User(
     val id: String,
     val email: Email,
     val nickname: Nickname,
-    val password: Password,
+    val encodedPassword: EncodedPassword,
     val status: UserStatus,
     val role: UserRole,
     val createdAt: Instant,
@@ -25,7 +25,7 @@ class User(
         id: String = this.id,
         email: Email = this.email,
         nickname: Nickname = this.nickname,
-        password: Password = this.password,
+        encodedPassword: EncodedPassword = this.encodedPassword,
         status: UserStatus = this.status,
         role: UserRole = this.role,
         createdAt: Instant = this.createdAt,
@@ -35,7 +35,7 @@ class User(
             id = id,
             email = email,
             nickname = nickname,
-            password = password,
+            encodedPassword = encodedPassword,
             status = status,
             role = role,
             createdAt = createdAt,
@@ -64,8 +64,8 @@ class User(
             id: String,
             email: Email,
             nickname: Nickname,
-            password: Password,
-            status: UserStatus = UserStatus.ACTIVE,
+            encodedPassword: EncodedPassword,
+            status: UserStatus = UserStatus.PENDING,
             role: UserRole = UserRole.USER,
             createdAt: Instant,
             modifiedAt: Instant = createdAt,
@@ -74,7 +74,7 @@ class User(
                 id = id,
                 email = email,
                 nickname = nickname,
-                password = password,
+                encodedPassword = encodedPassword,
                 status = status,
                 role = role,
                 createdAt = createdAt,

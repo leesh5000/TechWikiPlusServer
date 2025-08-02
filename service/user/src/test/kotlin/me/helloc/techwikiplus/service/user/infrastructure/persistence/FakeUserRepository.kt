@@ -1,62 +1,34 @@
 package me.helloc.techwikiplus.service.user.infrastructure.persistence
 
-import me.helloc.techwikiplus.domain.model.User
-import me.helloc.techwikiplus.domain.model.type.UserRole
-import me.helloc.techwikiplus.domain.model.type.UserStatus
-import me.helloc.techwikiplus.domain.model.value.Email
-import me.helloc.techwikiplus.domain.model.value.Nickname
-import me.helloc.techwikiplus.domain.model.value.Password
-import me.helloc.techwikiplus.domain.service.port.UserRepository
-import java.time.Instant
-import java.util.UUID
+import me.helloc.techwikiplus.service.user.domain.model.User
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 
 class FakeUserRepository : UserRepository {
     private val users = mutableMapOf<String, User>()
     private var simulatedError: String? = null
 
-    fun save(user: User) {
+    override fun findBy(email: Email): User? {
+        simulatedError?.let { throw RuntimeException(it) }
+        return users[email.value]
+    }
+
+    override fun exists(email: Email): Boolean {
+        simulatedError?.let { throw RuntimeException(it) }
+        return users.containsKey(email.value)
+    }
+
+    override fun save(user: User): User {
+        simulatedError?.let { throw RuntimeException(it) }
+        if (users.containsKey(user.email.value)) {
+            throw RuntimeException("User with email ${user.email.value} already exists")
+        }
         users[user.email.value] = user
-    }
-
-    fun save(
-        email: String,
-        password: String,
-        name: String,
-        status: UserStatus = UserStatus.PENDING,
-    ): User {
-        val user =
-            User(
-                id = UUID.randomUUID().toString(),
-                email = Email(email),
-                password = Password(password),
-                nickname = Nickname(name),
-                role = UserRole.USER,
-                status = status,
-                createdAt = Instant.now(),
-                modifiedAt = Instant.now(),
-            )
-        users[email] = user
         return user
-    }
-
-    fun findByEmail(email: String): User? {
-        return users[email]
     }
 
     fun clear() {
         users.clear()
-    }
-
-    fun simulateError(errorMessage: String) {
-        simulatedError = errorMessage
-    }
-
-    fun clearError() {
         simulatedError = null
-    }
-
-    override fun findByEmail(email: Email): User? {
-        simulatedError?.let { throw RuntimeException(it) }
-        return users[email.value]
     }
 }
