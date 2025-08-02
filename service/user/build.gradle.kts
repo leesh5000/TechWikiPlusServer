@@ -13,6 +13,9 @@ repositories {
 
 dependencies {
 
+    // Common modules
+    implementation(project(":common:snowflake"))
+
     // Spring Boot Web - REST API 개발
     implementation("org.springframework.boot:spring-boot-starter-web")
 
@@ -21,9 +24,6 @@ dependencies {
 
     // Spring Security - 비밀번호 암호화를 위한 BCrypt
     implementation("org.springframework.security:spring-security-crypto")
-
-    // Common modules
-    implementation(project(":common:snowflake"))
 
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
@@ -49,6 +49,12 @@ dependencies {
 
     // Swagger UI - OpenAPI 문서 시각화
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
+
+    // MailSender - 이메일 전송 기능
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+
+    // Redis - 캐시 저장소
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 }
 
 // OpenAPI 3.0.1 문서 생성 설정
