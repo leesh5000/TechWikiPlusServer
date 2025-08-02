@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.service.user.domain.service
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import me.helloc.techwikiplus.infrastructure.security.FakePasswordEncoder
+import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
 
 class UserPasswordServiceTest : FunSpec({
 

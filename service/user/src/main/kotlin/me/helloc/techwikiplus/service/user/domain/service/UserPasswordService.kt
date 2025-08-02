@@ -1,12 +1,14 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.domain.service.port.PasswordEncoder
+import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
 
 class UserPasswordService(
     private val passwordEncoder: PasswordEncoder,
 ) {
-    fun encode(rawPassword: String): String {
-        return passwordEncoder.encode(rawPassword)
+    fun encode(rawPassword: String): EncodedPassword {
+        EncodedPassword.validateRawPasswordPolicy(rawPassword)
+        return EncodedPassword(passwordEncoder.encode(rawPassword))
     }
 
     fun matches(
