@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.service.user.infrastructure.messaging
 
-import me.helloc.techwikiplus.domain.service.port.MailSender
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 
 class FakeMailSender : MailSender {
     data class SentMail(
@@ -12,11 +13,11 @@ class FakeMailSender : MailSender {
     private val sentMails = mutableListOf<SentMail>()
 
     override fun send(
-        to: String,
+        to: Email,
         subject: String,
         body: String,
     ) {
-        sentMails.add(SentMail(to, subject, body))
+        sentMails.add(SentMail(to.value, subject, body))
     }
 
     fun getSentMails(): List<SentMail> = sentMails.toList()
