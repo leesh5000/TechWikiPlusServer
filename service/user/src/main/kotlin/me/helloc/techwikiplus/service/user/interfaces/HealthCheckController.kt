@@ -1,6 +1,5 @@
 package me.helloc.techwikiplus.service.user.interfaces
 
-import me.helloc.techwikiplus.service.user.interfaces.dto.HealthCheckResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -20,4 +19,10 @@ class HealthCheckController(
             serviceName = serviceName,
         )
     }
+
+    data class HealthCheckResponse(
+        val status: String,
+        val version: String,
+        val serviceName: String,
+    )
 }
