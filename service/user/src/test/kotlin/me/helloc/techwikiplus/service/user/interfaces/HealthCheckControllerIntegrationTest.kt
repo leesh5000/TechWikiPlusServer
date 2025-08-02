@@ -2,9 +2,9 @@ package me.helloc.techwikiplus.service.user.interfaces
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema.Companion.schema
-import me.helloc.techwikiplus.interfaces.dto.HealthCheckResponse
-import me.helloc.techwikiplus.test.BaseIntegrationTest
-import me.helloc.techwikiplus.test.annotations.IntegrationTest
+import me.helloc.techwikiplus.service.user.config.BaseIntegrationTest
+import me.helloc.techwikiplus.service.user.config.annotations.IntegrationTest
+import me.helloc.techwikiplus.service.user.interfaces.dto.HealthCheckResponse
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.restdocs.payload.JsonFieldType

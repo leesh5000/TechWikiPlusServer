@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.interfaces
 
-import me.helloc.techwikiplus.test.BaseUnitTest
+import me.helloc.techwikiplus.service.user.config.BaseUnitTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
