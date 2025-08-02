@@ -1,12 +1,17 @@
 package me.helloc.techwikiplus.service.user.infrastructure.di.spring
 
-import me.helloc.techwikiplus.domain.service.UserAuthenticationService
-import me.helloc.techwikiplus.domain.service.UserPasswordService
-import me.helloc.techwikiplus.domain.service.UserReader
-import me.helloc.techwikiplus.domain.service.VerificationCodeMailSender
-import me.helloc.techwikiplus.domain.service.port.MailSender
-import me.helloc.techwikiplus.domain.service.port.PasswordEncoder
-import me.helloc.techwikiplus.domain.service.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.Auditor
+import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVerifier
+import me.helloc.techwikiplus.service.user.domain.service.UserAuthenticator
+import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
+import me.helloc.techwikiplus.service.user.domain.service.UserPasswordService
+import me.helloc.techwikiplus.service.user.domain.service.UserReader
+import me.helloc.techwikiplus.service.user.domain.service.UserWriter
+import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
+import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -18,6 +23,10 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class DomainServiceBeanConfiguration {
+    @Bean
+    fun userWriter(userRepository: UserRepository): UserWriter {
+        return UserWriter(userRepository)
+    }
 
     @Bean
     fun userReader(userRepository: UserRepository): UserReader {
@@ -33,12 +42,25 @@ class DomainServiceBeanConfiguration {
     fun userAuthenticationService(
         userRepository: UserRepository,
         userPasswordService: UserPasswordService,
-    ): UserAuthenticationService {
-        return UserAuthenticationService(userRepository, userPasswordService)
+    ): UserAuthenticator {
+        return UserAuthenticator(userRepository, userPasswordService)
     }
 
     @Bean
-    fun verificationCodeMailSender(mailSender: MailSender): VerificationCodeMailSender {
-        return VerificationCodeMailSender(mailSender)
+    fun auditor(clockHolder: ClockHolder): Auditor {
+        return Auditor(clockHolder)
+    }
+
+    @Bean
+    fun emailVerificationCodeSender(
+        mailSender: MailSender,
+        codeStore: VerificationCodeStore,
+    ): UserEmailVerificationCodeManager {
+        return UserEmailVerificationCodeManager(mailSender, codeStore)
+    }
+
+    @Bean
+    fun passwordConfirmationVerifier(): PasswordConfirmationVerifier {
+        return PasswordConfirmationVerifier()
     }
 }

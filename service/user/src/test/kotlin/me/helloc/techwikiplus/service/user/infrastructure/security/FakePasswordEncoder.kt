@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.infrastructure.security
 
-import me.helloc.techwikiplus.domain.service.port.PasswordEncoder
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
 
 // Fake implementation of PasswordEncoder for testing
 class FakePasswordEncoder : PasswordEncoder {
