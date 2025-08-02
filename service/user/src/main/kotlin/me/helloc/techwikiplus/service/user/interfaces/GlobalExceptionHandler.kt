@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.interfaces.exception
+package me.helloc.techwikiplus.service.user.interfaces
 
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
