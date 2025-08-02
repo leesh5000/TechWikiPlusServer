@@ -8,12 +8,11 @@ interface UserSignUpUseCase {
      * @param password 사용자의 비밀번호
      * @param confirmPassword 비밀번호 확인용 문자열
      * @param nickname 사용자의 닉네임
-     * @return 회원가입 성공 여부
      */
     fun signup(
         email: String,
         password: String,
         confirmPassword: String,
         nickname: String,
-    ): Boolean
+    )
 }
