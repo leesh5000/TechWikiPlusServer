@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.application.usecase
+package me.helloc.techwikiplus.service.user.interfaces.usecase
 
 interface UserSignUpUseCase {
     /**
