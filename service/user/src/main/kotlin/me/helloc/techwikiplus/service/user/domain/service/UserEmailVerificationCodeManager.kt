@@ -19,7 +19,7 @@ class UserEmailVerificationCodeManager(
         val key: String = EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(user.email.value)
         verificationCodeStore.set(
             key,
-            verificationCode.value,
+            verificationCode,
             EMAIL_VERIFICATION_CODE_TTL,
         )
     }

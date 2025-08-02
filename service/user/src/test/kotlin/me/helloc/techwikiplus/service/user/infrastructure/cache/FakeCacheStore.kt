@@ -1,5 +1,8 @@
 package me.helloc.techwikiplus.service.user.infrastructure.cache
 
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
+import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
 import java.time.Duration
 import java.time.Instant
@@ -10,11 +13,11 @@ class FakeCacheStore : VerificationCodeStore {
 
     override fun set(
         key: String,
-        value: String,
+        code: VerificationCode,
         ttlSeconds: Duration,
     ) {
         val expiresAt = Instant.now().plus(ttlSeconds)
-        store[key] = CacheEntry(value, expiresAt)
+        store[key] = CacheEntry(code.value, expiresAt)
     }
 
     override fun exists(key: String): Boolean {
@@ -29,8 +32,25 @@ class FakeCacheStore : VerificationCodeStore {
         return true
     }
 
-    // 테스트용 추가 메서드
-    fun get(key: String): String? {
+    override fun get(email: Email): VerificationCode {
+        val key = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email.value)
+        val entry =
+            store[key]
+                ?: throw me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException(
+                    "Verification code not found for email: ${email.value}",
+                )
+
+        if (entry.expiresAt.isBefore(Instant.now())) {
+            store.remove(key)
+            throw me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException(
+                "Verification code expired for email: ${email.value}",
+            )
+        }
+
+        return VerificationCode(entry.value)
+    }
+
+    private fun getByKey(key: String): String? {
         val entry = store[key] ?: return null
 
         if (entry.expiresAt.isBefore(Instant.now())) {
@@ -50,12 +70,12 @@ class FakeCacheStore : VerificationCodeStore {
     fun getTtl(key: String): Duration? {
         val entry = store[key] ?: return null
         val now = Instant.now()
-        
+
         if (entry.expiresAt.isBefore(now)) {
             store.remove(key)
             return null
         }
-        
+
         return Duration.between(now, entry.expiresAt)
     }
 

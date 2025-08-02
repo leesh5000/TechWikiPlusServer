@@ -12,7 +12,6 @@ import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.infrastructure.cache.FakeCacheStore
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
-import java.time.Duration
 import java.time.Instant
 
 class UserEmailVerificationCodeManagerTest : FunSpec({
@@ -29,23 +28,24 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
 
     test("사용자에게 인증 메일을 발송한다") {
         // Given
-        val user = User(
-            id = "test-user-1",
-            email = Email("test@example.com"),
-            encodedPassword = EncodedPassword("encodedPassword"),
-            nickname = Nickname("testUser"),
-            status = UserStatus.PENDING,
-            role = UserRole.USER,
-            createdAt = now,
-            modifiedAt = now,
-        )
+        val user =
+            User(
+                id = "test-user-1",
+                email = Email("test@example.com"),
+                encodedPassword = EncodedPassword("encodedPassword"),
+                nickname = Nickname("testUser"),
+                status = UserStatus.PENDING,
+                role = UserRole.USER,
+                createdAt = now,
+                modifiedAt = now,
+            )
 
         // When
         manager.sendVerifyMailTo(user)
 
         // Then - 메일이 발송되었는지 확인
         mailSender.hasMailBeenSentTo("test@example.com") shouldBe true
-        
+
         // Then - 발송된 메일의 내용 확인
         val sentMail = mailSender.getLastSentMail()
         sentMail?.to shouldBe "test@example.com"
@@ -56,16 +56,17 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
 
     test("인증 코드가 캐시에 저장된다") {
         // Given
-        val user = User(
-            id = "test-user-1",
-            email = Email("cache@example.com"),
-            encodedPassword = EncodedPassword("encodedPassword"),
-            nickname = Nickname("cacheUser"),
-            status = UserStatus.PENDING,
-            role = UserRole.USER,
-            createdAt = now,
-            modifiedAt = now,
-        )
+        val user =
+            User(
+                id = "test-user-1",
+                email = Email("cache@example.com"),
+                encodedPassword = EncodedPassword("encodedPassword"),
+                nickname = Nickname("cacheUser"),
+                status = UserStatus.PENDING,
+                role = UserRole.USER,
+                createdAt = now,
+                modifiedAt = now,
+            )
 
         // When
         manager.sendVerifyMailTo(user)
@@ -73,24 +74,25 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
         // Then - 캐시에 인증 코드가 저장되었는지 확인
         val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format("cache@example.com")
         verificationCodeStore.exists(cacheKey) shouldBe true
-        
+
         // Then - 저장된 인증 코드 형식 확인 (6자리 숫자)
-        val storedCode = verificationCodeStore.get(cacheKey)
-        storedCode shouldMatch "\\d{6}"
+        val storedCode = verificationCodeStore.get(Email("cache@example.com"))
+        storedCode.value shouldMatch "\\d{6}"
     }
 
     test("인증 코드는 5분 TTL로 저장된다") {
         // Given
-        val user = User(
-            id = "test-user-1",
-            email = Email("ttl@example.com"),
-            encodedPassword = EncodedPassword("encodedPassword"),
-            nickname = Nickname("ttlUser"),
-            status = UserStatus.PENDING,
-            role = UserRole.USER,
-            createdAt = now,
-            modifiedAt = now,
-        )
+        val user =
+            User(
+                id = "test-user-1",
+                email = Email("ttl@example.com"),
+                encodedPassword = EncodedPassword("encodedPassword"),
+                nickname = Nickname("ttlUser"),
+                status = UserStatus.PENDING,
+                role = UserRole.USER,
+                createdAt = now,
+                modifiedAt = now,
+            )
 
         // When
         manager.sendVerifyMailTo(user)
@@ -98,7 +100,7 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
         // Then - TTL 확인
         val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format("ttl@example.com")
         val ttl = verificationCodeStore.getTtl(cacheKey)
-        
+
         // FakeCacheStore는 TTL을 정확히 저장하므로 5분에 가까워야 함
         // 약간의 시간 차이를 고려하여 4분 59초 이상이어야 함
         ttl?.toSeconds()?.let { it >= 299 } shouldBe true
@@ -106,77 +108,77 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
 
     test("메일 발송 여부를 확인할 수 있다") {
         // Given
-        val user = User(
-            id = "test-user-1",
-            email = Email("check@example.com"),
-            encodedPassword = EncodedPassword("encodedPassword"),
-            nickname = Nickname("checkUser"),
-            status = UserStatus.PENDING,
-            role = UserRole.USER,
-            createdAt = now,
-            modifiedAt = now,
-        )
+        val user =
+            User(
+                id = "test-user-1",
+                email = Email("check@example.com"),
+                encodedPassword = EncodedPassword("encodedPassword"),
+                nickname = Nickname("checkUser"),
+                status = UserStatus.PENDING,
+                role = UserRole.USER,
+                createdAt = now,
+                modifiedAt = now,
+            )
 
         // When - 메일 발송 전
         val beforeSend = manager.hasMailBeenSentTo(user)
-        
+
         // Then
         beforeSend shouldBe false
 
         // When - 메일 발송 후
         manager.sendVerifyMailTo(user)
         val afterSend = manager.hasMailBeenSentTo(user)
-        
+
         // Then
         afterSend shouldBe true
     }
 
     test("여러 사용자에게 각각 다른 인증 코드가 발송된다") {
         // Given
-        val user1 = User(
-            id = "test-user-1",
-            email = Email("user1@example.com"),
-            encodedPassword = EncodedPassword("encodedPassword1"),
-            nickname = Nickname("user1"),
-            status = UserStatus.PENDING,
-            role = UserRole.USER,
-            createdAt = now,
-            modifiedAt = now,
-        )
-        val user2 = User(
-            id = "test-user-2",
-            email = Email("user2@example.com"),
-            encodedPassword = EncodedPassword("encodedPassword2"),
-            nickname = Nickname("user2"),
-            status = UserStatus.PENDING,
-            role = UserRole.USER,
-            createdAt = now,
-            modifiedAt = now,
-        )
+        val user1 =
+            User(
+                id = "test-user-1",
+                email = Email("user1@example.com"),
+                encodedPassword = EncodedPassword("encodedPassword1"),
+                nickname = Nickname("user1"),
+                status = UserStatus.PENDING,
+                role = UserRole.USER,
+                createdAt = now,
+                modifiedAt = now,
+            )
+        val user2 =
+            User(
+                id = "test-user-2",
+                email = Email("user2@example.com"),
+                encodedPassword = EncodedPassword("encodedPassword2"),
+                nickname = Nickname("user2"),
+                status = UserStatus.PENDING,
+                role = UserRole.USER,
+                createdAt = now,
+                modifiedAt = now,
+            )
 
         // When
         manager.sendVerifyMailTo(user1)
         manager.sendVerifyMailTo(user2)
 
         // Then - 각 사용자의 인증 코드가 다른지 확인
-        val cacheKey1 = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format("user1@example.com")
-        val cacheKey2 = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format("user2@example.com")
-        
-        val code1 = verificationCodeStore.get(cacheKey1)
-        val code2 = verificationCodeStore.get(cacheKey2)
-        
-        code1 shouldMatch "\\d{6}"
-        code2 shouldMatch "\\d{6}"
+        val code1 = verificationCodeStore.get(Email("user1@example.com"))
+        val code2 = verificationCodeStore.get(Email("user2@example.com"))
+
+        code1.value shouldMatch "\\d{6}"
+        code2.value shouldMatch "\\d{6}"
         // 랜덤하게 생성되므로 대부분의 경우 다를 것임 (매우 낮은 확률로 같을 수 있음)
     }
 
     test("캐시 키 형식이 올바르게 생성된다") {
         // Given
         val email = "format@example.com"
-        
+
         // When
         val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email)
-        
+
         // Then
         cacheKey shouldBe "user-service:user:email:format@example.com"
     }
