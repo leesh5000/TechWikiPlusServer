@@ -17,7 +17,7 @@ import java.time.Instant
 
 class UserAuthenticationServiceTest : FunSpec({
 
-    test("should return user when credentials are valid and user is active") {
+    test("자격 증명이 유효하고 사용자가 활성 상태일 때 사용자를 반환해야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val passwordService = UserPasswordService(FakePasswordEncoder())
@@ -41,7 +41,7 @@ class UserAuthenticationServiceTest : FunSpec({
         result.id shouldBe "123"
     }
 
-    test("should throw UserNotFoundException when user does not exist") {
+    test("사용자가 존재하지 않을 때 UserNotFoundException을 발생시켜야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val passwordService = UserPasswordService(FakePasswordEncoder())
@@ -55,7 +55,7 @@ class UserAuthenticationServiceTest : FunSpec({
         exception.message shouldBe "User not found: nonexistent@example.com"
     }
 
-    test("should throw InvalidCredentialsException when password is incorrect") {
+    test("패스워드가 올바르지 않을 때 InvalidCredentialsException을 발생시켜야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val passwordService = UserPasswordService(FakePasswordEncoder())
@@ -80,7 +80,7 @@ class UserAuthenticationServiceTest : FunSpec({
         exception.message shouldBe "Invalid email or password"
     }
 
-    test("should throw UserNotActiveException when user is dormant") {
+    test("사용자가 휴면 상태일 때 UserNotActiveException을 발생시켜야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val passwordService = UserPasswordService(FakePasswordEncoder())
@@ -105,7 +105,7 @@ class UserAuthenticationServiceTest : FunSpec({
         exception.message shouldBe "User account is dormant"
     }
 
-    test("should throw UserNotActiveException when user is banned") {
+    test("사용자가 차단 상태일 때 UserNotActiveException을 발생시켜야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val passwordService = UserPasswordService(FakePasswordEncoder())
@@ -130,7 +130,7 @@ class UserAuthenticationServiceTest : FunSpec({
         exception.message shouldBe "User account is banned"
     }
 
-    test("should throw UserNotActiveException for pending users") {
+    test("대기 상태 사용자에 대해 UserNotActiveException을 발생시켜야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val passwordService = UserPasswordService(FakePasswordEncoder())
@@ -155,7 +155,7 @@ class UserAuthenticationServiceTest : FunSpec({
         exception.message shouldBe "User account is pending activation"
     }
 
-    test("should throw UserNotActiveException for deleted users") {
+    test("삭제된 사용자에 대해 UserNotActiveException을 발생시켜야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val passwordService = UserPasswordService(FakePasswordEncoder())

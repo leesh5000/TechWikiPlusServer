@@ -14,7 +14,7 @@ import java.time.Instant
 
 class UserReaderDomainResultTest : FunSpec({
 
-    test("should return user when user exists") {
+    test("사용자가 존재할 때 사용자를 반환해야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val userReader = UserReader(userRepository)
@@ -25,7 +25,7 @@ class UserReaderDomainResultTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(passwordEncoder.encode("password123")),
+                encodedPassword = EncodedPassword(passwordEncoder.encode("Password123!")),
                 createdAt = Instant.now(),
             )
         userRepository.save(existingUser)
@@ -38,7 +38,7 @@ class UserReaderDomainResultTest : FunSpec({
         result.email.value shouldBe "user@example.com"
     }
 
-    test("should throw UserNotFoundException when user does not exist") {
+    test("사용자가 존재하지 않을 때 UserNotFoundException을 발생시켜야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val userReader = UserReader(userRepository)
@@ -48,10 +48,10 @@ class UserReaderDomainResultTest : FunSpec({
             shouldThrow<UserNotFoundException> {
                 userReader.findByEmail(Email("nonexistent@example.com"))
             }
-        exception.message shouldBe "User with email nonexistent@example.com not found"
+        exception.message shouldBe "User not found: User with email nonexistent@example.com not found"
     }
 
-    test("should return user with correct properties") {
+    test("올바른 속성을 가진 사용자를 반환해야 한다") {
         // Given
         val userRepository = FakeUserRepository()
         val userReader = UserReader(userRepository)
@@ -62,7 +62,7 @@ class UserReaderDomainResultTest : FunSpec({
                 id = "123",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(passwordEncoder.encode("password")),
+                encodedPassword = EncodedPassword(passwordEncoder.encode("Password123!")),
                 createdAt = Instant.now(),
             )
         userRepository.save(user)

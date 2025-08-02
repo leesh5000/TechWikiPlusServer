@@ -16,7 +16,7 @@ class UserTest : FunSpec({
 
     val testPasswordEncoder = FakePasswordEncoder()
 
-    test("should create user with all required fields") {
+    test("모든 필수 필드를 가진 사용자를 생성해야 한다") {
         val now = Instant.now()
         val user =
             User(
@@ -33,14 +33,14 @@ class UserTest : FunSpec({
         user.id shouldBe "123456789"
         user.email.value shouldBe "user@example.com"
         user.nickname.value shouldBe "testuser"
-        user.encodedPassword.value shouldBe "encoded:password123"
+        user.encodedPassword.value shouldBe "FAKE_ENCODED:password123"
         user.status shouldBe UserStatus.ACTIVE
         user.role shouldBe UserRole.USER
         user.createdAt shouldBe now
         user.modifiedAt shouldBe now
     }
 
-    test("should create user with default status and role") {
+    test("기본 상태와 역할로 PENDING 상태인 사용자를 생성해야 한다") {
         val now = Instant.now()
         val user =
             User.create(
@@ -51,12 +51,12 @@ class UserTest : FunSpec({
                 createdAt = now,
             )
 
-        user.status shouldBe UserStatus.ACTIVE
+        user.status shouldBe UserStatus.PENDING
         user.role shouldBe UserRole.USER
         user.modifiedAt shouldBe user.createdAt
     }
 
-    test("should be immutable") {
+    test("불변 객체여야 한다") {
         val user =
             User.create(
                 id = "123456789",
@@ -72,7 +72,7 @@ class UserTest : FunSpec({
         user.nickname.value shouldBe "testuser"
     }
 
-    test("should create copy with updated fields") {
+    test("업데이트된 필드로 복사본을 생성해야 한다") {
         val now = Instant.now()
         val originalUser =
             User.create(
@@ -98,7 +98,7 @@ class UserTest : FunSpec({
         updatedUser.modifiedAt shouldBe laterTime
     }
 
-    test("should implement equals correctly based on id only") {
+    test("ID만으로 equals를 올바르게 구현해야 한다") {
         val now = Instant.now()
         val laterTime = now.plusSeconds(3600)
 
@@ -146,7 +146,7 @@ class UserTest : FunSpec({
         user1 shouldNotBe "user"
     }
 
-    test("should implement hashCode correctly based on id only") {
+    test("ID만으로 hashCode를 올바르게 구현해야 한다") {
         val now = Instant.now()
         val laterTime = now.plusSeconds(3600)
 
@@ -178,7 +178,7 @@ class UserTest : FunSpec({
         user1.hashCode() shouldBe user2.hashCode() // Same ID = same hashCode
     }
 
-    test("should implement toString correctly") {
+    test("toString을 올바르게 구현해야 한다") {
         val user =
             User.create(
                 id = "123456789",
@@ -195,7 +195,7 @@ class UserTest : FunSpec({
         toString.contains("password123") shouldBe false // Password should not be exposed
     }
 
-    test("should reject creation with blank id") {
+    test("빈 ID로 생성을 거부해야 한다") {
         shouldThrow<IllegalArgumentException> {
             User.create(
                 id = "",

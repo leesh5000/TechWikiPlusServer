@@ -20,9 +20,7 @@ class FakeUserRepository : UserRepository {
 
     override fun save(user: User): User {
         simulatedError?.let { throw RuntimeException(it) }
-        if (users.containsKey(user.email.value)) {
-            throw RuntimeException("User with email ${user.email.value} already exists")
-        }
+        // Save or update
         users[user.email.value] = user
         return user
     }

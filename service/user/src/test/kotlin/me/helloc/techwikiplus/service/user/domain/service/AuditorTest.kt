@@ -23,7 +23,7 @@ class AuditorTest : FunSpec(
             val createdAt = auditor.generateCreateTime()
 
             // Then
-            createdAt.toEpochMilli() shouldBe now
+            createdAt shouldBe now
         }
     },
 )

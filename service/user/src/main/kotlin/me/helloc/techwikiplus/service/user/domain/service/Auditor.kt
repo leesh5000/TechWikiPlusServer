@@ -9,4 +9,8 @@ class Auditor(
     fun generateCreateTime(): Instant {
         return clockHolder.now()
     }
+
+    fun generateModifyTime(): Instant {
+        return clockHolder.now()
+    }
 }

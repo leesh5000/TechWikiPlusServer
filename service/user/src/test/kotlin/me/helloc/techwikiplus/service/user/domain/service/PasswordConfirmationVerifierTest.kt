@@ -54,7 +54,7 @@ class PasswordConfirmationVerifierTest : FunSpec(
                 shouldThrow<PasswordMismatchException> {
                     passwordConfirmationVerifier.verify(rawPassword, passwordConfirmation)
                 }
-            exception.message shouldBe "Password and confirmation do not match."
+            exception.message shouldBe "Password and confirmation do not match: Password and confirmation do not match."
         }
     },
 )

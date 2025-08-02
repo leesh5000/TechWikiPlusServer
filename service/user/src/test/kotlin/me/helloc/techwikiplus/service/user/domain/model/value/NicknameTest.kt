@@ -8,12 +8,12 @@ import me.helloc.techwikiplus.service.user.domain.exception.NicknameValidationEx
 
 class NicknameTest : FunSpec({
 
-    test("should create valid nickname") {
+    test("유효한 닉네임을 생성해야 한다") {
         val nickname = Nickname("user123")
         nickname.value shouldBe "user123"
     }
 
-    test("should reject null or empty nickname") {
+    test("null이거나 빈 닉네임을 거부해야 한다") {
         val exception1 =
             shouldThrow<NicknameValidationException> {
                 Nickname("")
@@ -28,7 +28,7 @@ class NicknameTest : FunSpec({
         exception2.errorCode shouldBe NicknameValidationException.BLANK_NICKNAME
     }
 
-    test("should reject nickname longer than 20 characters") {
+    test("20자를 초과하는 닉네임을 거부해야 한다") {
         val exception =
             shouldThrow<NicknameValidationException> {
                 Nickname("thisnicknameislongerthan20chars")
@@ -37,12 +37,12 @@ class NicknameTest : FunSpec({
         exception.field shouldBe "nickname"
     }
 
-    test("should accept nickname with exactly 20 characters") {
+    test("정확히 20자인 닉네임을 허용해야 한다") {
         val nickname = Nickname("12345678901234567890")
         nickname.value shouldBe "12345678901234567890"
     }
 
-    test("should reject nickname shorter than 2 characters") {
+    test("2자 미만의 닉네임을 거부해야 한다") {
         val exception =
             shouldThrow<NicknameValidationException> {
                 Nickname("a")
@@ -51,12 +51,12 @@ class NicknameTest : FunSpec({
         exception.message shouldBe "닉네임은 최소 2자 이상이어야 합니다"
     }
 
-    test("should accept nickname with exactly 2 characters") {
+    test("정확히 2자인 닉네임을 허용해야 한다") {
         val nickname = Nickname("ab")
         nickname.value shouldBe "ab"
     }
 
-    test("should reject nickname with spaces") {
+    test("공백이 포함된 닉네임을 거부해야 한다") {
         val exception1 =
             shouldThrow<NicknameValidationException> {
                 Nickname("user name")
@@ -83,13 +83,13 @@ class NicknameTest : FunSpec({
         exception4.errorCode shouldBe NicknameValidationException.CONTAINS_SPACE
     }
 
-    test("should accept nickname with alphanumeric characters") {
+    test("영숫자 문자가 포함된 닉네임을 허용해야 한다") {
         Nickname("abc123").value shouldBe "abc123"
         Nickname("ABC123").value shouldBe "ABC123"
         Nickname("User2024").value shouldBe "User2024"
     }
 
-    test("should accept nickname with special characters") {
+    test("특수문자가 포함된 닉네임을 허용해야 한다") {
         Nickname("user_123").value shouldBe "user_123"
         Nickname("user-123").value shouldBe "user-123"
         Nickname("user.123").value shouldBe "user.123"
@@ -98,13 +98,13 @@ class NicknameTest : FunSpec({
         Nickname("닉네임123").value shouldBe "닉네임123"
     }
 
-    test("should be immutable") {
+    test("불변 객체여야 한다") {
         val nickname = Nickname("user123")
         nickname.value shouldBe "user123"
         // Value should not be modifiable (enforced by val property)
     }
 
-    test("should implement equals correctly") {
+    test("equals를 올바르게 구현해야 한다") {
         val nickname1 = Nickname("user123")
         val nickname2 = Nickname("user123")
         val nickname3 = Nickname("user456")
@@ -115,7 +115,7 @@ class NicknameTest : FunSpec({
         nickname1 shouldNotBe "user123"
     }
 
-    test("should implement hashCode correctly") {
+    test("hashCode를 올바르게 구현해야 한다") {
         val nickname1 = Nickname("user123")
         val nickname2 = Nickname("user123")
         val nickname3 = Nickname("user456")
@@ -124,7 +124,7 @@ class NicknameTest : FunSpec({
         nickname1.hashCode() shouldNotBe nickname3.hashCode()
     }
 
-    test("should implement toString correctly") {
+    test("toString을 올바르게 구현해야 한다") {
         val nickname = Nickname("user123")
         nickname.toString() shouldBe "Nickname(value=user123)"
     }

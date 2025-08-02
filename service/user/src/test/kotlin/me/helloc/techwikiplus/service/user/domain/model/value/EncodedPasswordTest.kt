@@ -25,7 +25,7 @@ class EncodedPasswordTest : FunSpec({
             }
         }
 
-    test("should create encrypted password from raw password") {
+    test("원시 패스워드로부터 암호화된 패스워드를 생성해야 한다") {
         // validateRawPasswordPolicy only validates, doesn't return EncodedPassword
         EncodedPassword.validateRawPasswordPolicy("mySecretPassword123!")
 
@@ -37,7 +37,7 @@ class EncodedPasswordTest : FunSpec({
         encodedPassword.value.startsWith("encoded:") shouldBe true
     }
 
-    test("should reject null or empty raw password") {
+    test("null이거나 빈 원시 패스워드를 거부해야 한다") {
         val exception1 =
             shouldThrow<PasswordValidationException> {
                 EncodedPassword.validateRawPasswordPolicy("")
@@ -52,7 +52,7 @@ class EncodedPasswordTest : FunSpec({
         exception2.errorCode shouldBe PasswordValidationException.BLANK_PASSWORD
     }
 
-    test("should reject password shorter than 8 characters") {
+    test("8자 미만의 패스워드를 거부해야 한다") {
         val exception =
             shouldThrow<PasswordValidationException> {
                 EncodedPassword.validateRawPasswordPolicy("Short1!")
@@ -61,7 +61,7 @@ class EncodedPasswordTest : FunSpec({
         exception.message shouldBe "비밀번호는 최소 8자 이상이어야 합니다"
     }
 
-    test("should reject password longer than 30 characters") {
+    test("30자를 초과하는 패스워드를 거부해야 한다") {
         val exception =
             shouldThrow<PasswordValidationException> {
                 EncodedPassword.validateRawPasswordPolicy("VeryLongPassword1234567890123!@")
@@ -70,7 +70,7 @@ class EncodedPasswordTest : FunSpec({
         exception.message shouldBe "비밀번호는 최대 30자 이하여야 합니다"
     }
 
-    test("should reject password without uppercase letter") {
+    test("대문자가 없는 패스워드를 거부해야 한다") {
         val exception =
             shouldThrow<PasswordValidationException> {
                 EncodedPassword.validateRawPasswordPolicy("lowercase123!")
@@ -79,7 +79,7 @@ class EncodedPasswordTest : FunSpec({
         exception.message shouldBe "비밀번호는 대문자를 포함해야 합니다"
     }
 
-    test("should reject password without lowercase letter") {
+    test("소문자가 없는 패스워드를 거부해야 한다") {
         val exception =
             shouldThrow<PasswordValidationException> {
                 EncodedPassword.validateRawPasswordPolicy("UPPERCASE123!")
@@ -88,7 +88,7 @@ class EncodedPasswordTest : FunSpec({
         exception.message shouldBe "비밀번호는 소문자를 포함해야 합니다"
     }
 
-    test("should reject password without special character") {
+    test("특수문자가 없는 패스워드를 거부해야 한다") {
         val exception =
             shouldThrow<PasswordValidationException> {
                 EncodedPassword.validateRawPasswordPolicy("Password123")
@@ -97,7 +97,7 @@ class EncodedPasswordTest : FunSpec({
         exception.message shouldBe "비밀번호는 특수문자를 포함해야 합니다"
     }
 
-    test("should accept valid password with all requirements") {
+    test("모든 요구사항을 충족하는 유효한 패스워드를 허용해야 한다") {
         val validPasswords =
             listOf(
                 "Password123!",
@@ -117,7 +117,7 @@ class EncodedPasswordTest : FunSpec({
         }
     }
 
-    test("should verify correct password") {
+    test("올바른 패스워드를 검증해야 한다") {
         val rawPassword = "mySecretPassword123!"
         EncodedPassword.validateRawPasswordPolicy(rawPassword)
 
@@ -128,7 +128,7 @@ class EncodedPasswordTest : FunSpec({
         testPasswordEncoder.matches(rawPassword, encodedPassword.value) shouldBe true
     }
 
-    test("should reject incorrect password") {
+    test("올바르지 않은 패스워드를 거부해야 한다") {
         val rawPassword = "mySecretPassword123!"
         EncodedPassword.validateRawPasswordPolicy(rawPassword)
 
@@ -140,7 +140,7 @@ class EncodedPasswordTest : FunSpec({
         testPasswordEncoder.matches("MySecretPassword123!", encodedPassword.value) shouldBe false
     }
 
-    test("should create different hashes for same password with real BCrypt-like behavior") {
+    test("실제 BCrypt와 유사한 동작으로 동일한 패스워드에 대해 다른 해시를 생성해야 한다") {
         // For this test, we'll use a more realistic encoder that simulates BCrypt's random salt
         val bcryptLikeEncoder =
             object : PasswordEncoder {
@@ -174,7 +174,7 @@ class EncodedPasswordTest : FunSpec({
         bcryptLikeEncoder.matches(rawPassword, encodedPassword2.value) shouldBe true
     }
 
-    test("should never expose raw password") {
+    test("원시 패스워드를 절대 노출하지 않아야 한다") {
         val rawPassword = "mySecretPassword123!"
         EncodedPassword.validateRawPasswordPolicy(rawPassword)
 
@@ -185,7 +185,7 @@ class EncodedPasswordTest : FunSpec({
         encodedPassword.toString() shouldBe "EncodedPassword(****)"
     }
 
-    test("should be immutable") {
+    test("불변 객체여야 한다") {
         val rawPassword = "mySecretPassword123!"
         EncodedPassword.validateRawPasswordPolicy(rawPassword)
 
@@ -196,7 +196,7 @@ class EncodedPasswordTest : FunSpec({
         encodedPassword.value shouldBe originalValue
     }
 
-    test("should implement equals correctly") {
+    test("equals를 올바르게 구현해야 한다") {
         val rawPwd = "mySecretPassword123!"
         val encodedValue = testPasswordEncoder.encode(rawPwd)
 
@@ -210,7 +210,7 @@ class EncodedPasswordTest : FunSpec({
         encodedPassword1 shouldNotBe "password"
     }
 
-    test("should implement hashCode correctly") {
+    test("hashCode를 올바르게 구현해야 한다") {
         val rawPassword = "mySecretPassword123!"
         EncodedPassword.validateRawPasswordPolicy(rawPassword)
 

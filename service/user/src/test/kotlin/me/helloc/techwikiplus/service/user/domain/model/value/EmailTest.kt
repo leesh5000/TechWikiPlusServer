@@ -8,12 +8,12 @@ import me.helloc.techwikiplus.service.user.domain.exception.EmailValidationExcep
 
 class EmailTest : FunSpec({
 
-    test("should create valid email") {
+    test("유효한 이메일을 생성해야 한다") {
         val email = Email("user@example.com")
         email.value shouldBe "user@example.com"
     }
 
-    test("should reject null or empty email") {
+    test("null이거나 빈 이메일을 거부해야 한다") {
         val exception1 =
             shouldThrow<EmailValidationException> {
                 Email("")
@@ -28,7 +28,7 @@ class EmailTest : FunSpec({
         exception2.errorCode shouldBe EmailValidationException.BLANK_EMAIL
     }
 
-    test("should reject invalid email format - missing @") {
+    test("잘못된 이메일 형식을 거부해야 한다 - @ 누락") {
         val exception =
             shouldThrow<EmailValidationException> {
                 Email("userexample.com")
@@ -37,7 +37,7 @@ class EmailTest : FunSpec({
         exception.field shouldBe "email"
     }
 
-    test("should reject invalid email format - missing domain") {
+    test("잘못된 이메일 형식을 거부해야 한다 - 도메인 누락") {
         val exception =
             shouldThrow<EmailValidationException> {
                 Email("user@")
@@ -45,7 +45,7 @@ class EmailTest : FunSpec({
         exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
     }
 
-    test("should reject invalid email format - missing local part") {
+    test("잘못된 이메일 형식을 거부해야 한다 - 로컬 부분 누락") {
         val exception =
             shouldThrow<EmailValidationException> {
                 Email("@example.com")
@@ -53,7 +53,7 @@ class EmailTest : FunSpec({
         exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
     }
 
-    test("should reject invalid email format - invalid characters") {
+    test("잘못된 이메일 형식을 거부해야 한다 - 잘못된 문자") {
         val exception =
             shouldThrow<EmailValidationException> {
                 Email("user name@example.com")
@@ -61,7 +61,7 @@ class EmailTest : FunSpec({
         exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
     }
 
-    test("should accept various valid email formats") {
+    test("다양한 유효한 이메일 형식을 허용해야 한다") {
         Email("simple@example.com").value shouldBe "simple@example.com"
         Email("very.common@example.com").value shouldBe "very.common@example.com"
         Email("disposable.style.email.with+symbol@example.com").value shouldBe
@@ -71,13 +71,13 @@ class EmailTest : FunSpec({
         Email("user@subdomain.example.com").value shouldBe "user@subdomain.example.com"
     }
 
-    test("should be immutable") {
+    test("불변 객체여야 한다") {
         val email = Email("user@example.com")
         email.value shouldBe "user@example.com"
         // Value should not be modifiable (enforced by val property)
     }
 
-    test("should implement equals correctly") {
+    test("equals를 올바르게 구현해야 한다") {
         val email1 = Email("user@example.com")
         val email2 = Email("user@example.com")
         val email3 = Email("another@example.com")
@@ -88,7 +88,7 @@ class EmailTest : FunSpec({
         email1 shouldNotBe "user@example.com"
     }
 
-    test("should implement hashCode correctly") {
+    test("hashCode를 올바르게 구현해야 한다") {
         val email1 = Email("user@example.com")
         val email2 = Email("user@example.com")
         val email3 = Email("another@example.com")
@@ -97,7 +97,7 @@ class EmailTest : FunSpec({
         email1.hashCode() shouldNotBe email3.hashCode()
     }
 
-    test("should implement toString correctly") {
+    test("toString을 올바르게 구현해야 한다") {
         val email = Email("user@example.com")
         email.toString() shouldBe "Email(value=user@example.com)"
     }

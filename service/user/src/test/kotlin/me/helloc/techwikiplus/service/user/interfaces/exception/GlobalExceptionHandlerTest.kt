@@ -11,6 +11,10 @@ import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationEx
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotActiveException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
+import me.helloc.techwikiplus.service.user.interfaces.ErrorResponse
+import me.helloc.techwikiplus.service.user.interfaces.FieldError
+import me.helloc.techwikiplus.service.user.interfaces.GlobalExceptionHandler
+import me.helloc.techwikiplus.service.user.interfaces.ValidationErrorResponse
 import org.springframework.http.HttpStatus
 
 class GlobalExceptionHandlerTest : FunSpec({
