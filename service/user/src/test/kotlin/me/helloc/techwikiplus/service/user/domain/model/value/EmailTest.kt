@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import me.helloc.techwikiplus.service.user.domain.exception.EmailValidationException
 
 class EmailTest : FunSpec({
 
@@ -13,37 +14,51 @@ class EmailTest : FunSpec({
     }
 
     test("should reject null or empty email") {
-        shouldThrow<IllegalArgumentException> {
-            Email("")
-        }
+        val exception1 =
+            shouldThrow<EmailValidationException> {
+                Email("")
+            }
+        exception1.errorCode shouldBe EmailValidationException.BLANK_EMAIL
+        exception1.field shouldBe "email"
 
-        shouldThrow<IllegalArgumentException> {
-            Email("   ")
-        }
+        val exception2 =
+            shouldThrow<EmailValidationException> {
+                Email("   ")
+            }
+        exception2.errorCode shouldBe EmailValidationException.BLANK_EMAIL
     }
 
     test("should reject invalid email format - missing @") {
-        shouldThrow<IllegalArgumentException> {
-            Email("userexample.com")
-        }
+        val exception =
+            shouldThrow<EmailValidationException> {
+                Email("userexample.com")
+            }
+        exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
+        exception.field shouldBe "email"
     }
 
     test("should reject invalid email format - missing domain") {
-        shouldThrow<IllegalArgumentException> {
-            Email("user@")
-        }
+        val exception =
+            shouldThrow<EmailValidationException> {
+                Email("user@")
+            }
+        exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
     }
 
     test("should reject invalid email format - missing local part") {
-        shouldThrow<IllegalArgumentException> {
-            Email("@example.com")
-        }
+        val exception =
+            shouldThrow<EmailValidationException> {
+                Email("@example.com")
+            }
+        exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
     }
 
     test("should reject invalid email format - invalid characters") {
-        shouldThrow<IllegalArgumentException> {
-            Email("user name@example.com")
-        }
+        val exception =
+            shouldThrow<EmailValidationException> {
+                Email("user name@example.com")
+            }
+        exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
     }
 
     test("should accept various valid email formats") {

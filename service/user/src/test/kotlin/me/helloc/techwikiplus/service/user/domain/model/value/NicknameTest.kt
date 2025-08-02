@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import me.helloc.techwikiplus.service.user.domain.exception.NicknameValidationException
 
 class NicknameTest : FunSpec({
 
@@ -13,19 +14,27 @@ class NicknameTest : FunSpec({
     }
 
     test("should reject null or empty nickname") {
-        shouldThrow<IllegalArgumentException> {
-            Nickname("")
-        }
+        val exception1 =
+            shouldThrow<NicknameValidationException> {
+                Nickname("")
+            }
+        exception1.errorCode shouldBe NicknameValidationException.BLANK_NICKNAME
+        exception1.field shouldBe "nickname"
 
-        shouldThrow<IllegalArgumentException> {
-            Nickname("   ")
-        }
+        val exception2 =
+            shouldThrow<NicknameValidationException> {
+                Nickname("   ")
+            }
+        exception2.errorCode shouldBe NicknameValidationException.BLANK_NICKNAME
     }
 
     test("should reject nickname longer than 20 characters") {
-        shouldThrow<IllegalArgumentException> {
-            Nickname("thisnicknameislongerthan20chars")
-        }
+        val exception =
+            shouldThrow<NicknameValidationException> {
+                Nickname("thisnicknameislongerthan20chars")
+            }
+        exception.errorCode shouldBe NicknameValidationException.TOO_LONG
+        exception.field shouldBe "nickname"
     }
 
     test("should accept nickname with exactly 20 characters") {
@@ -34,9 +43,12 @@ class NicknameTest : FunSpec({
     }
 
     test("should reject nickname shorter than 2 characters") {
-        shouldThrow<IllegalArgumentException> {
-            Nickname("a")
-        }.message shouldBe "Nickname must be at least 2 characters"
+        val exception =
+            shouldThrow<NicknameValidationException> {
+                Nickname("a")
+            }
+        exception.errorCode shouldBe NicknameValidationException.TOO_SHORT
+        exception.message shouldBe "닉네임은 최소 2자 이상이어야 합니다"
     }
 
     test("should accept nickname with exactly 2 characters") {
@@ -45,21 +57,30 @@ class NicknameTest : FunSpec({
     }
 
     test("should reject nickname with spaces") {
-        shouldThrow<IllegalArgumentException> {
-            Nickname("user name")
-        }.message shouldBe "Nickname cannot contain spaces"
+        val exception1 =
+            shouldThrow<NicknameValidationException> {
+                Nickname("user name")
+            }
+        exception1.errorCode shouldBe NicknameValidationException.CONTAINS_SPACE
+        exception1.message shouldBe "닉네임에는 공백을 포함할 수 없습니다"
 
-        shouldThrow<IllegalArgumentException> {
-            Nickname(" username")
-        }.message shouldBe "Nickname cannot contain spaces"
+        val exception2 =
+            shouldThrow<NicknameValidationException> {
+                Nickname(" username")
+            }
+        exception2.errorCode shouldBe NicknameValidationException.CONTAINS_SPACE
 
-        shouldThrow<IllegalArgumentException> {
-            Nickname("username ")
-        }.message shouldBe "Nickname cannot contain spaces"
+        val exception3 =
+            shouldThrow<NicknameValidationException> {
+                Nickname("username ")
+            }
+        exception3.errorCode shouldBe NicknameValidationException.CONTAINS_SPACE
 
-        shouldThrow<IllegalArgumentException> {
-            Nickname("user  name")
-        }.message shouldBe "Nickname cannot contain spaces"
+        val exception4 =
+            shouldThrow<NicknameValidationException> {
+                Nickname("user  name")
+            }
+        exception4.errorCode shouldBe NicknameValidationException.CONTAINS_SPACE
     }
 
     test("should accept nickname with alphanumeric characters") {
