@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.test.documentation
+package me.helloc.techwikiplus.service.user.config.documentation
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import org.springframework.test.web.servlet.ResultHandler

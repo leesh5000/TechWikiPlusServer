@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.test.config
+package me.helloc.techwikiplus.service.user.config.config
 
 import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.ApplicationContextInitializer

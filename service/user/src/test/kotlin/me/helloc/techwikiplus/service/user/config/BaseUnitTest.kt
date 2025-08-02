@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.test
+package me.helloc.techwikiplus.service.user.config
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
