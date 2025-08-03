@@ -8,6 +8,7 @@ import me.helloc.techwikiplus.service.user.domain.service.UserPasswordService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
 import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
+import me.helloc.techwikiplus.service.user.domain.service.port.EmailTemplateService
 import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
@@ -55,8 +56,9 @@ class DomainServiceBeanConfiguration {
     fun emailVerificationCodeSender(
         mailSender: MailSender,
         codeStore: VerificationCodeStore,
+        emailTemplateService: EmailTemplateService,
     ): UserEmailVerificationCodeManager {
-        return UserEmailVerificationCodeManager(mailSender, codeStore)
+        return UserEmailVerificationCodeManager(mailSender, codeStore, emailTemplateService)
     }
 
     @Bean
