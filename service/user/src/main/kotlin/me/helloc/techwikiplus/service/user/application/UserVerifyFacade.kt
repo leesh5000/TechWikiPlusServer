@@ -2,8 +2,6 @@ package me.helloc.techwikiplus.service.user.application
 
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
@@ -20,18 +18,15 @@ class UserVerifyFacade(
     private val verificationCodeStore: VerificationCodeStore,
     private val auditor: Auditor,
 ) : UserVerifyUseCase {
-    override fun verify(
-        email: Email,
-        code: VerificationCode,
-    ) {
+    override fun execute(command: UserVerifyUseCase.Command) {
         // 1. 사용자 조회 (먼저 수행)
-        val user = userReader.getBy(email)
+        val user = userReader.getBy(command.email)
 
         // 2. 캐시에서 저장된 인증 코드 조회 (없으면 예외 발생)
-        val storedCode = verificationCodeStore.get(email)
+        val storedCode = verificationCodeStore.get(command.email)
 
         // 3. 인증 코드가 일치하지 않으면 예외 발생
-        if (storedCode != code) {
+        if (storedCode != command.code) {
             throw InvalidVerificationCodeException()
         }
 

@@ -18,9 +18,11 @@ class UserVerifyController(
     fun verify(
         @RequestBody request: UserVerifyRequest,
     ): ResponseEntity<Void> {
-        useCase.verify(
-            email = Email(request.email),
-            code = VerificationCode(request.verificationCode),
+        useCase.execute(
+            UserVerifyUseCase.Command(
+                email = Email(request.email),
+                code = VerificationCode(request.verificationCode),
+            ),
         )
 
         val headers = HttpHeaders()

@@ -16,11 +16,13 @@ class UserSignUpController(
     fun signup(
         @RequestBody request: UserSignUpRequest,
     ): ResponseEntity<Void> {
-        userSignUpUseCase.signup(
-            email = request.email,
-            password = request.password,
-            confirmPassword = request.confirmPassword,
-            nickname = request.nickname,
+        userSignUpUseCase.execute(
+            UserSignUpUseCase.Command(
+                email = request.email,
+                password = request.password,
+                confirmPassword = request.confirmPassword,
+                nickname = request.nickname,
+            ),
         )
 
         val headers = HttpHeaders()
