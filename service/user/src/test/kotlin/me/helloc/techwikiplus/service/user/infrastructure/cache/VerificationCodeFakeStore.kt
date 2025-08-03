@@ -1,26 +1,33 @@
 package me.helloc.techwikiplus.service.user.infrastructure.cache
 
+import me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
-import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit.MINUTES
 import java.util.concurrent.ConcurrentHashMap
 
-class FakeCacheStore : VerificationCodeStore {
+class VerificationCodeFakeStore : VerificationCodeStore {
+    companion object {
+        private const val KEY_FORMAT = "user-service:user:email:%s"
+        private val TTL = Duration.of(5, MINUTES)
+    }
+
     private val store = ConcurrentHashMap<String, CacheEntry>()
 
-    override fun set(
-        key: String,
+    override fun store(
+        email: Email,
         code: VerificationCode,
-        ttlSeconds: Duration,
     ) {
-        val expiresAt = Instant.now().plus(ttlSeconds)
+        val key = KEY_FORMAT.format(email.value)
+        val expiresAt = Instant.now().plus(TTL)
         store[key] = CacheEntry(code.value, expiresAt)
     }
 
-    override fun exists(key: String): Boolean {
+    override fun exists(email: Email): Boolean {
+        val key = KEY_FORMAT.format(email.value)
         val entry = store[key] ?: return false
 
         // TTL 만료 체크
@@ -33,32 +40,21 @@ class FakeCacheStore : VerificationCodeStore {
     }
 
     override fun get(email: Email): VerificationCode {
-        val key = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email.value)
+        val key = KEY_FORMAT.format(email.value)
         val entry =
             store[key]
-                ?: throw me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException(
+                ?: throw InvalidVerificationCodeException(
                     "Verification code not found for email: ${email.value}",
                 )
 
         if (entry.expiresAt.isBefore(Instant.now())) {
             store.remove(key)
-            throw me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException(
+            throw InvalidVerificationCodeException(
                 "Verification code expired for email: ${email.value}",
             )
         }
 
         return VerificationCode(entry.value)
-    }
-
-    private fun getByKey(key: String): String? {
-        val entry = store[key] ?: return null
-
-        if (entry.expiresAt.isBefore(Instant.now())) {
-            store.remove(key)
-            return null
-        }
-
-        return entry.value
     }
 
     fun clear() {
