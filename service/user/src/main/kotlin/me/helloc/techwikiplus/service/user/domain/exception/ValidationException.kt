@@ -33,6 +33,7 @@ class NicknameValidationException(
         const val TOO_SHORT = "NICKNAME_TOO_SHORT"
         const val TOO_LONG = "NICKNAME_TOO_LONG"
         const val CONTAINS_SPACE = "NICKNAME_CONTAINS_SPACE"
+        const val CONTAINS_SPECIAL_CHAR = "NICKNAME_CONTAINS_SPECIAL_CHAR"
     }
 }
 

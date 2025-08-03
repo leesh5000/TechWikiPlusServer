@@ -89,13 +89,38 @@ class NicknameTest : FunSpec({
         Nickname("User2024").value shouldBe "User2024"
     }
 
-    test("특수문자가 포함된 닉네임을 허용해야 한다") {
+    test("언더스코어와 하이픈을 포함한 닉네임을 허용해야 한다") {
         Nickname("user_123").value shouldBe "user_123"
         Nickname("user-123").value shouldBe "user-123"
-        Nickname("user.123").value shouldBe "user.123"
-        Nickname("user@123").value shouldBe "user@123"
-        Nickname("user!123").value shouldBe "user!123"
-        Nickname("닉네임123").value shouldBe "닉네임123"
+        Nickname("닉네임_123").value shouldBe "닉네임_123"
+        Nickname("닉네임-123").value shouldBe "닉네임-123"
+    }
+
+    test("허용되지 않는 특수문자가 포함된 경우 예외를 던져야 한다") {
+        shouldThrow<NicknameValidationException> {
+            Nickname("user.123")
+        }.apply {
+            errorCode shouldBe NicknameValidationException.CONTAINS_SPECIAL_CHAR
+            message shouldBe "닉네임은 한글, 영문, 숫자, 언더스코어(_), 하이픈(-)만 사용할 수 있습니다"
+        }
+
+        shouldThrow<NicknameValidationException> {
+            Nickname("user@123")
+        }.apply {
+            errorCode shouldBe NicknameValidationException.CONTAINS_SPECIAL_CHAR
+        }
+
+        shouldThrow<NicknameValidationException> {
+            Nickname("user!123")
+        }.apply {
+            errorCode shouldBe NicknameValidationException.CONTAINS_SPECIAL_CHAR
+        }
+
+        shouldThrow<NicknameValidationException> {
+            Nickname("user#123")
+        }.apply {
+            errorCode shouldBe NicknameValidationException.CONTAINS_SPECIAL_CHAR
+        }
     }
 
     test("불변 객체여야 한다") {

@@ -28,6 +28,12 @@ class Nickname(val value: String) {
                 message = "닉네임에는 공백을 포함할 수 없습니다",
             )
         }
+        if (!value.matches(ALLOWED_PATTERN)) {
+            throw NicknameValidationException(
+                errorCode = NicknameValidationException.CONTAINS_SPECIAL_CHAR,
+                message = "닉네임은 한글, 영문, 숫자, 언더스코어(_), 하이픈(-)만 사용할 수 있습니다",
+            )
+        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -47,5 +53,6 @@ class Nickname(val value: String) {
     companion object {
         private const val MIN_LENGTH = 2
         private const val MAX_LENGTH = 20
+        private val ALLOWED_PATTERN = "^[가-힣a-zA-Z0-9_-]+$".toRegex()
     }
 }
