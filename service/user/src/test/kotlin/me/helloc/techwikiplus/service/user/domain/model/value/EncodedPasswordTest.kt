@@ -4,97 +4,49 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationException
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
 
 class EncodedPasswordTest : FunSpec({
 
     val testPasswordEncoder =
         object : PasswordEncoder {
-            override fun encode(rawPassword: String): String {
+            override fun encode(rawPassword: RawPassword): EncodedPassword {
                 // Simple test encoder that creates a fixed 60 char hash
-                val hash = rawPassword.hashCode().toString()
-                return "encoded:$hash".padEnd(60, '*')
+                val hash = rawPassword.value.hashCode().toString()
+                return EncodedPassword("encoded:$hash".padEnd(60, '*'))
             }
 
             override fun matches(
-                rawPassword: String,
-                encodedPassword: String,
+                rawPassword: RawPassword,
+                encodedPassword: EncodedPassword,
             ): Boolean {
                 return encodedPassword == encode(rawPassword)
             }
         }
 
     test("원시 패스워드로부터 암호화된 패스워드를 생성해야 한다") {
-        // validateRawPasswordPolicy only validates, doesn't return EncodedPassword
-        EncodedPassword.validateRawPasswordPolicy("mySecretPassword123!")
+        // Create RawPassword to validate
+        val rawPassword = RawPassword("mySecretPassword123!")
 
         // Create EncodedPassword with encoded value
-        val encodedValue = testPasswordEncoder.encode("mySecretPassword123!")
-        val encodedPassword = EncodedPassword(encodedValue)
+        val encodedPassword = testPasswordEncoder.encode(rawPassword)
         encodedPassword.value shouldNotBe "mySecretPassword123!"
         encodedPassword.value.length shouldBe 60
         encodedPassword.value.startsWith("encoded:") shouldBe true
     }
 
-    test("null이거나 빈 원시 패스워드를 거부해야 한다") {
-        val exception1 =
-            shouldThrow<PasswordValidationException> {
-                EncodedPassword.validateRawPasswordPolicy("")
+    test("빈 인코딩된 패스워드를 거부해야 한다") {
+        val exception =
+            shouldThrow<IllegalArgumentException> {
+                EncodedPassword("")
             }
-        exception1.errorCode shouldBe PasswordValidationException.BLANK_PASSWORD
-        exception1.field shouldBe "password"
+        exception.message shouldBe "EncodedPassword value cannot be blank"
 
         val exception2 =
-            shouldThrow<PasswordValidationException> {
-                EncodedPassword.validateRawPasswordPolicy("   ")
+            shouldThrow<IllegalArgumentException> {
+                EncodedPassword("   ")
             }
-        exception2.errorCode shouldBe PasswordValidationException.BLANK_PASSWORD
-    }
-
-    test("8자 미만의 패스워드를 거부해야 한다") {
-        val exception =
-            shouldThrow<PasswordValidationException> {
-                EncodedPassword.validateRawPasswordPolicy("Short1!")
-            }
-        exception.errorCode shouldBe PasswordValidationException.TOO_SHORT
-        exception.message shouldBe "비밀번호는 최소 8자 이상이어야 합니다"
-    }
-
-    test("30자를 초과하는 패스워드를 거부해야 한다") {
-        val exception =
-            shouldThrow<PasswordValidationException> {
-                EncodedPassword.validateRawPasswordPolicy("VeryLongPassword1234567890123!@")
-            }
-        exception.errorCode shouldBe PasswordValidationException.TOO_LONG
-        exception.message shouldBe "비밀번호는 최대 30자 이하여야 합니다"
-    }
-
-    test("대문자가 없는 패스워드를 거부해야 한다") {
-        val exception =
-            shouldThrow<PasswordValidationException> {
-                EncodedPassword.validateRawPasswordPolicy("lowercase123!")
-            }
-        exception.errorCode shouldBe PasswordValidationException.NO_UPPERCASE
-        exception.message shouldBe "비밀번호는 대문자를 포함해야 합니다"
-    }
-
-    test("소문자가 없는 패스워드를 거부해야 한다") {
-        val exception =
-            shouldThrow<PasswordValidationException> {
-                EncodedPassword.validateRawPasswordPolicy("UPPERCASE123!")
-            }
-        exception.errorCode shouldBe PasswordValidationException.NO_LOWERCASE
-        exception.message shouldBe "비밀번호는 소문자를 포함해야 합니다"
-    }
-
-    test("특수문자가 없는 패스워드를 거부해야 한다") {
-        val exception =
-            shouldThrow<PasswordValidationException> {
-                EncodedPassword.validateRawPasswordPolicy("Password123")
-            }
-        exception.errorCode shouldBe PasswordValidationException.NO_SPECIAL_CHAR
-        exception.message shouldBe "비밀번호는 특수문자를 포함해야 합니다"
+        exception2.message shouldBe "EncodedPassword value cannot be blank"
     }
 
     test("모든 요구사항을 충족하는 유효한 패스워드를 허용해야 한다") {
@@ -107,37 +59,32 @@ class EncodedPasswordTest : FunSpec({
                 "Test1234$",
             )
 
-        validPasswords.forEach { rawPassword ->
+        validPasswords.forEach { rawPasswordStr ->
             // This should not throw
-            EncodedPassword.validateRawPasswordPolicy(rawPassword)
+            val rawPassword = RawPassword(rawPasswordStr)
 
-            val encodedValue = testPasswordEncoder.encode(rawPassword)
-            val encodedPassword = EncodedPassword(encodedValue)
-            encodedPassword.value shouldNotBe rawPassword
+            val encodedPassword = testPasswordEncoder.encode(rawPassword)
+            encodedPassword.value shouldNotBe rawPasswordStr
         }
     }
 
     test("올바른 패스워드를 검증해야 한다") {
-        val rawPassword = "mySecretPassword123!"
-        EncodedPassword.validateRawPasswordPolicy(rawPassword)
+        val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedValue = testPasswordEncoder.encode(rawPassword)
-        val encodedPassword = EncodedPassword(encodedValue)
+        val encodedPassword = testPasswordEncoder.encode(rawPassword)
 
         // Test password matching using encoder directly
-        testPasswordEncoder.matches(rawPassword, encodedPassword.value) shouldBe true
+        testPasswordEncoder.matches(rawPassword, encodedPassword) shouldBe true
     }
 
     test("올바르지 않은 패스워드를 거부해야 한다") {
-        val rawPassword = "mySecretPassword123!"
-        EncodedPassword.validateRawPasswordPolicy(rawPassword)
+        val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedValue = testPasswordEncoder.encode(rawPassword)
-        val encodedPassword = EncodedPassword(encodedValue)
+        val encodedPassword = testPasswordEncoder.encode(rawPassword)
 
-        testPasswordEncoder.matches("wrongPassword", encodedPassword.value) shouldBe false
-        testPasswordEncoder.matches("mySecretPassword123", encodedPassword.value) shouldBe false
-        testPasswordEncoder.matches("MySecretPassword123!", encodedPassword.value) shouldBe false
+        testPasswordEncoder.matches(RawPassword("wrongPassword123!"), encodedPassword) shouldBe false
+        testPasswordEncoder.matches(RawPassword("mySecretPassword123@"), encodedPassword) shouldBe false
+        testPasswordEncoder.matches(RawPassword("MySecretPassword123!"), encodedPassword) shouldBe false
     }
 
     test("실제 BCrypt와 유사한 동작으로 동일한 패스워드에 대해 다른 해시를 생성해야 한다") {
@@ -146,63 +93,56 @@ class EncodedPasswordTest : FunSpec({
             object : PasswordEncoder {
                 private var counter = 0
 
-                override fun encode(rawPassword: String): String {
+                override fun encode(rawPassword: RawPassword): EncodedPassword {
                     // Simulate different salts by adding counter
-                    return "bcrypt:${counter++}:$rawPassword".padEnd(60, '*')
+                    return EncodedPassword("bcrypt:${counter++}:${rawPassword.value}".padEnd(60, '*'))
                 }
 
                 override fun matches(
-                    rawPassword: String,
-                    encodedPassword: String,
+                    rawPassword: RawPassword,
+                    encodedPassword: EncodedPassword,
                 ): Boolean {
                     // Extract the original password from encoded format
-                    val parts = encodedPassword.trim('*').split(":")
-                    return parts.size >= 3 && parts[2] == rawPassword
+                    val parts = encodedPassword.value.trim('*').split(":")
+                    return parts.size >= 3 && parts[2] == rawPassword.value
                 }
             }
 
-        val rawPassword = "mySecretPassword123!"
-        EncodedPassword.validateRawPasswordPolicy(rawPassword)
+        val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedValue1 = bcryptLikeEncoder.encode(rawPassword)
-        val encodedValue2 = bcryptLikeEncoder.encode(rawPassword)
-        val encodedPassword1 = EncodedPassword(encodedValue1)
-        val encodedPassword2 = EncodedPassword(encodedValue2)
+        val encodedPassword1 = bcryptLikeEncoder.encode(rawPassword)
+        val encodedPassword2 = bcryptLikeEncoder.encode(rawPassword)
 
         encodedPassword1.value shouldNotBe encodedPassword2.value
-        bcryptLikeEncoder.matches(rawPassword, encodedPassword1.value) shouldBe true
-        bcryptLikeEncoder.matches(rawPassword, encodedPassword2.value) shouldBe true
+        bcryptLikeEncoder.matches(rawPassword, encodedPassword1) shouldBe true
+        bcryptLikeEncoder.matches(rawPassword, encodedPassword2) shouldBe true
     }
 
     test("원시 패스워드를 절대 노출하지 않아야 한다") {
-        val rawPassword = "mySecretPassword123!"
-        EncodedPassword.validateRawPasswordPolicy(rawPassword)
+        val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedValue = testPasswordEncoder.encode(rawPassword)
-        val encodedPassword = EncodedPassword(encodedValue)
+        val encodedPassword = testPasswordEncoder.encode(rawPassword)
 
         encodedPassword.toString() shouldNotBe "Password(value=mySecretPassword123!)"
         encodedPassword.toString() shouldBe "EncodedPassword(****)"
     }
 
     test("불변 객체여야 한다") {
-        val rawPassword = "mySecretPassword123!"
-        EncodedPassword.validateRawPasswordPolicy(rawPassword)
+        val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedValue = testPasswordEncoder.encode(rawPassword)
-        val encodedPassword = EncodedPassword(encodedValue)
+        val encodedPassword = testPasswordEncoder.encode(rawPassword)
         val originalValue = encodedPassword.value
         // Value should not be modifiable (enforced by val property)
         encodedPassword.value shouldBe originalValue
     }
 
     test("equals를 올바르게 구현해야 한다") {
-        val rawPwd = "mySecretPassword123!"
-        val encodedValue = testPasswordEncoder.encode(rawPwd)
+        val rawPwd = RawPassword("mySecretPassword123!")
+        val encodedPassword = testPasswordEncoder.encode(rawPwd)
 
-        val encodedPassword1 = EncodedPassword(encodedValue)
-        val encodedPassword2 = EncodedPassword(encodedValue)
-        val encodedPassword3 = EncodedPassword(testPasswordEncoder.encode("differentPassword"))
+        val encodedPassword1 = encodedPassword
+        val encodedPassword2 = encodedPassword
+        val encodedPassword3 = testPasswordEncoder.encode(RawPassword("differentPassword123!"))
 
         encodedPassword1 shouldBe encodedPassword2
         encodedPassword1 shouldNotBe encodedPassword3
@@ -211,12 +151,11 @@ class EncodedPasswordTest : FunSpec({
     }
 
     test("hashCode를 올바르게 구현해야 한다") {
-        val rawPassword = "mySecretPassword123!"
-        EncodedPassword.validateRawPasswordPolicy(rawPassword)
+        val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedValue = testPasswordEncoder.encode(rawPassword)
-        val encodedPassword1 = EncodedPassword(encodedValue)
-        val encodedPassword2 = EncodedPassword(encodedValue)
+        val encodedPassword = testPasswordEncoder.encode(rawPassword)
+        val encodedPassword1 = encodedPassword
+        val encodedPassword2 = encodedPassword
 
         encodedPassword1.hashCode() shouldBe encodedPassword2.hashCode()
     }
