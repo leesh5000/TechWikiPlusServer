@@ -8,11 +8,6 @@ import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 class UserReader(
     private val repository: UserRepository,
 ) {
-    fun findByEmail(email: Email): User {
-        return repository.findBy(email)
-            ?: throw UserNotFoundException("User with email ${email.value} not found")
-    }
-
     fun getBy(email: Email): User {
         return repository.findBy(email)
             ?: throw UserNotFoundException("User with email ${email.value} not found")
