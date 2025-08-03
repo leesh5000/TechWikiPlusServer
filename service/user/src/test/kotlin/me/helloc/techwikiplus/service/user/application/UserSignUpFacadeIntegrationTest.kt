@@ -21,7 +21,7 @@ import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVe
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.UserPasswordService
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
-import me.helloc.techwikiplus.service.user.infrastructure.cache.FakeCacheStore
+import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
 import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
 import me.helloc.techwikiplus.service.user.infrastructure.id.FakeIdGenerator
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
@@ -44,7 +44,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
                 clockHolder = FakeClockHolder(now = now),
             )
         val mailSender = FakeMailSender()
-        val userCacheStore = FakeCacheStore()
+        val userCacheStore = VerificationCodeFakeStore()
         val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, userCacheStore)
         val passwordConfirmationVerifier = PasswordConfirmationVerifier()
         val idGenerator = FakeIdGenerator()
@@ -105,7 +105,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val userPasswordService = UserPasswordService(passwordEncoder)
         val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
         val mailSender = FakeMailSender()
-        val userCacheStore = FakeCacheStore()
+        val userCacheStore = VerificationCodeFakeStore()
         val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, userCacheStore)
         val passwordConfirmationVerifier = PasswordConfirmationVerifier()
         val idGenerator = FakeIdGenerator()
@@ -160,7 +160,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val userPasswordService = UserPasswordService(passwordEncoder)
         val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
         val mailSender = FakeMailSender()
-        val userCacheStore = FakeCacheStore()
+        val userCacheStore = VerificationCodeFakeStore()
         val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, userCacheStore)
         val passwordConfirmationVerifier = PasswordConfirmationVerifier()
         val idGenerator = FakeIdGenerator()
@@ -205,7 +205,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val userPasswordService = UserPasswordService(passwordEncoder)
         val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
         val mailSender = FakeMailSender()
-        val userCacheStore = FakeCacheStore()
+        val userCacheStore = VerificationCodeFakeStore()
         val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, userCacheStore)
         val passwordConfirmationVerifier = PasswordConfirmationVerifier()
         val idGenerator = FakeIdGenerator()
@@ -254,7 +254,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val userPasswordService = UserPasswordService(passwordEncoder)
         val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
         val mailSender = FakeMailSender()
-        val userCacheStore = FakeCacheStore()
+        val userCacheStore = VerificationCodeFakeStore()
         val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, userCacheStore)
         val passwordConfirmationVerifier = PasswordConfirmationVerifier()
         val idGenerator = FakeIdGenerator()
@@ -300,7 +300,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val userPasswordService = UserPasswordService(passwordEncoder)
         val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
         val mailSender = FakeMailSender()
-        val userCacheStore = FakeCacheStore()
+        val userCacheStore = VerificationCodeFakeStore()
         val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, userCacheStore)
         val passwordConfirmationVerifier = PasswordConfirmationVerifier()
         val idGenerator = FakeIdGenerator()
@@ -346,7 +346,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val userPasswordService = UserPasswordService(passwordEncoder)
         val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
         val mailSender = FakeMailSender()
-        val userCacheStore = FakeCacheStore()
+        val userCacheStore = VerificationCodeFakeStore()
         val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, userCacheStore)
         val passwordConfirmationVerifier = PasswordConfirmationVerifier()
         val idGenerator = FakeIdGenerator()
@@ -379,7 +379,6 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         mailSender.hasMailBeenSentTo(email) shouldBe true
 
         // Then: 캐시에 인증 코드가 저장되었는지 확인
-        val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email)
-        userCacheStore.exists(cacheKey) shouldBe true
+        userCacheStore.exists(Email(email)) shouldBe true
     }
 })

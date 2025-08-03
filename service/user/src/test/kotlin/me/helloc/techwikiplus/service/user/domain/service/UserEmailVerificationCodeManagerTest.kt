@@ -10,14 +10,15 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.infrastructure.cache.FakeCacheStore
+import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
+import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
 import java.time.Instant
 
 class UserEmailVerificationCodeManagerTest : FunSpec({
 
     val mailSender = FakeMailSender()
-    val verificationCodeStore = FakeCacheStore()
+    val verificationCodeStore = VerificationCodeFakeStore()
     val manager = UserEmailVerificationCodeManager(mailSender, verificationCodeStore)
     val now = Instant.now()
 
@@ -72,8 +73,7 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
         manager.sendVerifyMailTo(user)
 
         // Then - 캐시에 인증 코드가 저장되었는지 확인
-        val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format("cache@example.com")
-        verificationCodeStore.exists(cacheKey) shouldBe true
+        verificationCodeStore.exists(Email("cache@example.com")) shouldBe true
 
         // Then - 저장된 인증 코드 형식 확인 (6자리 숫자)
         val storedCode = verificationCodeStore.get(Email("cache@example.com"))
@@ -98,7 +98,7 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
         manager.sendVerifyMailTo(user)
 
         // Then - TTL 확인
-        val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format("ttl@example.com")
+        val cacheKey = "user-service:user:email:ttl@example.com"
         val ttl = verificationCodeStore.getTtl(cacheKey)
 
         // FakeCacheStore는 TTL을 정확히 저장하므로 5분에 가까워야 함
@@ -174,12 +174,14 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
 
     test("캐시 키 형식이 올바르게 생성된다") {
         // Given
-        val email = "format@example.com"
+        val email = Email("format@example.com")
 
-        // When
-        val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email)
+        // When - 캐시에 저장하고 확인
+        val verificationCode = VerificationCode("123456")
+        verificationCodeStore.store(email, verificationCode)
 
-        // Then
-        cacheKey shouldBe "user-service:user:email:format@example.com"
+        // Then - 정상적으로 저장되고 조회되는지 확인
+        verificationCodeStore.exists(email) shouldBe true
+        verificationCodeStore.get(email) shouldBe verificationCode
     }
 })

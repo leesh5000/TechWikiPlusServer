@@ -13,10 +13,9 @@ import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
-import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
-import me.helloc.techwikiplus.service.user.infrastructure.cache.FakeCacheStore
+import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
 import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
 import me.helloc.techwikiplus.service.user.infrastructure.id.FakeIdGenerator
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
@@ -28,7 +27,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         // Given
         val now = Instant.now()
         val repository = FakeUserRepository()
-        val verificationCodeStore = FakeCacheStore()
+        val verificationCodeStore = VerificationCodeFakeStore()
         val clockHolder = FakeClockHolder(now = now)
         val auditor = Auditor(clockHolder)
 
@@ -61,12 +60,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
 
         // 인증 코드를 캐시에 저장
         val verificationCode = VerificationCode("123456")
-        val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email.value)
-        verificationCodeStore.set(
-            key = cacheKey,
-            code = verificationCode,
-            ttlSeconds = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_TTL,
-        )
+        verificationCodeStore.store(email, verificationCode)
 
         // When
         sut.verify(email, verificationCode)
@@ -81,7 +75,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         // Given
         val now = Instant.now()
         val repository = FakeUserRepository()
-        val verificationCodeStore = FakeCacheStore()
+        val verificationCodeStore = VerificationCodeFakeStore()
         val clockHolder = FakeClockHolder(now = now)
         val auditor = Auditor(clockHolder)
 
@@ -112,15 +106,10 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
             )
         repository.save(user)
 
-        // 인증 코드를 캐시에 저장
+        // 인증 코듌를 캐시에 저장
         val correctCode = VerificationCode("123456")
         val wrongCode = VerificationCode("999999")
-        val cacheKey = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email.value)
-        verificationCodeStore.set(
-            key = cacheKey,
-            code = correctCode,
-            ttlSeconds = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_TTL,
-        )
+        verificationCodeStore.store(email, correctCode)
 
         // When & Then
         shouldThrow<InvalidVerificationCodeException> {
@@ -136,7 +125,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         // Given
         val now = Instant.now()
         val repository = FakeUserRepository()
-        val verificationCodeStore = FakeCacheStore()
+        val verificationCodeStore = VerificationCodeFakeStore()
         val clockHolder = FakeClockHolder(now = now)
         val auditor = Auditor(clockHolder)
 
@@ -164,7 +153,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         // Given
         val now = Instant.now()
         val repository = FakeUserRepository()
-        val verificationCodeStore = FakeCacheStore()
+        val verificationCodeStore = VerificationCodeFakeStore()
         val clockHolder = FakeClockHolder(now = now)
         val auditor = Auditor(clockHolder)
 
