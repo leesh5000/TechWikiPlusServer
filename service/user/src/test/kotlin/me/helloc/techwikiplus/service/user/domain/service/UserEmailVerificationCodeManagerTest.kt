@@ -12,6 +12,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
 import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
+import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplateService
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
 import java.time.Instant
 
@@ -19,7 +20,13 @@ class UserEmailVerificationCodeManagerTest : FunSpec({
 
     val mailSender = FakeMailSender()
     val verificationCodeStore = VerificationCodeFakeStore()
-    val manager = UserEmailVerificationCodeManager(mailSender, verificationCodeStore)
+    val emailTemplateService = FakeEmailTemplateService()
+    val manager =
+        UserEmailVerificationCodeManager(
+            mailSender,
+            verificationCodeStore,
+            emailTemplateService,
+        )
     val now = Instant.now()
 
     beforeEach {

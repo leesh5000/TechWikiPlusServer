@@ -14,6 +14,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
+import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplateService
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
 import me.helloc.techwikiplus.service.user.interfaces.usecase.UserVerifyResendUseCase
@@ -30,7 +31,13 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // 도메인 서비스 구성
         val userReader = UserReader(repository)
-        val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, verificationCodeStore)
+        val emailTemplateService = FakeEmailTemplateService()
+        val userEmailVerificationCodeManager =
+            UserEmailVerificationCodeManager(
+                mailSender,
+                verificationCodeStore,
+                emailTemplateService,
+            )
 
         // Facade 구성
         val sut =
@@ -84,7 +91,13 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // 도메인 서비스 구성
         val userReader = UserReader(repository)
-        val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, verificationCodeStore)
+        val emailTemplateService = FakeEmailTemplateService()
+        val userEmailVerificationCodeManager =
+            UserEmailVerificationCodeManager(
+                mailSender,
+                verificationCodeStore,
+                emailTemplateService,
+            )
 
         // Facade 구성
         val sut =
@@ -128,7 +141,13 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // 도메인 서비스 구성
         val userReader = UserReader(repository)
-        val userEmailVerificationCodeManager = UserEmailVerificationCodeManager(mailSender, verificationCodeStore)
+        val emailTemplateService = FakeEmailTemplateService()
+        val userEmailVerificationCodeManager =
+            UserEmailVerificationCodeManager(
+                mailSender,
+                verificationCodeStore,
+                emailTemplateService,
+            )
 
         // Facade 구성
         val sut =
