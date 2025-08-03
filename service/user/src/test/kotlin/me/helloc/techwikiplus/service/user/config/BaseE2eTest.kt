@@ -40,7 +40,7 @@ import org.springframework.web.context.WebApplicationContext
 @ExtendWith(SpringExtension::class, RestDocumentationExtension::class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("integration-test")
+@ActiveProfiles("e2e-test")
 @ContextConfiguration(initializers = [TestContainersInitializer::class])
 @Transactional
 abstract class BaseE2eTest : ApiDocumentationSupport {
