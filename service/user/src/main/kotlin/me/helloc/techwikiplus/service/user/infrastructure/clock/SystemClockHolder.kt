@@ -1,8 +1,10 @@
 package me.helloc.techwikiplus.service.user.infrastructure.clock
 
 import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
+import org.springframework.stereotype.Component
 import java.time.Instant
 
+@Component
 class SystemClockHolder : ClockHolder {
     override fun now(): Instant {
         return Instant.now()

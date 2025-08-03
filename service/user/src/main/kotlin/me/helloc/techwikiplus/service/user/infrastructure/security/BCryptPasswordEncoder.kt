@@ -4,7 +4,9 @@ import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
+import org.springframework.stereotype.Component
 
+@Component
 class BCryptPasswordEncoder : PasswordEncoder {
     private val encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 

@@ -5,9 +5,11 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
 import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.temporal.ChronoUnit.MINUTES
 
+@Component
 class VerificationCodeRedisStore(
     private val template: StringRedisTemplate,
 ) : VerificationCodeStore {
