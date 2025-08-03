@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldNotBe
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
 import java.time.Instant
 
@@ -23,7 +23,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 status = UserStatus.ACTIVE,
                 role = UserRole.USER,
                 createdAt = now,
@@ -33,7 +33,7 @@ class UserTest : FunSpec({
         user.id shouldBe "123456789"
         user.email.value shouldBe "user@example.com"
         user.nickname.value shouldBe "testuser"
-        user.encodedPassword.value shouldBe "FAKE_ENCODED:password123"
+        user.encodedPassword.value shouldBe "FAKE_ENCODED:Password123!"
         user.status shouldBe UserStatus.ACTIVE
         user.role shouldBe UserRole.USER
         user.createdAt shouldBe now
@@ -47,7 +47,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 createdAt = now,
             )
 
@@ -62,7 +62,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 createdAt = Instant.now(),
             )
 
@@ -79,7 +79,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 createdAt = now,
             )
 
@@ -107,7 +107,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 status = UserStatus.ACTIVE,
                 role = UserRole.USER,
                 createdAt = now,
@@ -120,7 +120,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("different@example.com"),
                 nickname = Nickname("differentuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 status = UserStatus.BANNED,
                 role = UserRole.ADMIN,
                 createdAt = laterTime,
@@ -133,7 +133,7 @@ class UserTest : FunSpec({
                 id = "987654321",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 status = UserStatus.ACTIVE,
                 role = UserRole.USER,
                 createdAt = now,
@@ -155,7 +155,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 status = UserStatus.ACTIVE,
                 role = UserRole.USER,
                 createdAt = now,
@@ -168,7 +168,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("different@example.com"),
                 nickname = Nickname("differentuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 status = UserStatus.BANNED,
                 role = UserRole.ADMIN,
                 createdAt = laterTime,
@@ -184,7 +184,7 @@ class UserTest : FunSpec({
                 id = "123456789",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 createdAt = Instant.now(),
             )
 
@@ -201,7 +201,7 @@ class UserTest : FunSpec({
                 id = "",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 createdAt = Instant.now(),
             )
         }
@@ -211,7 +211,7 @@ class UserTest : FunSpec({
                 id = "   ",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword(testPasswordEncoder.encode("password123")),
+                encodedPassword = testPasswordEncoder.encode(RawPassword("Password123!")),
                 createdAt = Instant.now(),
             )
         }

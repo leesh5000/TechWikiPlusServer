@@ -11,6 +11,7 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
 import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
 import java.time.Instant
@@ -28,14 +29,14 @@ class UserAuthenticationServiceTest : FunSpec({
                 id = "123",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword("FAKE_ENCODED:password123"),
+                encodedPassword = EncodedPassword("FAKE_ENCODED:Password123!"),
                 status = UserStatus.ACTIVE,
                 createdAt = Instant.now(),
             )
         userRepository.save(user)
 
         // When
-        val result = authService.authenticate(Email("user@example.com"), "password123")
+        val result = authService.authenticate(Email("user@example.com"), RawPassword("Password123!"))
 
         // Then
         result.id shouldBe "123"
@@ -50,7 +51,7 @@ class UserAuthenticationServiceTest : FunSpec({
         // When/Then
         val exception =
             shouldThrow<UserNotFoundException> {
-                authService.authenticate(Email("nonexistent@example.com"), "password")
+                authService.authenticate(Email("nonexistent@example.com"), RawPassword("Password123!"))
             }
         exception.message shouldBe "User not found: nonexistent@example.com"
     }
@@ -66,7 +67,7 @@ class UserAuthenticationServiceTest : FunSpec({
                 id = "123",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword("FAKE_ENCODED:correctPassword"),
+                encodedPassword = EncodedPassword("FAKE_ENCODED:CorrectPassword123!"),
                 status = UserStatus.ACTIVE,
                 createdAt = Instant.now(),
             )
@@ -75,7 +76,7 @@ class UserAuthenticationServiceTest : FunSpec({
         // When/Then
         val exception =
             shouldThrow<InvalidCredentialsException> {
-                authService.authenticate(Email("user@example.com"), "wrongPassword")
+                authService.authenticate(Email("user@example.com"), RawPassword("WrongPassword123!"))
             }
         exception.message shouldBe "Invalid email or password"
     }
@@ -91,7 +92,7 @@ class UserAuthenticationServiceTest : FunSpec({
                 id = "123",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword("FAKE_ENCODED:password123"),
+                encodedPassword = EncodedPassword("FAKE_ENCODED:Password123!"),
                 status = UserStatus.DORMANT,
                 createdAt = Instant.now(),
             )
@@ -100,7 +101,7 @@ class UserAuthenticationServiceTest : FunSpec({
         // When/Then
         val exception =
             shouldThrow<UserNotActiveException> {
-                authService.authenticate(Email("user@example.com"), "password123")
+                authService.authenticate(Email("user@example.com"), RawPassword("Password123!"))
             }
         exception.message shouldBe "User account is dormant"
     }
@@ -116,7 +117,7 @@ class UserAuthenticationServiceTest : FunSpec({
                 id = "123",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword("FAKE_ENCODED:password123"),
+                encodedPassword = EncodedPassword("FAKE_ENCODED:Password123!"),
                 status = UserStatus.BANNED,
                 createdAt = Instant.now(),
             )
@@ -125,7 +126,7 @@ class UserAuthenticationServiceTest : FunSpec({
         // When/Then
         val exception =
             shouldThrow<UserNotActiveException> {
-                authService.authenticate(Email("user@example.com"), "password123")
+                authService.authenticate(Email("user@example.com"), RawPassword("Password123!"))
             }
         exception.message shouldBe "User account is banned"
     }
@@ -141,7 +142,7 @@ class UserAuthenticationServiceTest : FunSpec({
                 id = "123",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword("FAKE_ENCODED:password123"),
+                encodedPassword = EncodedPassword("FAKE_ENCODED:Password123!"),
                 status = UserStatus.PENDING,
                 createdAt = Instant.now(),
             )
@@ -150,7 +151,7 @@ class UserAuthenticationServiceTest : FunSpec({
         // When/Then
         val exception =
             shouldThrow<UserNotActiveException> {
-                authService.authenticate(Email("user@example.com"), "password123")
+                authService.authenticate(Email("user@example.com"), RawPassword("Password123!"))
             }
         exception.message shouldBe "User account is pending activation"
     }
@@ -166,7 +167,7 @@ class UserAuthenticationServiceTest : FunSpec({
                 id = "123",
                 email = Email("user@example.com"),
                 nickname = Nickname("testuser"),
-                encodedPassword = EncodedPassword("FAKE_ENCODED:password123"),
+                encodedPassword = EncodedPassword("FAKE_ENCODED:Password123!"),
                 status = UserStatus.DELETED,
                 createdAt = Instant.now(),
             )
@@ -175,7 +176,7 @@ class UserAuthenticationServiceTest : FunSpec({
         // When/Then
         val exception =
             shouldThrow<UserNotActiveException> {
-                authService.authenticate(Email("user@example.com"), "password123")
+                authService.authenticate(Email("user@example.com"), RawPassword("Password123!"))
             }
         exception.message shouldBe "User account is deleted"
     }

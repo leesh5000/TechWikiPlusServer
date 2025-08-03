@@ -4,6 +4,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationException
+import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
 
 class UserPasswordServiceTest : FunSpec({
@@ -12,7 +14,7 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = "mySecretPassword123!"
+        val rawPassword = RawPassword("mySecretPassword123!")
 
         // When
         val encodedPassword = userPasswordService.encode(rawPassword)
@@ -25,8 +27,8 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = "correctPassword"
-        val encodedPassword = "FAKE_ENCODED:correctPassword"
+        val rawPassword = RawPassword("CorrectPassword123!")
+        val encodedPassword = EncodedPassword("FAKE_ENCODED:CorrectPassword123!")
 
         // When
         val matches = userPasswordService.matches(rawPassword, encodedPassword)
@@ -39,8 +41,8 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = "wrongPassword"
-        val encodedPassword = "FAKE_ENCODED:correctPassword"
+        val rawPassword = RawPassword("WrongPassword123!")
+        val encodedPassword = EncodedPassword("FAKE_ENCODED:CorrectPassword123!")
 
         // When
         val matches = userPasswordService.matches(rawPassword, encodedPassword)
@@ -53,11 +55,9 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = ""
-
         // When & Then
         shouldThrow<PasswordValidationException> {
-            userPasswordService.encode(rawPassword)
+            RawPassword("")
         }
     }
 
@@ -65,7 +65,7 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = "P@ssw0rd!" // 대문자, 소문자, 특수문자 포함
+        val rawPassword = RawPassword("P@ssw0rd!") // 대문자, 소문자, 특수문자 포함
 
         // When
         val encodedPassword = userPasswordService.encode(rawPassword)
@@ -78,11 +78,9 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = "VeryLongPassword1234567890123!@" // 31자
-
         // When & Then
         shouldThrow<PasswordValidationException> {
-            userPasswordService.encode(rawPassword)
+            RawPassword("VeryLongPassword1234567890123!@") // 31자
         }
     }
 
@@ -90,7 +88,7 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = "  PassWord123!  " // 앞뒤 공백 포함, 대소문자와 특수문자 포함
+        val rawPassword = RawPassword("  PassWord123!  ") // 앞뒤 공백 포함, 대소문자와 특수문자 포함
 
         // When
         val encodedPassword = userPasswordService.encode(rawPassword)
@@ -103,8 +101,8 @@ class UserPasswordServiceTest : FunSpec({
         // Given
         val passwordEncoder = FakePasswordEncoder()
         val userPasswordService = UserPasswordService(passwordEncoder)
-        val rawPassword = "password"
-        val malformedEncodedPassword = "WRONG_PREFIX:password"
+        val rawPassword = RawPassword("Password123!")
+        val malformedEncodedPassword = EncodedPassword("WRONG_PREFIX:Password123!")
 
         // When
         val matches = userPasswordService.matches(rawPassword, malformedEncodedPassword)

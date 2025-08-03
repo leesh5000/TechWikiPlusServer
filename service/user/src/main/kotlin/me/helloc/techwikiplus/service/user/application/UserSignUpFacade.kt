@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
 import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVerifier
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
@@ -24,16 +25,13 @@ class UserSignUpFacade(
     private val userEmailVerificationCodeManager: UserEmailVerificationCodeManager,
     private val idGenerator: IdGenerator,
 ) : UserSignUpUseCase {
-    override fun signup(
-        email: String,
-        password: String,
-        confirmPassword: String,
-        nickname: String,
-    ) {
-        val nicknameValue = Nickname(nickname)
-        val userEmail = Email(email)
-        passwordConfirmationVerifier.verify(password, confirmPassword)
-        val encodedPassword: EncodedPassword = userPasswordService.encode(password)
+    override fun execute(command: UserSignUpUseCase.Command) {
+        val nicknameValue = Nickname(command.nickname)
+        val userEmail = Email(command.email)
+        val rawPassword = RawPassword(command.password)
+        val rawConfirmPassword = RawPassword(command.confirmPassword)
+        passwordConfirmationVerifier.verify(rawPassword, rawConfirmPassword)
+        val encodedPassword: EncodedPassword = userPasswordService.encode(rawPassword)
         val user =
             User.create(
                 id = idGenerator.next(),

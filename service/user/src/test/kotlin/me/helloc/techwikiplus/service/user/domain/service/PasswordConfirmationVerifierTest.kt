@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 
 class PasswordConfirmationVerifierTest : FunSpec(
     {
@@ -14,10 +14,8 @@ class PasswordConfirmationVerifierTest : FunSpec(
             val passwordConfirmationVerifier = PasswordConfirmationVerifier()
 
             // When
-            val rawPassword = "Password123!"
-            val passwordConfirmation = "Password123!"
-            EncodedPassword.validateRawPasswordPolicy(rawPassword)
-            EncodedPassword.validateRawPasswordPolicy(passwordConfirmation)
+            val rawPassword = RawPassword("Password123!")
+            val passwordConfirmation = RawPassword("Password123!")
 
             // Then
             passwordConfirmationVerifier.verify(rawPassword, passwordConfirmation)
@@ -28,10 +26,8 @@ class PasswordConfirmationVerifierTest : FunSpec(
             val passwordConfirmationVerifier = PasswordConfirmationVerifier()
 
             // When
-            val rawPassword = "Password123!"
-            val passwordConfirmation = "DifferentPassword123!"
-            EncodedPassword.validateRawPasswordPolicy(rawPassword)
-            EncodedPassword.validateRawPasswordPolicy(passwordConfirmation)
+            val rawPassword = RawPassword("Password123!")
+            val passwordConfirmation = RawPassword("DifferentPassword123!")
 
             // Then
             shouldThrow<PasswordMismatchException> {
@@ -44,10 +40,8 @@ class PasswordConfirmationVerifierTest : FunSpec(
             val passwordConfirmationVerifier = PasswordConfirmationVerifier()
 
             // When
-            val rawPassword = "Password123!"
-            val passwordConfirmation = "DifferentPassword123!"
-            EncodedPassword.validateRawPasswordPolicy(rawPassword)
-            EncodedPassword.validateRawPasswordPolicy(passwordConfirmation)
+            val rawPassword = RawPassword("Password123!")
+            val passwordConfirmation = RawPassword("DifferentPassword123!")
 
             // Then
             val exception =

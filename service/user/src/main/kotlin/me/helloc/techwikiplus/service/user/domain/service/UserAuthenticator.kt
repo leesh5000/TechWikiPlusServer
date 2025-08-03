@@ -6,6 +6,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundExceptio
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 
 class UserAuthenticator(
@@ -14,13 +15,13 @@ class UserAuthenticator(
 ) {
     fun authenticate(
         email: Email,
-        rawPassword: String,
+        rawPassword: RawPassword,
     ): User {
         val user =
             userRepository.findBy(email)
                 ?: throw UserNotFoundException(email.value)
 
-        if (!passwordService.matches(rawPassword, user.encodedPassword.value)) {
+        if (!passwordService.matches(rawPassword, user.encodedPassword)) {
             throw InvalidCredentialsException()
         }
 

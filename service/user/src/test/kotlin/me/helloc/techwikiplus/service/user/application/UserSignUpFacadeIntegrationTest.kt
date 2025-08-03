@@ -16,6 +16,7 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
 import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVerifier
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
@@ -27,6 +28,7 @@ import me.helloc.techwikiplus.service.user.infrastructure.id.FakeIdGenerator
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
 import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
+import me.helloc.techwikiplus.service.user.interfaces.usecase.UserSignUpUseCase
 import java.time.Instant
 
 class UserSignUpFacadeIntegrationTest : FunSpec({
@@ -69,11 +71,13 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
 
         // Then 1 : 회원가입을 시도하면 아무 에러도 발생하지 않아야 한다.
         shouldNotThrow<Throwable> {
-            sut.signup(
-                email = email,
-                password = password,
-                confirmPassword = confirmPassword,
-                nickname = nickname,
+            sut.execute(
+                UserSignUpUseCase.Command(
+                    email = email,
+                    password = password,
+                    confirmPassword = confirmPassword,
+                    nickname = nickname,
+                ),
             )
         }
 
@@ -84,7 +88,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
                 ?: throw IllegalStateException("User not found in repository")
         user.email.value shouldBe email
         user.nickname.value shouldBe nickname
-        user.encodedPassword.value shouldBe passwordEncoder.encode(password)
+        user.encodedPassword.value shouldBe passwordEncoder.encode(RawPassword(password)).value
         user.createdAt shouldBe now
         user.modifiedAt shouldBe now
         user.status shouldBe UserStatus.PENDING
@@ -122,7 +126,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
 
         // Given: 이미 등록된 사용자 생성
         val email = "existing@gmail.com"
-        val encodedPassword: String = passwordEncoder.encode("OldPassword!123")
+        val encodedPassword = passwordEncoder.encode(RawPassword("OldPassword!123")).value
         val existingUser =
             User(
                 id = idGenerator.next(),
@@ -139,11 +143,13 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         // When & Then: 같은 이메일로 회원가입 시도시 예외 발생
         val exception =
             shouldThrow<UserAlreadyExistsException> {
-                sut.signup(
-                    email = email,
-                    password = "NewPassword!123",
-                    confirmPassword = "NewPassword!123",
-                    nickname = "newUser",
+                sut.execute(
+                    UserSignUpUseCase.Command(
+                        email = email,
+                        password = "NewPassword!123",
+                        confirmPassword = "NewPassword!123",
+                        nickname = "newUser",
+                    ),
                 )
             }
 
@@ -183,11 +189,13 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
 
         // When & Then: 예외 발생
         shouldThrow<PasswordMismatchException> {
-            sut.signup(
-                email = email,
-                password = password,
-                confirmPassword = confirmPassword,
-                nickname = nickname,
+            sut.execute(
+                UserSignUpUseCase.Command(
+                    email = email,
+                    password = password,
+                    confirmPassword = confirmPassword,
+                    nickname = nickname,
+                ),
             )
         }
 
@@ -229,11 +237,13 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         // When & Then: 예외 발생
         val exception =
             shouldThrow<PasswordValidationException> {
-                sut.signup(
-                    email = email,
-                    password = password,
-                    confirmPassword = confirmPassword,
-                    nickname = nickname,
+                sut.execute(
+                    UserSignUpUseCase.Command(
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword,
+                        nickname = nickname,
+                    ),
                 )
             }
 
@@ -278,11 +288,13 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         // When & Then: 예외 발생
         val exception =
             shouldThrow<EmailValidationException> {
-                sut.signup(
-                    email = email,
-                    password = password,
-                    confirmPassword = confirmPassword,
-                    nickname = nickname,
+                sut.execute(
+                    UserSignUpUseCase.Command(
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword,
+                        nickname = nickname,
+                    ),
                 )
             }
 
@@ -324,11 +336,13 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         // When & Then: 예외 발생
         val exception =
             shouldThrow<NicknameValidationException> {
-                sut.signup(
-                    email = email,
-                    password = password,
-                    confirmPassword = confirmPassword,
-                    nickname = nickname,
+                sut.execute(
+                    UserSignUpUseCase.Command(
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword,
+                        nickname = nickname,
+                    ),
                 )
             }
 
@@ -368,11 +382,13 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val nickname = "testUser"
 
         // When
-        sut.signup(
-            email = email,
-            password = password,
-            confirmPassword = confirmPassword,
-            nickname = nickname,
+        sut.execute(
+            UserSignUpUseCase.Command(
+                email = email,
+                password = password,
+                confirmPassword = confirmPassword,
+                nickname = nickname,
+            ),
         )
 
         // Then: 메일 발송 기록 확인
