@@ -20,13 +20,10 @@ class UserVerifyControllerUnitTest : FunSpec({
         var lastCode: VerificationCode? = null
         var shouldThrowException: Exception? = null
 
-        override fun verify(
-            email: Email,
-            code: VerificationCode,
-        ) {
+        override fun execute(command: UserVerifyUseCase.Command) {
             verifyCalled = true
-            lastEmail = email
-            lastCode = code
+            lastEmail = command.email
+            lastCode = command.code
 
             shouldThrowException?.let { throw it }
         }

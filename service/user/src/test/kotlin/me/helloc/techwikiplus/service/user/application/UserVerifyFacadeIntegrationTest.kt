@@ -19,6 +19,7 @@ import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCode
 import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
 import me.helloc.techwikiplus.service.user.infrastructure.id.FakeIdGenerator
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
+import me.helloc.techwikiplus.service.user.interfaces.usecase.UserVerifyUseCase
 import java.time.Instant
 
 class UserVerifyFacadeIntegrationTest : FunSpec({
@@ -63,7 +64,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         verificationCodeStore.store(email, verificationCode)
 
         // When
-        sut.verify(email, verificationCode)
+        sut.execute(UserVerifyUseCase.Command(email, verificationCode))
 
         // Then
         val updatedUser = repository.findBy(email)
@@ -113,7 +114,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
 
         // When & Then
         shouldThrow<InvalidVerificationCodeException> {
-            sut.verify(email, wrongCode)
+            sut.execute(UserVerifyUseCase.Command(email, wrongCode))
         }
 
         // 사용자 상태가 변경되지 않았는지 확인
@@ -145,7 +146,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
 
         // When & Then
         shouldThrow<UserNotFoundException> {
-            sut.verify(nonExistentEmail, verificationCode)
+            sut.execute(UserVerifyUseCase.Command(nonExistentEmail, verificationCode))
         }
     }
 
@@ -189,7 +190,7 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
 
         // When & Then
         shouldThrow<InvalidVerificationCodeException> {
-            sut.verify(email, verificationCode)
+            sut.execute(UserVerifyUseCase.Command(email, verificationCode))
         }
 
         // 사용자 상태가 변경되지 않았는지 확인

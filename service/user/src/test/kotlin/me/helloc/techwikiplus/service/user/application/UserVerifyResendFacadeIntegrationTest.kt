@@ -16,6 +16,7 @@ import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
+import me.helloc.techwikiplus.service.user.interfaces.usecase.UserVerifyResendUseCase
 import java.time.Instant
 
 class UserVerifyResendFacadeIntegrationTest : FunSpec({
@@ -54,7 +55,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
         repository.save(pendingUser)
 
         // When
-        sut.resend(email)
+        sut.execute(UserVerifyResendUseCase.Command(email))
 
         // Then
         // 메일이 발송되었는지 확인
@@ -110,7 +111,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
         // When & Then
         val exception =
             shouldThrow<UserNotPendingException> {
-                sut.resend(email)
+                sut.execute(UserVerifyResendUseCase.Command(email))
             }
         exception.message shouldBe "User with email active@example.com is not in pending status"
 
@@ -141,7 +142,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
         // When & Then
         val exception =
             shouldThrow<UserNotFoundException> {
-                sut.resend(email)
+                sut.execute(UserVerifyResendUseCase.Command(email))
             }
         exception.message shouldBe "User not found: User with email nonexistent@example.com not found"
 

@@ -20,17 +20,12 @@ class UserSignUpControllerUnitTest : FunSpec({
         var lastNickname: String? = null
         var shouldThrowException: Exception? = null
 
-        override fun signup(
-            email: String,
-            password: String,
-            confirmPassword: String,
-            nickname: String,
-        ) {
+        override fun execute(command: UserSignUpUseCase.Command) {
             signupCalled = true
-            lastEmail = email
-            lastPassword = password
-            lastConfirmPassword = confirmPassword
-            lastNickname = nickname
+            lastEmail = command.email
+            lastPassword = command.password
+            lastConfirmPassword = command.confirmPassword
+            lastNickname = command.nickname
 
             shouldThrowException?.let { throw it }
         }
