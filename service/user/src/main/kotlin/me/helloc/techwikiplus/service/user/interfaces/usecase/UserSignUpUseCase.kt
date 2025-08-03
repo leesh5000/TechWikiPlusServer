@@ -4,15 +4,14 @@ interface UserSignUpUseCase {
     /**
      * 사용자 회원가입을 처리하는 메서드
      *
-     * @param email 사용자의 이메일 주소
-     * @param password 사용자의 비밀번호
-     * @param confirmPassword 비밀번호 확인용 문자열
-     * @param nickname 사용자의 닉네임
+     * @param command 회원가입에 필요한 정보를 담은 커맨드 객체
      */
-    fun signup(
-        email: String,
-        password: String,
-        confirmPassword: String,
-        nickname: String,
+    fun execute(command: Command)
+
+    data class Command(
+        val email: String,
+        val password: String,
+        val confirmPassword: String,
+        val nickname: String,
     )
 }

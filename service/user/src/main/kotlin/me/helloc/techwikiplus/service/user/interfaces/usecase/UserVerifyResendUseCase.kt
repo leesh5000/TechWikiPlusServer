@@ -6,7 +6,11 @@ interface UserVerifyResendUseCase {
     /**
      * 사용자 이메일로 인증 코드 재전송
      *
-     * @param email 사용자 이메일
+     * @param command 인증 코드 재전송에 필요한 정보를 담은 커맨드 객체
      */
-    fun resend(email: Email)
+    fun execute(command: Command)
+
+    data class Command(
+        val email: Email,
+    )
 }
