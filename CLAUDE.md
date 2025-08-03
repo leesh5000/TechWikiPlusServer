@@ -29,12 +29,7 @@
     3. **하나의 논리 단위 변경**만 포함되어야 함
     4. 커밋 메시지는 구조/동작 변경 여부를 **명확히 기재**
 - 커밋은 자주, 작게 나누어 수행해야 하며, 다음 템플릿을 반드시 사용합니다.
-- Only commit when:
-    1. ALL tests are passing
-    2. ALL compiler/linter warnings have been resolved
-    3. The change represents a single logical unit of work
-    4. Commit messages clearly state whether the commit contains structural or behavioral changes
-- Use small, frequent commits rather than large, infrequent ones
+- 다른 동료들도 알아볼 수 있도록 한글로 작성합니다.
 
 # GitHub 이슈 작성 지침
 
