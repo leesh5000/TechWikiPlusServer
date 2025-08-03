@@ -5,7 +5,7 @@ import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
-import me.helloc.techwikiplus.service.user.infrastructure.cache.RedisCacheStore
+import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeRedisStore
 import me.helloc.techwikiplus.service.user.infrastructure.clock.SystemClockHolder
 import me.helloc.techwikiplus.service.user.infrastructure.mail.JavaMailSender
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.UserRepositoryImpl
@@ -38,6 +38,6 @@ class InfrastructureBeanConfiguration {
 
     @Bean
     fun userCacheStore(template: StringRedisTemplate): VerificationCodeStore {
-        return RedisCacheStore(template)
+        return VerificationCodeRedisStore(template)
     }
 }

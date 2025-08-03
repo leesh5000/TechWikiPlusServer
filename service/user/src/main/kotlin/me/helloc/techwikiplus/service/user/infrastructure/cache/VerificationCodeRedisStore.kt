@@ -3,28 +3,34 @@ package me.helloc.techwikiplus.service.user.infrastructure.cache
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
-import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
 import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Duration
+import java.time.temporal.ChronoUnit.MINUTES
 
-class RedisCacheStore(
+class VerificationCodeRedisStore(
     private val template: StringRedisTemplate,
 ) : VerificationCodeStore {
-    override fun set(
-        key: String,
-        code: VerificationCode,
-        ttlSeconds: Duration,
-    ) {
-        template.opsForValue().set(key, code.value, ttlSeconds)
+    companion object {
+        private const val KEY_FORMAT = "user-service:user:email:%s"
+        private val TTL = Duration.of(5, MINUTES)
     }
 
-    override fun exists(key: String): Boolean {
+    override fun store(
+        email: Email,
+        code: VerificationCode,
+    ) {
+        val key = KEY_FORMAT.format(email.value)
+        template.opsForValue().set(key, code.value, TTL)
+    }
+
+    override fun exists(email: Email): Boolean {
+        val key = KEY_FORMAT.format(email.value)
         return template.hasKey(key)
     }
 
     override fun get(email: Email): VerificationCode {
-        val key = UserEmailVerificationCodeManager.EMAIL_VERIFICATION_CODE_KEY_FORMAT.format(email.value)
+        val key = KEY_FORMAT.format(email.value)
         val value =
             template.opsForValue().get(key)
                 ?: throw InvalidVerificationCodeException("Verification code not found for email: ${email.value}")
