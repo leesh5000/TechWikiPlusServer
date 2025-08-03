@@ -5,6 +5,10 @@
   - 의존성 역전 원칙(DIP)을 준수하여, 상위 모듈이 하위 모듈에 의존하지 않도록 합니다.
   - 도메인 모델은 **불변 객체**로 설계하여 상태 변경을 최소화합니다.
   - 도메인 서비스는 **단일 책임 원칙(SRP)**을 준수하여, 하나의 서비스가 하나의 비즈니스 기능만을 담당하도록 합니다.
+- **Application Layer**의 DTO는 입력: `XXXCommand`, 출력: `XXXResult` 형식으로 명명합니다.
+  - 예: `CreateUserCommand`, `CreateUserResult`
+- **Interface Layer**의 DTO는 입력: `XXXRequest`, 출력: `XXXResponse` 형식으로 명명합니다.
+  - 예: `CreateUserRequest`, `CreateUserResponse`
 - 아래 표는 클린 아키텍처의 각 계층과 그 책임, 외부 의존 가능 여부를 정리한 것입니다.
 
 | 계층                                 | 책임                        | 외부 의존 가능 여부           |
