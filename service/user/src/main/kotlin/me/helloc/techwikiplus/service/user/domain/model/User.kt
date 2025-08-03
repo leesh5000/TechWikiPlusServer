@@ -54,6 +54,10 @@ class User(
         return id.hashCode()
     }
 
+    fun isPending(): Boolean {
+        return status == UserStatus.PENDING
+    }
+
     override fun toString(): String {
         return "User(id='$id', email=${email.value}, nickname=${nickname.value}, " +
             "status=$status, role=$role, createdAt=$createdAt, modifiedAt=$modifiedAt)"

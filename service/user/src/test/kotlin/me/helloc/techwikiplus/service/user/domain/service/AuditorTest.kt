@@ -25,5 +25,16 @@ class AuditorTest : FunSpec(
             // Then
             createdAt shouldBe now
         }
+
+        test("수정일 데이터를 생성한다") {
+            // Given
+            val auditor = Auditor(clockHolder)
+
+            // When
+            val modifiedAt = auditor.generateModifyTime()
+
+            // Then
+            modifiedAt shouldBe now
+        }
     },
 )
