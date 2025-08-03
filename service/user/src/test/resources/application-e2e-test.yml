@@ -20,6 +20,7 @@ spring:
         order_updates: true
 
   # 데이터소스는 TestContainersInitializer에서 동적으로 설정됨
+  # 메일 서버 설정도 TestContainersInitializer에서 동적으로 설정됨
 
 # 로깅 설정
 logging:

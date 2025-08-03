@@ -47,6 +47,21 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:16379}
       password: ${REDIS_PASSWORD:techwikiplus}
+  # Mail configuration
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:11025}
+    username: ${MAIL_USERNAME:noreply@techwikiplus.com}
+    password: ${MAIL_PASSWORD:techwikiplus}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000
 # Springdoc OpenAPI 설정
 # REST Docs로 생성된 OpenAPI 문서를 Swagger UI로 표시
 # API 문서 접근 경로:
