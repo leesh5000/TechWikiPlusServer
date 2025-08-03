@@ -27,7 +27,6 @@ dependencies {
 
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
-    testRuntimeOnly("com.h2database:h2")
 
     // Spring Boot 테스트 지원
     testImplementation("org.springframework.boot:spring-boot-starter-test")
