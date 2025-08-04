@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
+import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
@@ -11,10 +12,12 @@ class UserPasswordService(
         return passwordEncoder.encode(rawPassword)
     }
 
-    fun matches(
+    fun matchOrThrows(
         rawPassword: RawPassword,
         encodedPassword: EncodedPassword,
-    ): Boolean {
-        return passwordEncoder.matches(rawPassword, encodedPassword)
+    ) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
+            throw InvalidCredentialsException()
+        }
     }
 }

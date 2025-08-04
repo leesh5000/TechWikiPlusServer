@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.interfaces.UserSignUpController.UserSignUpRequest
+import me.helloc.techwikiplus.service.user.interfaces.UserSignUpController.Request
 import me.helloc.techwikiplus.service.user.interfaces.usecase.UserSignUpUseCase
 import org.springframework.http.HttpStatus
 
@@ -51,7 +51,7 @@ class UserSignUpControllerUnitTest : FunSpec({
     test("회원가입 요청 시 UseCase를 호출하고 202 Accepted를 반환한다") {
         // Given
         val request =
-            UserSignUpRequest(
+            Request(
                 email = "test@example.com",
                 nickname = "테스터",
                 password = "Test1234!",
@@ -77,7 +77,7 @@ class UserSignUpControllerUnitTest : FunSpec({
         // Given
         val email: String = "existing@example.com"
         val request =
-            UserSignUpRequest(
+            Request(
                 email = email,
                 nickname = "신규사용자",
                 password = "Test1234!",
@@ -96,7 +96,7 @@ class UserSignUpControllerUnitTest : FunSpec({
     test("비밀번호 불일치 시 PasswordMismatchException을 전파한다") {
         // Given
         val request =
-            UserSignUpRequest(
+            Request(
                 email = "test@example.com",
                 nickname = "테스터",
                 password = "Test1234!",
@@ -116,19 +116,19 @@ class UserSignUpControllerUnitTest : FunSpec({
         // Given
         val testCases =
             listOf(
-                UserSignUpRequest(
+                Request(
                     email = "user1@example.com",
                     nickname = "사용자1",
                     password = "Password1!",
                     confirmPassword = "Password1!",
                 ),
-                UserSignUpRequest(
+                Request(
                     email = "user2@test.com",
                     nickname = "사용자2",
                     password = "Password2@",
                     confirmPassword = "Password2@",
                 ),
-                UserSignUpRequest(
+                Request(
                     email = "admin@company.co.kr",
                     nickname = "관리자",
                     password = "AdminPass3#",
@@ -156,8 +156,8 @@ class UserSignUpControllerUnitTest : FunSpec({
         // Given
         val requests =
             listOf(
-                UserSignUpRequest("a@b.com", "닉네임1", "Pass1234!", "Pass1234!"),
-                UserSignUpRequest("x@y.com", "닉네임2", "Pass5678@", "Pass5678@"),
+                Request("a@b.com", "닉네임1", "Pass1234!", "Pass1234!"),
+                Request("x@y.com", "닉네임2", "Pass5678@", "Pass5678@"),
             )
 
         requests.forEach { request ->

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.restdocs.RestDocumentationContextProvider
 import org.springframework.restdocs.RestDocumentationExtension
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration
@@ -34,8 +35,13 @@ import org.springframework.web.context.WebApplicationContext
  * - TestContainers를 사용한 실제 MySQL 연동
  * - 전체 애플리케이션 컨텍스트 로드
  * - 트랜잭션 롤백으로 테스트 격리
+ * - Redis 캐시 초기화로 테스트 간 완전한 격리 보장
  * - 실제 운영 환경과 유사한 테스트 환경
  * - 선택적 API 문서화 지원
+ *
+ * 테스트 격리 전략:
+ * - MySQL: @Transactional 어노테이션으로 각 테스트 후 자동 롤백
+ * - Redis: clearRedisCache()로 각 테스트 전 수동 초기화
  */
 @ExtendWith(SpringExtension::class, RestDocumentationExtension::class)
 @SpringBootTest
@@ -53,6 +59,9 @@ abstract class BaseE2eTest : ApiDocumentationSupport {
     @Autowired
     private lateinit var context: WebApplicationContext
 
+    @Autowired
+    private lateinit var stringRedisTemplate: StringRedisTemplate
+
     @Value("\${api.documentation.enabled:false}")
     private var documentationEnabled: Boolean = false
 
@@ -61,6 +70,9 @@ abstract class BaseE2eTest : ApiDocumentationSupport {
     @BeforeEach
     fun setUp(restDocumentation: RestDocumentationContextProvider?) {
         this.restDocumentation = restDocumentation
+
+        // 각 테스트 전에 Redis 캐시 초기화
+        clearRedisCache()
 
         if (documentationEnabled && restDocumentation != null) {
             // 문서화가 활성화된 경우 REST Docs 설정
@@ -74,6 +86,17 @@ abstract class BaseE2eTest : ApiDocumentationSupport {
                     )
                     .build()
         }
+    }
+
+    /**
+     * Redis 캐시를 초기화하여 테스트 간 격리를 보장
+     *
+     * 참고: MySQL은 @Transactional 어노테이션 덕분에 각 테스트 후 자동으로 롤백되므로
+     * 별도의 초기화가 필요 없습니다. 하지만 Redis는 트랜잭션 범위 밖에 있어서
+     * 수동으로 초기화해야 합니다.
+     */
+    private fun clearRedisCache() {
+        stringRedisTemplate.connectionFactory?.connection?.flushAll()
     }
 
     override fun documentWithResource(

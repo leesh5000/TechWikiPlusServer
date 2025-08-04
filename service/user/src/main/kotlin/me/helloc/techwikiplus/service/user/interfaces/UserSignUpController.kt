@@ -14,7 +14,7 @@ class UserSignUpController(
 ) {
     @PostMapping("/api/v1/users/signup")
     fun signup(
-        @RequestBody request: UserSignUpRequest,
+        @RequestBody request: Request,
     ): ResponseEntity<Void> {
         useCase.execute(
             UserSignUpUseCase.Command(
@@ -34,7 +34,7 @@ class UserSignUpController(
             .build()
     }
 
-    data class UserSignUpRequest(
+    data class Request(
         val email: String,
         val nickname: String,
         val password: String,

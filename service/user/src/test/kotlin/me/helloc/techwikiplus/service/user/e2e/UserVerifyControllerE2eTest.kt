@@ -81,7 +81,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         verificationCodeStore.store(email, verificationCode)
 
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = email.value,
                 verificationCode = verificationCode.value,
             )
@@ -119,7 +119,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                                 .description("6자리 인증 코드"),
                         )
                         .requestSchema(
-                            Schema.schema(UserVerifyController.UserVerifyRequest::class.java.simpleName),
+                            Schema.schema(UserVerifyController.Request::class.java.simpleName),
                         )
                         .build(),
                 ),
@@ -139,7 +139,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         verificationCodeStore.store(email, verificationCode)
 
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = email.value,
                 verificationCode = verificationCode.value,
             )
@@ -191,7 +191,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         verificationCodeStore.store(email, correctCode)
 
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = email.value,
                 // 잘못된 코드 사용
                 verificationCode = wrongCode.value,
@@ -244,7 +244,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         // 캐시에 코드를 저장하지 않음 (만료된 상황 시뮬레이션)
 
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = email.value,
                 verificationCode = verificationCode.value,
             )
@@ -275,7 +275,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     fun `POST verify - 이메일 형식이 잘못된 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = "invalid-email",
                 verificationCode = "123456",
             )
@@ -307,7 +307,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     fun `POST verify - 인증 코드가 6자리가 아닌 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = "test@example.com",
                 // 5자리
                 verificationCode = "12345",
@@ -366,7 +366,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     }
 
     @Test
-    fun `POST verify - 이미 활성화된 사용자가 인증 시도 시 201 Created를 반환해야 한다`() {
+    fun `POST verify - 이미 활성화된 사용자가 인증 시도 시 404 Not Found를 반환해야 한다`() {
         // Given - ACTIVE 상태의 사용자
         val email = Email("active@example.com")
         val verificationCode = VerificationCode("123456")
@@ -390,7 +390,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         verificationCodeStore.store(email, verificationCode)
 
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = email.value,
                 verificationCode = verificationCode.value,
             )
@@ -402,16 +402,16 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isCreated)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/login"))
-            .andExpect(MockMvcResultMatchers.content().string(""))
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_NOT_FOUND"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
             .andDo(
                 documentWithResource(
                     "user-verify-already-active",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 이미 활성화된 사용자")
-                        .description("이미 활성화된 사용자가 인증을 시도하는 경우에도 201 Created를 반환합니다.")
+                        .description("이미 활성화된 사용자가 인증을 시도하는 경우에는 404 Not Found를 반환합니다.")
                         .build(),
                 ),
             )
@@ -421,7 +421,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     fun `POST verify - 인증 코드에 숫자가 아닌 문자가 포함된 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserVerifyController.UserVerifyRequest(
+            UserVerifyController.Request(
                 email = "test@example.com",
                 // 문자 포함
                 verificationCode = "12345A",

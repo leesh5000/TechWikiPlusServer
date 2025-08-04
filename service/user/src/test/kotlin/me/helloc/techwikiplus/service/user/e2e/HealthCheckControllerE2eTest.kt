@@ -70,7 +70,7 @@ class HealthCheckControllerE2eTest : BaseE2eTest() {
                                 .description("서비스 이름"),
                         )
                         .responseSchema(
-                            Schema.Companion.schema(HealthCheckController.HealthCheckResponse::class.java.simpleName),
+                            Schema.Companion.schema(HealthCheckController.Response::class.java.simpleName),
                         )
                         .build(),
                 ),

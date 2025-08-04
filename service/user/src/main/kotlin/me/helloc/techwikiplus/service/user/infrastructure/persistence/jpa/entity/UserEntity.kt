@@ -16,7 +16,7 @@ import java.time.Instant
 )
 class UserEntity(
     @Id
-    @Column(name = "id", nullable = false, length = 36)
+    @Column(name = "id", nullable = false, columnDefinition = "CHAR(36)")
     val id: String,
     @Column(name = "email", nullable = false, unique = true, length = 255)
     val email: String,

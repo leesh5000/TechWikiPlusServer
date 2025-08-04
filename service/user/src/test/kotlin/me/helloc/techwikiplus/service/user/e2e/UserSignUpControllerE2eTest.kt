@@ -35,7 +35,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     fun `POST signup - 유효한 회원가입 데이터로 202 Accepted를 반환해야 한다`() {
         // Given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "test@example.com",
                 nickname = "테스터",
                 password = "Test1234!",
@@ -81,7 +81,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                                 .description("비밀번호 확인"),
                         )
                         .requestSchema(
-                            Schema.schema(UserSignUpController.UserSignUpRequest::class.java.simpleName),
+                            Schema.schema(UserSignUpController.Request::class.java.simpleName),
                         )
                         .build(),
                 ),
@@ -92,7 +92,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     fun `POST signup - 이메일 형식이 잘못된 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "invalid-email",
                 nickname = "테스터",
                 password = "Test1234!",
@@ -123,7 +123,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     fun `POST signup - 비밀번호가 일치하지 않는 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "test@example.com",
                 nickname = "테스터",
                 password = "Test1234!",
@@ -154,7 +154,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     fun `POST signup - 닉네임이 너무 짧은 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "test@example.com",
                 nickname = "a",
                 password = "Test1234!",
@@ -185,7 +185,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     fun `POST signup - 비밀번호가 약한 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "test@example.com",
                 nickname = "테스터",
                 password = "weak",
@@ -217,7 +217,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
         // Given
         val existingEmail = "existing@example.com"
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = existingEmail,
                 nickname = "테스터",
                 password = "Test1234!",
@@ -258,7 +258,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
         // Given
         val existingNickname = "기존닉네임"
         val firstRequest =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "first@example.com",
                 nickname = existingNickname,
                 password = "Test1234!",
@@ -275,7 +275,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isAccepted)
 
         val secondRequest =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "second@example.com",
                 nickname = existingNickname,
                 password = "Test1234!",
@@ -340,7 +340,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     fun `POST signup - 닉네임에 특수문자가 포함된 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
-            UserSignUpController.UserSignUpRequest(
+            UserSignUpController.Request(
                 email = "test@example.com",
                 nickname = "테스터@#$",
                 password = "Test1234!",

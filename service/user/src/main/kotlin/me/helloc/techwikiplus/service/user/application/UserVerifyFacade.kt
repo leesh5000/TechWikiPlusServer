@@ -20,7 +20,7 @@ class UserVerifyFacade(
 ) : UserVerifyUseCase {
     override fun execute(command: UserVerifyUseCase.Command) {
         // 1. 사용자 조회 (먼저 수행)
-        val user = userReader.getBy(command.email)
+        val user = userReader.getPendingUserBy(command.email)
 
         // 2. 캐시에서 저장된 인증 코드 조회 (없으면 예외 발생)
         val storedCode = verificationCodeStore.get(command.email)

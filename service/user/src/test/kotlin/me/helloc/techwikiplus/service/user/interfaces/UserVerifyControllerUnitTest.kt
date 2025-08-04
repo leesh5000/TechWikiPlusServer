@@ -7,7 +7,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationC
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
-import me.helloc.techwikiplus.service.user.interfaces.UserVerifyController.UserVerifyRequest
+import me.helloc.techwikiplus.service.user.interfaces.UserVerifyController.Request
 import me.helloc.techwikiplus.service.user.interfaces.usecase.UserVerifyUseCase
 import org.springframework.http.HttpStatus
 
@@ -46,7 +46,7 @@ class UserVerifyControllerUnitTest : FunSpec({
     test("인증 요청 시 UseCase를 호출하고 201 Created를 반환한다") {
         // Given
         val request =
-            UserVerifyRequest(
+            Request(
                 email = "test@example.com",
                 verificationCode = "123456",
             )
@@ -68,9 +68,9 @@ class UserVerifyControllerUnitTest : FunSpec({
         // Given
         val requests =
             listOf(
-                UserVerifyRequest("user1@example.com", "111111"),
-                UserVerifyRequest("user2@test.com", "222222"),
-                UserVerifyRequest("admin@company.co.kr", "333333"),
+                Request("user1@example.com", "111111"),
+                Request("user2@test.com", "222222"),
+                Request("admin@company.co.kr", "333333"),
             )
 
         requests.forEach { request ->
@@ -85,7 +85,7 @@ class UserVerifyControllerUnitTest : FunSpec({
     test("잘못된 인증 코드 시 InvalidVerificationCodeException을 전파한다") {
         // Given
         val request =
-            UserVerifyRequest(
+            Request(
                 email = "test@example.com",
                 verificationCode = "999999",
             )
@@ -103,7 +103,7 @@ class UserVerifyControllerUnitTest : FunSpec({
         // Given
         val email = "nonexistent@example.com"
         val request =
-            UserVerifyRequest(
+            Request(
                 email = email,
                 verificationCode = "123456",
             )
@@ -121,15 +121,15 @@ class UserVerifyControllerUnitTest : FunSpec({
         // Given
         val testCases =
             listOf(
-                UserVerifyRequest(
+                Request(
                     email = "user1@example.com",
                     verificationCode = "111111",
                 ),
-                UserVerifyRequest(
+                Request(
                     email = "user2@test.com",
                     verificationCode = "222222",
                 ),
-                UserVerifyRequest(
+                Request(
                     email = "admin@company.co.kr",
                     verificationCode = "999999",
                 ),

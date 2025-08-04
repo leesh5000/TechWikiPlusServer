@@ -99,7 +99,72 @@ class UserRepositoryImplIntegrationTest : MySQLTestContainerBase() {
             }
         }
 
-        context("exists 메서드") {
+        context("findBy(email, status) 메서드") {
+            test("이메일과 상태가 모두 일치하는 사용자를 반환해야 한다") {
+                // Given
+                val user = createDefaultUser()
+                userRepository.save(user)
+
+                // When
+                val foundUser = userRepository.findBy(user.email, UserStatus.ACTIVE)
+
+                // Then
+                foundUser shouldNotBe null
+                foundUser?.let { verifyUserEquality(it, user) }
+            }
+
+            test("이메일은 일치하지만 상태가 다른 경우 null을 반환해야 한다") {
+                // Given
+                val activeUser = createDefaultUser()
+                userRepository.save(activeUser)
+
+                // When
+                val foundUser = userRepository.findBy(activeUser.email, UserStatus.PENDING)
+
+                // Then
+                foundUser shouldBe null
+            }
+
+            test("이메일이 존재하지 않는 경우 null을 반환해야 한다") {
+                // Given
+                val user = createDefaultUser()
+                userRepository.save(user)
+
+                // When
+                val foundUser = userRepository.findBy(Email("nonexistent@example.com"), UserStatus.ACTIVE)
+
+                // Then
+                foundUser shouldBe null
+            }
+
+            test("여러 상태의 사용자 중 특정 상태의 사용자만 조회해야 한다") {
+                // Given
+                val email = Email("multistate@example.com")
+                val pendingUser =
+                    createTestUser(
+                        id = "pending-user",
+                        email = email.value,
+                        nickname = "pendinguser",
+                        status = UserStatus.PENDING,
+                    )
+                userRepository.save(pendingUser)
+
+                // 같은 이메일로 상태를 변경한 사용자 (실제로는 업데이트됨)
+                val activeUser = pendingUser.copy(status = UserStatus.ACTIVE)
+                userRepository.save(activeUser)
+
+                // When
+                val foundActiveUser = userRepository.findBy(email, UserStatus.ACTIVE)
+                val foundPendingUser = userRepository.findBy(email, UserStatus.PENDING)
+
+                // Then
+                foundActiveUser shouldNotBe null
+                foundActiveUser?.status shouldBe UserStatus.ACTIVE
+                foundPendingUser shouldBe null
+            }
+        }
+
+        context("exists(email) 메서드") {
             test("이메일이 존재하면 true를 반환해야 한다") {
                 // Given
                 val user = createDefaultUser()
@@ -120,6 +185,74 @@ class UserRepositoryImplIntegrationTest : MySQLTestContainerBase() {
 
                 // Then
                 exists shouldBe false
+            }
+        }
+
+        context("exists(nickname) 메서드") {
+            test("닉네임이 존재하면 true를 반환해야 한다") {
+                // Given
+                val user = createDefaultUser()
+                userRepository.save(user)
+
+                // When
+                val exists = userRepository.exists(user.nickname)
+
+                // Then
+                exists shouldBe true
+            }
+
+            test("닉네임이 존재하지 않으면 false를 반환해야 한다") {
+                // Given - 빈 데이터베이스
+
+                // When
+                val exists = userRepository.exists(Nickname("nonexistent"))
+
+                // Then
+                exists shouldBe false
+            }
+
+            test("다른 닉네임은 존재하지 않는 것으로 처리해야 한다") {
+                // Given
+                val user =
+                    createTestUser(
+                        id = "user-test",
+                        email = "test@example.com",
+                        nickname = "testuser",
+                    )
+                userRepository.save(user)
+
+                // When
+                val existsDifferent = userRepository.exists(Nickname("differentuser"))
+                val existsSimilar = userRepository.exists(Nickname("testuser2"))
+                val existsExact = userRepository.exists(Nickname("testuser"))
+
+                // Then
+                existsDifferent shouldBe false
+                existsSimilar shouldBe false
+                existsExact shouldBe true
+            }
+
+            test("닉네임 중복 검사는 대소문자를 구분하지 않아야 한다") {
+                // Given
+                val user =
+                    createTestUser(
+                        id = "user-test",
+                        email = "test@example.com",
+                        nickname = "TestUser",
+                    )
+                userRepository.save(user)
+
+                // When
+                val existsLowercase = userRepository.exists(Nickname("testuser"))
+                val existsUppercase = userRepository.exists(Nickname("TESTUSER"))
+                val existsMixedCase = userRepository.exists(Nickname("TeStUsEr"))
+                val existsOriginal = userRepository.exists(Nickname("TestUser"))
+
+                // Then
+                existsLowercase shouldBe true
+                existsUppercase shouldBe true
+                existsMixedCase shouldBe true
+                existsOriginal shouldBe true
             }
         }
 

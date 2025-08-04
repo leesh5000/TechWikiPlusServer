@@ -16,7 +16,7 @@ class UserVerifyController(
 ) {
     @PostMapping("/api/v1/users/verify")
     fun verify(
-        @RequestBody request: UserVerifyRequest,
+        @RequestBody request: Request,
     ): ResponseEntity<Void> {
         useCase.execute(
             UserVerifyUseCase.Command(
@@ -34,7 +34,7 @@ class UserVerifyController(
             .build()
     }
 
-    data class UserVerifyRequest(
+    data class Request(
         val email: String,
         val verificationCode: String,
     )

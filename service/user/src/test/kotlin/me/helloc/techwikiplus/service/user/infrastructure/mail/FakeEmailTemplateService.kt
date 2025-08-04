@@ -1,8 +1,8 @@
 package me.helloc.techwikiplus.service.user.infrastructure.mail
 
 import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
-import me.helloc.techwikiplus.service.user.domain.service.port.EmailContent
 import me.helloc.techwikiplus.service.user.domain.service.port.EmailTemplateService
+import me.helloc.techwikiplus.service.user.domain.service.port.EmailTemplateService.EmailContent
 
 class FakeEmailTemplateService : EmailTemplateService {
     var createVerificationEmailContentCalled = false

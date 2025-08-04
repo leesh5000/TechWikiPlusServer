@@ -12,15 +12,15 @@ class HealthCheckController(
     private val serviceName: String,
 ) {
     @GetMapping("/health")
-    fun healthCheck(): HealthCheckResponse {
-        return HealthCheckResponse(
+    fun healthCheck(): Response {
+        return Response(
             status = "UP",
             version = version,
             serviceName = serviceName,
         )
     }
 
-    data class HealthCheckResponse(
+    data class Response(
         val status: String,
         val version: String,
         val serviceName: String,

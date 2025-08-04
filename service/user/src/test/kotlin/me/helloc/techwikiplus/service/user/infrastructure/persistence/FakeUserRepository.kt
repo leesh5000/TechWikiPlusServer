@@ -30,7 +30,7 @@ class FakeUserRepository : UserRepository {
 
     override fun exists(nickname: Nickname): Boolean {
         simulatedError?.let { throw RuntimeException(it) }
-        return users.values.any { it.nickname.value == nickname.value }
+        return users.values.any { it.nickname.value.lowercase() == nickname.value.lowercase() }
     }
 
     override fun save(user: User): User {

@@ -211,23 +211,23 @@ class GlobalExceptionHandler {
                 ),
             )
     }
+
+    data class ErrorResponse(
+        val code: String,
+        val message: String,
+        val timestamp: Long = System.currentTimeMillis(),
+    )
+
+    data class ValidationErrorResponse(
+        val code: String,
+        val message: String,
+        val errors: List<FieldError>,
+        val timestamp: Long = System.currentTimeMillis(),
+    )
+
+    data class FieldError(
+        val field: String,
+        val code: String,
+        val message: String,
+    )
 }
-
-data class ErrorResponse(
-    val code: String,
-    val message: String,
-    val timestamp: Long = System.currentTimeMillis(),
-)
-
-data class ValidationErrorResponse(
-    val code: String,
-    val message: String,
-    val errors: List<FieldError>,
-    val timestamp: Long = System.currentTimeMillis(),
-)
-
-data class FieldError(
-    val field: String,
-    val code: String,
-    val message: String,
-)
