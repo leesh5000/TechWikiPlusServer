@@ -4,7 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
-import me.helloc.techwikiplus.service.user.domain.exception.UserNotPendingException
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
@@ -123,10 +122,10 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // When & Then
         val exception =
-            shouldThrow<UserNotPendingException> {
+            shouldThrow<UserNotFoundException> {
                 sut.execute(UserVerifyResendUseCase.Command(email))
             }
-        exception.message shouldBe "User with email active@example.com is not in pending status"
+        exception.message shouldBe "User not found: User with email active@example.com and status PENDING not found"
 
         // 메일이 발송되지 않았는지 확인
         mailSender.hasMailBeenSentTo(email.value) shouldBe false
@@ -163,7 +162,8 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
             shouldThrow<UserNotFoundException> {
                 sut.execute(UserVerifyResendUseCase.Command(email))
             }
-        exception.message shouldBe "User not found: User with email nonexistent@example.com not found"
+        exception.message shouldBe
+            "User not found: User with email nonexistent@example.com and status PENDING not found"
 
         // 메일이 발송되지 않았는지 확인
         mailSender.hasMailBeenSentTo(email.value) shouldBe false
