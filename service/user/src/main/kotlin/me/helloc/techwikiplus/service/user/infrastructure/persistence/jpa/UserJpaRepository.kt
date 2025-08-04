@@ -9,12 +9,18 @@ import org.springframework.stereotype.Repository
 interface UserJpaRepository : JpaRepository<UserEntity, String> {
     fun existsByEmail(email: String): Boolean
 
+    @Query("SELECT COUNT(u) > 0 FROM UserEntity u WHERE LOWER(u.nickname) = LOWER(:nickname)")
     fun existsByNickname(nickname: String): Boolean
 
     fun findByEmail(email: String): UserEntity?
 
     @Query(
-        "SELECT u FROM UserEntity u WHERE u.email = :email AND u.status = :status",
+        value = """
+            SELECT id, email, nickname, password, status, role, created_at, modified_at
+            FROM users u
+            WHERE u.email = :email AND u.status = :status
+            """,
+        nativeQuery = true,
     )
     fun findByEmailAndStatus(
         email: String,
