@@ -8,10 +8,4 @@ package me.helloc.techwikiplus.service.user.config.fixtures
  */
 object TestDataBuilder {
     // 추후 도메인 모델이 추가되면 여기에 빌더 메서드 추가
-    // 예시:
-    // fun user(
-    //     id: Long = 1L,
-    //     email: String = "test@example.com",
-    //     name: String = "Test User"
-    // ) = User(id = id, email = email, name = name)
 }

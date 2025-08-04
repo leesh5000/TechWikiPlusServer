@@ -76,7 +76,7 @@ class UserWriterTest : FunSpec({
 
             // When & Then
             val exception =
-                shouldThrow<UserAlreadyExistsException> {
+                shouldThrow<UserAlreadyExistsException.ForEmail> {
                     userWriter.insert(newUser)
                 }
             exception.message shouldBe "User with email existing@example.com already exists"
@@ -114,9 +114,48 @@ class UserWriterTest : FunSpec({
                 )
 
             // When & Then
-            shouldThrow<UserAlreadyExistsException> {
+            shouldThrow<UserAlreadyExistsException.ForEmail> {
                 userWriter.insert(newUser)
             }
+        }
+
+        test("이미 존재하는 닉네임으로 사용자 삽입 시 UserAlreadyExistsException 발생") {
+            // Given
+            val existingUser =
+                User(
+                    id = "existing-user-1",
+                    email = Email("user1@example.com"),
+                    encodedPassword = EncodedPassword("encodedPassword1"),
+                    nickname = Nickname("existingNickname"),
+                    status = UserStatus.ACTIVE,
+                    role = UserRole.USER,
+                    createdAt = now,
+                    modifiedAt = now,
+                )
+            repository.save(existingUser)
+
+            val newUser =
+                User(
+                    id = "new-user-2",
+                    email = Email("user2@example.com"),
+                    encodedPassword = EncodedPassword("encodedPassword2"),
+                    // 동일한 닉네임
+                    nickname = Nickname("existingNickname"),
+                    status = UserStatus.PENDING,
+                    role = UserRole.USER,
+                    createdAt = now,
+                    modifiedAt = now,
+                )
+
+            // When & Then
+            val exception =
+                shouldThrow<UserAlreadyExistsException.ForNickname> {
+                    userWriter.insert(newUser)
+                }
+            exception.message shouldBe "User with nickname existingNickname already exists"
+
+            // 새로운 사용자는 저장되지 않아야 함
+            repository.exists(newUser.email) shouldBe false
         }
     }
 

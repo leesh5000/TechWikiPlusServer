@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.service.user.infrastructure.persistence
 
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 
 class FakeUserRepository : UserRepository {
@@ -16,6 +17,11 @@ class FakeUserRepository : UserRepository {
     override fun exists(email: Email): Boolean {
         simulatedError?.let { throw RuntimeException(it) }
         return users.containsKey(email.value)
+    }
+
+    override fun exists(nickname: Nickname): Boolean {
+        simulatedError?.let { throw RuntimeException(it) }
+        return users.values.any { it.nickname.value == nickname.value }
     }
 
     override fun save(user: User): User {

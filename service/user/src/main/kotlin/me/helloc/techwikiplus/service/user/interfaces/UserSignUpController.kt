@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class UserSignUpController(
-    private val userSignUpUseCase: UserSignUpUseCase,
+    private val useCase: UserSignUpUseCase,
 ) {
     @PostMapping("/api/v1/users/signup")
     fun signup(
         @RequestBody request: UserSignUpRequest,
     ): ResponseEntity<Void> {
-        userSignUpUseCase.execute(
+        useCase.execute(
             UserSignUpUseCase.Command(
                 email = request.email,
                 password = request.password,

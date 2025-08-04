@@ -15,7 +15,11 @@ class UserWriter(
     fun insert(user: User): User {
         // 이메일 중복 검증
         if (repository.exists(user.email)) {
-            throw UserAlreadyExistsException(user.email.value)
+            throw UserAlreadyExistsException.ForEmail(user.email)
+        }
+        // 닉네임 중복 검증
+        if (repository.exists(user.nickname)) {
+            throw UserAlreadyExistsException.ForNickname(user.nickname)
         }
         // 사용자 삽입
         return repository.save(user)

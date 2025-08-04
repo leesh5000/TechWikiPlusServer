@@ -1,9 +1,17 @@
 package me.helloc.techwikiplus.service.user.domain.exception
 
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
+
 sealed class UserDomainException(message: String) : Exception(message)
 
-class UserAlreadyExistsException(email: String) :
-    UserDomainException("User with email $email already exists")
+sealed class UserAlreadyExistsException(message: String) : UserDomainException(message) {
+    class ForEmail(email: Email) :
+        UserAlreadyExistsException("User with email ${email.value} already exists")
+
+    class ForNickname(nickname: Nickname) :
+        UserAlreadyExistsException("User with nickname ${nickname.value} already exists")
+}
 
 class UserNotActiveException(reason: String) :
     UserDomainException(reason)

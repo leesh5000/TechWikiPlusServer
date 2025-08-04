@@ -11,6 +11,8 @@ import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationEx
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotActiveException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.interfaces.ErrorResponse
 import me.helloc.techwikiplus.service.user.interfaces.FieldError
 import me.helloc.techwikiplus.service.user.interfaces.GlobalExceptionHandler
@@ -86,9 +88,9 @@ class GlobalExceptionHandlerTest : FunSpec({
         fieldError?.message shouldBe "비밀번호는 특수문자를 포함해야 합니다"
     }
 
-    test("UserAlreadyExistsException은 409 CONFLICT 반환") {
+    test("UserAlreadyExistsException.ForEmail은 409 CONFLICT 반환") {
         // Given
-        val exception = UserAlreadyExistsException("test@example.com")
+        val exception = UserAlreadyExistsException.ForEmail(Email("test@example.com"))
 
         // When
         val response = handler.handleUserAlreadyExists(exception)
@@ -97,6 +99,19 @@ class GlobalExceptionHandlerTest : FunSpec({
         response.statusCode shouldBe HttpStatus.CONFLICT
         response.body?.code shouldBe "USER_ALREADY_EXISTS"
         response.body?.message shouldBe "User with email test@example.com already exists"
+    }
+
+    test("UserAlreadyExistsException.ForNickname은 409 CONFLICT 반환") {
+        // Given
+        val exception = UserAlreadyExistsException.ForNickname(Nickname("existingUser"))
+
+        // When
+        val response = handler.handleUserAlreadyExists(exception)
+
+        // Then
+        response.statusCode shouldBe HttpStatus.CONFLICT
+        response.body?.code shouldBe "USER_ALREADY_EXISTS"
+        response.body?.message shouldBe "User with nickname existingUser already exists"
     }
 
     test("UserNotFoundException은 404 NOT_FOUND 반환") {

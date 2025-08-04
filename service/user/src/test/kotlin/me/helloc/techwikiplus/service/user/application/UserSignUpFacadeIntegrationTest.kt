@@ -155,7 +155,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
 
         // When & Then: 같은 이메일로 회원가입 시도시 예외 발생
         val exception =
-            shouldThrow<UserAlreadyExistsException> {
+            shouldThrow<UserAlreadyExistsException.ForEmail> {
                 sut.execute(
                     UserSignUpUseCase.Command(
                         email = email,

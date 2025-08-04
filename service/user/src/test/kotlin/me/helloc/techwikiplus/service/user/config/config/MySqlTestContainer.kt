@@ -29,6 +29,7 @@ object MySqlTestContainer {
 
     /**
      * Spring Boot가 사용할 데이터소스 설정을 동적으로 제공
+     * 모든 테스트에서 동일한 설정을 사용하여 일관성 유지
      */
     fun getProperties(): Map<String, String> =
         mapOf(
@@ -36,7 +37,9 @@ object MySqlTestContainer {
             "spring.datasource.username" to instance.username,
             "spring.datasource.password" to instance.password,
             "spring.datasource.driver-class-name" to "com.mysql.cj.jdbc.Driver",
-            "spring.jpa.hibernate.ddl-auto" to "update",
+            "spring.jpa.hibernate.ddl-auto" to "create-drop",
             "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.MySQLDialect",
+            "spring.jpa.show-sql" to "true",
+            "spring.jpa.properties.hibernate.format_sql" to "true",
         )
 }

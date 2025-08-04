@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.interfaces.UserSignUpController.UserSignUpRequest
 import me.helloc.techwikiplus.service.user.interfaces.usecase.UserSignUpUseCase
 import org.springframework.http.HttpStatus
@@ -82,11 +83,11 @@ class UserSignUpControllerUnitTest : FunSpec({
                 password = "Test1234!",
                 confirmPassword = "Test1234!",
             )
-        fakeUseCase.shouldThrowException = UserAlreadyExistsException(email)
+        fakeUseCase.shouldThrowException = UserAlreadyExistsException.ForEmail(Email(email))
 
         // When & Then
         val exception =
-            shouldThrow<UserAlreadyExistsException> {
+            shouldThrow<UserAlreadyExistsException.ForEmail> {
                 controller.signup(request)
             }
         exception.message shouldBe "User with email existing@example.com already exists"

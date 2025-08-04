@@ -43,61 +43,49 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
 
         // When & Then
-        val result =
-            mockMvc.perform(
-                MockMvcRequestBuilders.post("/api/v1/users/signup")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)),
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(MockMvcResultMatchers.content().string(""))
+            .andDo(
+                documentWithResource(
+                    "user-signup-success",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입")
+                        .description(
+                            """
+                            새로운 사용자 계정을 생성합니다.
+                            
+                            회원가입이 성공하면 이메일 인증을 위한 인증 코드가 발송되며,
+                            사용자는 /api/v1/users/verify 엔드포인트를 통해 이메일 인증을 완료해야 합니다.
+                            """.trimIndent(),
+                        )
+                        .requestFields(
+                            PayloadDocumentation.fieldWithPath("email")
+                                .type(JsonFieldType.STRING)
+                                .description("사용자 이메일 주소"),
+                            PayloadDocumentation.fieldWithPath("nickname")
+                                .type(JsonFieldType.STRING)
+                                .description("사용자 닉네임 (2-20자)"),
+                            PayloadDocumentation.fieldWithPath("password")
+                                .type(JsonFieldType.STRING)
+                                .description("비밀번호 (8-20자, 대소문자, 특수문자 포함)"),
+                            PayloadDocumentation.fieldWithPath("confirmPassword")
+                                .type(JsonFieldType.STRING)
+                                .description("비밀번호 확인"),
+                        )
+                        .requestSchema(
+                            Schema.schema(UserSignUpController.UserSignUpRequest::class.java.simpleName),
+                        )
+                        .build(),
+                ),
             )
-                .andDo { mvcResult ->
-                    println("Response Status: ${mvcResult.response.status}")
-                    println("Response Content: ${mvcResult.response.contentAsString}")
-                    println(
-                        "Response Headers: ${mvcResult.response.headerNames.map {
-                            "$it: ${mvcResult.response.getHeader(
-                                it,
-                            )}"
-                        }}",
-                    )
-                }
-                .andExpect(MockMvcResultMatchers.status().isAccepted)
-                .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
-                .andExpect(MockMvcResultMatchers.content().string(""))
-                .andDo(
-                    documentWithResource(
-                        "user-signup-success",
-                        ResourceSnippetParameters.builder()
-                            .tag("User Management")
-                            .summary("사용자 회원가입")
-                            .description(
-                                """
-                                새로운 사용자 계정을 생성합니다.
-                                
-                                회원가입이 성공하면 이메일 인증을 위한 인증 코드가 발송되며,
-                                사용자는 /api/v1/users/verify 엔드포인트를 통해 이메일 인증을 완료해야 합니다.
-                                """.trimIndent(),
-                            )
-                            .requestFields(
-                                PayloadDocumentation.fieldWithPath("email")
-                                    .type(JsonFieldType.STRING)
-                                    .description("사용자 이메일 주소"),
-                                PayloadDocumentation.fieldWithPath("nickname")
-                                    .type(JsonFieldType.STRING)
-                                    .description("사용자 닉네임 (2-20자)"),
-                                PayloadDocumentation.fieldWithPath("password")
-                                    .type(JsonFieldType.STRING)
-                                    .description("비밀번호 (8-20자, 대소문자, 특수문자 포함)"),
-                                PayloadDocumentation.fieldWithPath("confirmPassword")
-                                    .type(JsonFieldType.STRING)
-                                    .description("비밀번호 확인"),
-                            )
-                            .requestSchema(
-                                Schema.schema(UserSignUpController.UserSignUpRequest::class.java.simpleName),
-                            )
-                            .build(),
-                    ),
-                )
     }
 
     @Test

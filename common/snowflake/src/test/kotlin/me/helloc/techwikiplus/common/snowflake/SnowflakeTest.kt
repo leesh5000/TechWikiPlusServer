@@ -41,9 +41,8 @@ class SnowflakeTest : FunSpec({
             allIds += ids
         }
 
-        // 총 테스트된 데이터 건수 계산 후 출력
+        // 총 테스트된 데이터 건수 계산
         val totalCount = allIds.size
-        println("총 테스트 데이터: ${totalCount}건")
         // 전체 생성된 ID가 중복 없이 unique한지 확인
         allIds.distinct().size shouldBe totalCount
 
@@ -60,8 +59,6 @@ class SnowflakeTest : FunSpec({
         // 모든 작업이 완료됐는지 확인하기 위한 CountDownLatch
         val latch = CountDownLatch(repeatCount)
 
-        // 성능 측정을 위한 시작 시간 기록 (나노초)
-        val start = System.nanoTime()
         repeat(repeatCount) {
             threadPool.submit {
                 // 각 쓰레드에서 idCount 만큼 ID 생성
@@ -72,10 +69,6 @@ class SnowflakeTest : FunSpec({
         }
         // 모든 쓰레드가 완료될 때까지 대기
         latch.await()
-        // 완료 후 종료 시간 기록
-        val end = System.nanoTime()
-        // 실행 시간(ms)으로 변환하여 출력
-        println("times = ${(end - start) / 1_000_000} ms")
 
         // 테스트 후 쓰레드 풀 종료
         threadPool.shutdown()

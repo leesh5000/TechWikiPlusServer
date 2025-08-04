@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.service.user.interfaces
 
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordPolicyViolationException
@@ -11,6 +12,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
@@ -35,6 +37,33 @@ class GlobalExceptionHandler {
                                 message = e.message ?: "Validation failed",
                             ),
                         ),
+                ),
+            )
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadable(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
+        logger.warn("Failed to read HTTP message: ${e.message}")
+
+        val cause = e.cause
+        if (cause is MismatchedInputException) {
+            val fieldName = cause.path.firstOrNull()?.fieldName ?: "unknown"
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                    ErrorResponse(
+                        code = "MISSING_REQUIRED_FIELD",
+                        message = "필수 필드가 누락되었습니다: $fieldName",
+                    ),
+                )
+        }
+
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(
+                ErrorResponse(
+                    code = "INVALID_REQUEST_BODY",
+                    message = "잘못된 요청 형식입니다",
                 ),
             )
     }
