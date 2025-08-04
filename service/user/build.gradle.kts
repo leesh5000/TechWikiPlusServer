@@ -25,6 +25,11 @@ dependencies {
     // Spring Security - 비밀번호 암호화를 위한 BCrypt
     implementation("org.springframework.security:spring-security-crypto")
 
+    // JWT
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
 
@@ -55,6 +60,8 @@ dependencies {
 
     // Redis - 캐시 저장소
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    // Kotlin Coroutines - 병렬 처리를 위한 코루틴
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
 // OpenAPI 3.0.1 문서 생성 설정

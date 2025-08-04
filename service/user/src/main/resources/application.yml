@@ -73,3 +73,9 @@ springdoc:
   swagger-ui:
     enabled: true
     url: /api-docs/openapi3.yml  # REST Docs로 생성된 OpenAPI 문서 경로 지정
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-for-development-environment-only}
+  access-token-validity-in-seconds: ${JWT_ACCESS_TOKEN_VALIDITY:3600}  # 1 hour
+  refresh-token-validity-in-seconds: ${JWT_REFRESH_TOKEN_VALIDITY:2592000}  # 30 days
