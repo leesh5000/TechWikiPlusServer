@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
-class UserRoleTest : FunSpec({
+class UserRoleUnitTest : FunSpec({
 
     test("should have all required role values") {
         val roleValues = UserRole.entries.map { it.name }

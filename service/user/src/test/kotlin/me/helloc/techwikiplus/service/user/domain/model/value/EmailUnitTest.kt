@@ -86,7 +86,7 @@ class EmailUnitTest : FunSpec({
         email1 shouldNotBe email3
         email1 shouldNotBe null
         email1 shouldNotBe "user@example.com"
-        
+
         // 대소문자가 다른 이메일도 같은 것으로 취급해야 한다
         val email4 = Email("User@Example.COM")
         val email5 = Email("user@example.com")
@@ -100,7 +100,7 @@ class EmailUnitTest : FunSpec({
 
         email1.hashCode() shouldBe email2.hashCode()
         email1.hashCode() shouldNotBe email3.hashCode()
-        
+
         // 대소문자가 다른 이메일도 같은 hashCode를 가져야 한다
         val email4 = Email("User@Example.COM")
         val email5 = Email("user@example.com")

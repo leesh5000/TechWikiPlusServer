@@ -3,12 +3,13 @@ package me.helloc.techwikiplus.service.user.domain.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationException
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
 
-class UserPasswordServiceTest : FunSpec({
+class UserPasswordServiceUnitTest : FunSpec({
 
     test("패스워드 인코더를 사용하여 원시 패스워드를 인코딩해야 한다") {
         // Given
@@ -30,11 +31,8 @@ class UserPasswordServiceTest : FunSpec({
         val rawPassword = RawPassword("CorrectPassword123!")
         val encodedPassword = EncodedPassword("FAKE_ENCODED:CorrectPassword123!")
 
-        // When
-        val matches = userPasswordService.matches(rawPassword, encodedPassword)
-
-        // Then
-        matches shouldBe true
+        // When & Then - 예외가 발생하지 않으면 일치함
+        userPasswordService.matchOrThrows(rawPassword, encodedPassword)
     }
 
     test("다른 경우 원시 패스워드와 인코딩된 패스워드가 일치하지 않아야 한다") {
@@ -44,11 +42,10 @@ class UserPasswordServiceTest : FunSpec({
         val rawPassword = RawPassword("WrongPassword123!")
         val encodedPassword = EncodedPassword("FAKE_ENCODED:CorrectPassword123!")
 
-        // When
-        val matches = userPasswordService.matches(rawPassword, encodedPassword)
-
-        // Then
-        matches shouldBe false
+        // When & Then - 예외가 발생해야 함
+        shouldThrow<InvalidCredentialsException> {
+            userPasswordService.matchOrThrows(rawPassword, encodedPassword)
+        }
     }
 
     test("빈 패스워드 인코딩 시 예외가 발생해야 한다") {
@@ -104,10 +101,9 @@ class UserPasswordServiceTest : FunSpec({
         val rawPassword = RawPassword("Password123!")
         val malformedEncodedPassword = EncodedPassword("WRONG_PREFIX:Password123!")
 
-        // When
-        val matches = userPasswordService.matches(rawPassword, malformedEncodedPassword)
-
-        // Then
-        matches shouldBe false
+        // When & Then - 예외가 발생해야 함
+        shouldThrow<InvalidCredentialsException> {
+            userPasswordService.matchOrThrows(rawPassword, malformedEncodedPassword)
+        }
     }
 })

@@ -6,7 +6,7 @@ import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
 import java.time.Clock
 import java.time.Instant
 
-class AuditorTest : FunSpec(
+class AuditorUnitTest : FunSpec(
     {
 
         val now: Instant = Clock.systemDefaultZone().instant()

@@ -13,13 +13,13 @@ import me.helloc.techwikiplus.service.user.domain.exception.UserNotActiveExcepti
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.interfaces.ErrorResponse
-import me.helloc.techwikiplus.service.user.interfaces.FieldError
 import me.helloc.techwikiplus.service.user.interfaces.GlobalExceptionHandler
-import me.helloc.techwikiplus.service.user.interfaces.ValidationErrorResponse
+import me.helloc.techwikiplus.service.user.interfaces.GlobalExceptionHandler.ErrorResponse
+import me.helloc.techwikiplus.service.user.interfaces.GlobalExceptionHandler.FieldError
+import me.helloc.techwikiplus.service.user.interfaces.GlobalExceptionHandler.ValidationErrorResponse
 import org.springframework.http.HttpStatus
 
-class GlobalExceptionHandlerTest : FunSpec({
+class GlobalExceptionHandlerUnitTest : FunSpec({
 
     val handler = GlobalExceptionHandler()
 

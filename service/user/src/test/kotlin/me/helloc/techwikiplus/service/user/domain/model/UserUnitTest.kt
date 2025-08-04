@@ -12,7 +12,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
 import java.time.Instant
 
-class UserTest : FunSpec({
+class UserUnitTest : FunSpec({
 
     val testPasswordEncoder = FakePasswordEncoder()
 

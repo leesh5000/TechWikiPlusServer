@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 
-class PasswordConfirmationVerifierTest : FunSpec(
+class PasswordConfirmationVerifierUnitTest : FunSpec(
     {
 
         test("비밀번호 확인 검증") {

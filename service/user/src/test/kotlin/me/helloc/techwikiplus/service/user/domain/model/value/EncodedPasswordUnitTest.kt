@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
 
-class EncodedPasswordTest : FunSpec({
+class EncodedPasswordUnitTest : FunSpec({
 
     val testPasswordEncoder =
         object : PasswordEncoder {

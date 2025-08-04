@@ -16,7 +16,7 @@ import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplate
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
 import java.time.Instant
 
-class UserEmailVerificationCodeManagerTest : FunSpec({
+class UserEmailVerificationCodeManagerUnitTest : FunSpec({
 
     val mailSender = FakeMailSender()
     val verificationCodeStore = VerificationCodeFakeStore()

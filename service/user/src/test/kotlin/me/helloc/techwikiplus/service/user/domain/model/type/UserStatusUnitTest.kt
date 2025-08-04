@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
-class UserStatusTest : FunSpec({
+class UserStatusUnitTest : FunSpec({
 
     test("should have all required status values") {
         val statusValues = UserStatus.entries.map { it.name }

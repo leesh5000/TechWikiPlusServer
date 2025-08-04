@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationException
 
-class RawPasswordTest : FunSpec({
+class RawPasswordUnitTest : FunSpec({
 
     test("유효한 비밀번호로 RawPassword 객체 생성 성공") {
         val validPassword = "Password123!"

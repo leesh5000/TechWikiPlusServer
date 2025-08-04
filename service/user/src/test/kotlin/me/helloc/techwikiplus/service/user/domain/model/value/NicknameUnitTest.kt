@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import me.helloc.techwikiplus.service.user.domain.exception.NicknameValidationException
 
-class NicknameTest : FunSpec({
+class NicknameUnitTest : FunSpec({
 
     test("유효한 닉네임을 생성해야 한다") {
         val nickname = Nickname("user123")

@@ -5,7 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
-class VerificationCodeTest : FunSpec({
+class VerificationCodeUnitTest : FunSpec({
 
     test("6자리 숫자로 된 유효한 인증 코드를 생성해야 한다") {
         val validCode = "123456"

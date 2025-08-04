@@ -13,7 +13,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
 import java.time.Instant
 
-class UserWriterTest : FunSpec({
+class UserWriterUnitTest : FunSpec({
 
     val repository = FakeUserRepository()
     val userWriter = UserWriter(repository)
