@@ -13,7 +13,7 @@ interface UserLoginUseCase {
     data class Result(
         val accessToken: String,
         val refreshToken: String,
-        val userId: Long,
+        val userId: String,
         val accessTokenExpiresAt: Instant,
         val refreshTokenExpiresAt: Instant,
     )

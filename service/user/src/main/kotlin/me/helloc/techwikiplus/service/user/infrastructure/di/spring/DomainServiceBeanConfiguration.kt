@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.service.user.infrastructure.di.spring
 
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
 import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVerifier
-import me.helloc.techwikiplus.service.user.domain.service.UserAuthenticator
+import me.helloc.techwikiplus.service.user.domain.service.TokenService
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.UserPasswordService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
@@ -11,6 +11,7 @@ import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
 import me.helloc.techwikiplus.service.user.domain.service.port.EmailTemplateService
 import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenGenerator
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
 import org.springframework.context.annotation.Bean
@@ -40,14 +41,6 @@ class DomainServiceBeanConfiguration {
     }
 
     @Bean
-    fun userAuthenticationService(
-        userRepository: UserRepository,
-        userPasswordService: UserPasswordService,
-    ): UserAuthenticator {
-        return UserAuthenticator(userRepository, userPasswordService)
-    }
-
-    @Bean
     fun auditor(clockHolder: ClockHolder): Auditor {
         return Auditor(clockHolder)
     }
@@ -64,5 +57,13 @@ class DomainServiceBeanConfiguration {
     @Bean
     fun passwordConfirmationVerifier(): PasswordConfirmationVerifier {
         return PasswordConfirmationVerifier()
+    }
+
+    @Bean
+    fun tokenService(
+        tokenGenerator: TokenGenerator,
+        clockHolder: ClockHolder,
+    ): TokenService {
+        return TokenService(tokenGenerator, clockHolder)
     }
 }
