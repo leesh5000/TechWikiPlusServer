@@ -14,11 +14,8 @@ class UserReader(
             ?: throw UserNotFoundException("User with email ${email.value} not found")
     }
 
-    fun getBy(
-        email: Email,
-        status: UserStatus,
-    ): User {
-        return repository.findBy(email, status)
-            ?: throw UserNotFoundException("User with email ${email.value} and status $status not found")
+    fun getPendingUserBy(email: Email): User {
+        return repository.findBy(email, UserStatus.PENDING)
+            ?: throw UserNotFoundException("User with email ${email.value} and status ${UserStatus.PENDING} not found")
     }
 }
