@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.service.user.interfaces
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
+import me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordPolicyViolationException
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
@@ -142,6 +143,19 @@ class GlobalExceptionHandler {
                 ErrorResponse(
                     code = "PASSWORD_POLICY_VIOLATION",
                     message = e.message ?: "Password does not meet requirements",
+                ),
+            )
+    }
+
+    @ExceptionHandler(InvalidVerificationCodeException::class)
+    fun handleInvalidVerificationCode(e: InvalidVerificationCodeException): ResponseEntity<ErrorResponse> {
+        logger.warn("Invalid verification code: ${e.message}")
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(
+                ErrorResponse(
+                    code = "INVALID_VERIFICATION_CODE",
+                    message = e.message ?: "Invalid verification code",
                 ),
             )
     }

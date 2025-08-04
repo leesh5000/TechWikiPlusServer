@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.service.user.infrastructure.persistence
 
 import me.helloc.techwikiplus.service.user.domain.model.User
+import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
@@ -12,6 +13,14 @@ class FakeUserRepository : UserRepository {
     override fun findBy(email: Email): User? {
         simulatedError?.let { throw RuntimeException(it) }
         return users[email.value]
+    }
+
+    override fun findBy(
+        email: Email,
+        status: UserStatus,
+    ): User? {
+        simulatedError?.let { throw RuntimeException(it) }
+        return users[email.value]?.takeIf { it.status == status }
     }
 
     override fun exists(email: Email): Boolean {
