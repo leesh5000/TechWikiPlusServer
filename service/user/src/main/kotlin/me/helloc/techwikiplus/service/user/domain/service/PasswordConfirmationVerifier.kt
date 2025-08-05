@@ -4,7 +4,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchExce
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 
 class PasswordConfirmationVerifier {
-    fun verify(
+    fun equalsOrThrows(
         rawPassword: RawPassword,
         rawConfirmPassword: RawPassword,
     ) {

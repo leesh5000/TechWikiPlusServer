@@ -18,7 +18,7 @@ class PasswordConfirmationVerifierUnitTest : FunSpec(
             val passwordConfirmation = RawPassword("Password123!")
 
             // Then
-            passwordConfirmationVerifier.verify(rawPassword, passwordConfirmation)
+            passwordConfirmationVerifier.equalsOrThrows(rawPassword, passwordConfirmation)
         }
 
         test("비밀번호와 확인이 일치하지 않을 때 예외 발생") {
@@ -31,7 +31,7 @@ class PasswordConfirmationVerifierUnitTest : FunSpec(
 
             // Then
             shouldThrow<PasswordMismatchException> {
-                passwordConfirmationVerifier.verify(rawPassword, passwordConfirmation)
+                passwordConfirmationVerifier.equalsOrThrows(rawPassword, passwordConfirmation)
             }
         }
 
@@ -46,7 +46,7 @@ class PasswordConfirmationVerifierUnitTest : FunSpec(
             // Then
             val exception =
                 shouldThrow<PasswordMismatchException> {
-                    passwordConfirmationVerifier.verify(rawPassword, passwordConfirmation)
+                    passwordConfirmationVerifier.equalsOrThrows(rawPassword, passwordConfirmation)
                 }
             exception.message shouldBe "Password and confirmation do not match: Password and confirmation do not match."
         }
