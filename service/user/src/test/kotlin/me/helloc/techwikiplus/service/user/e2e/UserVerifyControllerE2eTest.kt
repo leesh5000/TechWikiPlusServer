@@ -105,7 +105,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                         .description(
                             """
                             사용자의 이메일 주소를 인증합니다.
-                            
+
                             회원가입 시 발송된 인증 코드를 사용하여 이메일을 인증하면,
                             사용자 상태가 PENDING에서 ACTIVE로 변경되며 로그인이 가능해집니다.
                             """.trimIndent(),
@@ -151,8 +151,8 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isNotFound)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_NOT_FOUND"))
+            .andExpect(MockMvcResultMatchers.status().isUnauthorized)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_CREDENTIALS"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
             .andDo(
                 documentWithResource(
@@ -206,7 +206,11 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_VERIFICATION_CODE"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid verification code"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath(
+                    "$.message",
+                ).value("Invalid verification code for email: test@example.com"),
+            )
             .andDo(
                 documentWithResource(
                     "user-verify-invalid-code",
@@ -366,7 +370,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     }
 
     @Test
-    fun `POST verify - 이미 활성화된 사용자가 인증 시도 시 404 Not Found를 반환해야 한다`() {
+    fun `POST verify - 이미 활성화된 사용자가 인증 시도 시 401 UNAUTHORIZED를 반환해야 한다`() {
         // Given - ACTIVE 상태의 사용자
         val email = Email("active@example.com")
         val verificationCode = VerificationCode("123456")
@@ -402,8 +406,8 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isNotFound)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_NOT_FOUND"))
+            .andExpect(MockMvcResultMatchers.status().isUnauthorized)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_CREDENTIALS"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
             .andDo(
                 documentWithResource(
@@ -411,7 +415,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 이미 활성화된 사용자")
-                        .description("이미 활성화된 사용자가 인증을 시도하는 경우에는 404 Not Found를 반환합니다.")
+                        .description("이미 활성화된 사용자가 인증을 시도하는 경우에는 401 Unauthorized를 반환합니다.")
                         .build(),
                 ),
             )

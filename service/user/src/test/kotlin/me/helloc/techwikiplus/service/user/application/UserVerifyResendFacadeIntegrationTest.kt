@@ -13,7 +13,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
-import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplateService
+import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplatePrinter
 import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
 import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
 import me.helloc.techwikiplus.service.user.interfaces.usecase.UserVerifyResendUseCase
@@ -30,7 +30,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // 도메인 서비스 구성
         val userReader = UserReader(repository)
-        val emailTemplateService = FakeEmailTemplateService()
+        val emailTemplateService = FakeEmailTemplatePrinter()
         val userEmailVerificationCodeManager =
             UserEmailVerificationCodeManager(
                 mailSender,
@@ -90,7 +90,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // 도메인 서비스 구성
         val userReader = UserReader(repository)
-        val emailTemplateService = FakeEmailTemplateService()
+        val emailTemplateService = FakeEmailTemplatePrinter()
         val userEmailVerificationCodeManager =
             UserEmailVerificationCodeManager(
                 mailSender,
@@ -140,7 +140,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // 도메인 서비스 구성
         val userReader = UserReader(repository)
-        val emailTemplateService = FakeEmailTemplateService()
+        val emailTemplateService = FakeEmailTemplatePrinter()
         val userEmailVerificationCodeManager =
             UserEmailVerificationCodeManager(
                 mailSender,
