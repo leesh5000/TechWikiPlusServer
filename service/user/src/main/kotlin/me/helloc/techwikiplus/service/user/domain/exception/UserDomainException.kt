@@ -27,3 +27,12 @@ class PasswordPolicyViolationException(reason: String) :
 
 class PasswordMismatchException(reason: String) :
     UserDomainException("Password and confirmation do not match: $reason")
+
+class PendingUserException() :
+    UserDomainException("User is pending activation. Please check your email for the verification code.")
+
+class DormantUserException() :
+    UserDomainException("User is dormant. Please contact the administrator.")
+
+class BannedUserException() :
+    UserDomainException("User is banned. Please contact the administrator.")

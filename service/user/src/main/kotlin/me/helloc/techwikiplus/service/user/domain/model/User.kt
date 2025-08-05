@@ -58,9 +58,20 @@ class User(
         return status == UserStatus.PENDING
     }
 
+    fun isActive(): Boolean {
+        return status == UserStatus.ACTIVE
+    }
+
     override fun toString(): String {
         return "User(id='$id', email=${email.value}, nickname=${nickname.value}, " +
             "status=$status, role=$role, createdAt=$createdAt, modifiedAt=$modifiedAt)"
+    }
+
+    fun activate(modifiedAt: Instant): User {
+        return copy(
+            status = UserStatus.ACTIVE,
+            modifiedAt = modifiedAt,
+        )
     }
 
     companion object {

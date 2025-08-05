@@ -9,12 +9,12 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordEncoder
+import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordCrypter
 import java.time.Instant
 
 class UserUnitTest : FunSpec({
 
-    val testPasswordEncoder = FakePasswordEncoder()
+    val testPasswordEncoder = FakePasswordCrypter()
 
     test("모든 필수 필드를 가진 사용자를 생성해야 한다") {
         val now = Instant.now()
