@@ -1,10 +1,13 @@
 package me.helloc.techwikiplus.service.user.interfaces
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import me.helloc.techwikiplus.service.user.domain.exception.BannedUserException
+import me.helloc.techwikiplus.service.user.domain.exception.DormantUserException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordPolicyViolationException
+import me.helloc.techwikiplus.service.user.domain.exception.PendingUserException
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotActiveException
@@ -82,15 +85,20 @@ class GlobalExceptionHandler {
             )
     }
 
+    /**
+     * 사용자를 찾을 수 없는 경우 처리
+     * 보안상의 이유로 401 Unauthorized를 반환하여 계정 열거 공격을 방지합니다.
+     * "존재하지 않는 사용자"와 "삭제된 사용자"를 구분하지 않고 동일한 응답을 반환합니다.
+     */
     @ExceptionHandler(UserNotFoundException::class)
     fun handleUserNotFound(e: UserNotFoundException): ResponseEntity<ErrorResponse> {
         logger.warn("User not found: ${e.message}")
         return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
+            .status(HttpStatus.UNAUTHORIZED)
             .body(
                 ErrorResponse(
-                    code = "USER_NOT_FOUND",
-                    message = e.message ?: "User not found",
+                    code = "INVALID_CREDENTIALS",
+                    message = "Invalid email or password",
                 ),
             )
     }
@@ -156,6 +164,45 @@ class GlobalExceptionHandler {
                 ErrorResponse(
                     code = "INVALID_VERIFICATION_CODE",
                     message = e.message ?: "Invalid verification code",
+                ),
+            )
+    }
+
+    @ExceptionHandler(PendingUserException::class)
+    fun handlePendingUser(e: PendingUserException): ResponseEntity<ErrorResponse> {
+        logger.warn("Pending user login attempt: ${e.message}")
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(
+                ErrorResponse(
+                    code = "USER_PENDING",
+                    message = e.message ?: "User is pending activation",
+                ),
+            )
+    }
+
+    @ExceptionHandler(DormantUserException::class)
+    fun handleDormantUser(e: DormantUserException): ResponseEntity<ErrorResponse> {
+        logger.warn("Dormant user login attempt: ${e.message}")
+        return ResponseEntity
+            .status(423)
+            .body(
+                ErrorResponse(
+                    code = "USER_LOCKED",
+                    message = e.message ?: "User account is locked",
+                ),
+            )
+    }
+
+    @ExceptionHandler(BannedUserException::class)
+    fun handleBannedUser(e: BannedUserException): ResponseEntity<ErrorResponse> {
+        logger.warn("Banned user login attempt: ${e.message}")
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(
+                ErrorResponse(
+                    code = "USER_BANNED",
+                    message = e.message ?: "User account is banned",
                 ),
             )
     }

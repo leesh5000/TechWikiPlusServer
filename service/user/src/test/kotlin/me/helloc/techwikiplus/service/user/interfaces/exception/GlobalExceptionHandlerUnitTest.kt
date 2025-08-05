@@ -2,12 +2,15 @@ package me.helloc.techwikiplus.service.user.interfaces.exception
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.user.domain.exception.BannedUserException
+import me.helloc.techwikiplus.service.user.domain.exception.DormantUserException
 import me.helloc.techwikiplus.service.user.domain.exception.EmailValidationException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
 import me.helloc.techwikiplus.service.user.domain.exception.NicknameValidationException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordPolicyViolationException
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationException
+import me.helloc.techwikiplus.service.user.domain.exception.PendingUserException
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotActiveException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
@@ -114,7 +117,7 @@ class GlobalExceptionHandlerUnitTest : FunSpec({
         response.body?.message shouldBe "User with nickname existingUser already exists"
     }
 
-    test("UserNotFoundException은 404 NOT_FOUND 반환") {
+    test("UserNotFoundException은 401 UNAUTHORIZED 반환 (계정 열거 공격 방지)") {
         // Given
         val exception = UserNotFoundException("user123")
 
@@ -122,9 +125,9 @@ class GlobalExceptionHandlerUnitTest : FunSpec({
         val response = handler.handleUserNotFound(exception)
 
         // Then
-        response.statusCode shouldBe HttpStatus.NOT_FOUND
-        response.body?.code shouldBe "USER_NOT_FOUND"
-        response.body?.message shouldBe "User not found: user123"
+        response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+        response.body?.code shouldBe "INVALID_CREDENTIALS"
+        response.body?.message shouldBe "Invalid email or password"
     }
 
     test("InvalidCredentialsException은 401 UNAUTHORIZED 반환") {
@@ -216,6 +219,45 @@ class GlobalExceptionHandlerUnitTest : FunSpec({
         response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR
         response.body?.code shouldBe "INTERNAL_ERROR"
         response.body?.message shouldBe "An unexpected error occurred"
+    }
+
+    test("PendingUserException은 403 FORBIDDEN 반환") {
+        // Given
+        val exception = PendingUserException()
+
+        // When
+        val response = handler.handlePendingUser(exception)
+
+        // Then
+        response.statusCode shouldBe HttpStatus.FORBIDDEN
+        response.body?.code shouldBe "USER_PENDING"
+        response.body?.message shouldBe "User is pending activation. Please check your email for the verification code."
+    }
+
+    test("DormantUserException은 423 LOCKED 반환") {
+        // Given
+        val exception = DormantUserException()
+
+        // When
+        val response = handler.handleDormantUser(exception)
+
+        // Then
+        response.statusCode.value() shouldBe 423
+        response.body?.code shouldBe "USER_LOCKED"
+        response.body?.message shouldBe "User is dormant. Please contact the administrator."
+    }
+
+    test("BannedUserException은 403 FORBIDDEN 반환") {
+        // Given
+        val exception = BannedUserException()
+
+        // When
+        val response = handler.handleBannedUser(exception)
+
+        // Then
+        response.statusCode shouldBe HttpStatus.FORBIDDEN
+        response.body?.code shouldBe "USER_BANNED"
+        response.body?.message shouldBe "User is banned. Please contact the administrator."
     }
 
     test("ErrorResponse는 timestamp를 포함") {

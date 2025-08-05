@@ -8,7 +8,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
 import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVerifier
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
-import me.helloc.techwikiplus.service.user.domain.service.UserPasswordService
+import me.helloc.techwikiplus.service.user.domain.service.UserPasswordEncoder
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
 import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
 import me.helloc.techwikiplus.service.user.interfaces.usecase.UserSignUpUseCase
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class UserSignUpFacade(
     private val writer: UserWriter,
-    private val userPasswordService: UserPasswordService,
+    private val userPasswordEncoder: UserPasswordEncoder,
     private val passwordConfirmationVerifier: PasswordConfirmationVerifier,
     private val auditor: Auditor,
     private val userEmailVerificationCodeManager: UserEmailVerificationCodeManager,
@@ -30,8 +30,8 @@ class UserSignUpFacade(
         val userEmail = Email(command.email)
         val rawPassword = RawPassword(command.password)
         val rawConfirmPassword = RawPassword(command.confirmPassword)
-        passwordConfirmationVerifier.verify(rawPassword, rawConfirmPassword)
-        val encodedPassword: EncodedPassword = userPasswordService.encode(rawPassword)
+        passwordConfirmationVerifier.equalsOrThrows(rawPassword, rawConfirmPassword)
+        val encodedPassword: EncodedPassword = userPasswordEncoder.encode(rawPassword)
         val user =
             User.create(
                 id = idGenerator.next(),
