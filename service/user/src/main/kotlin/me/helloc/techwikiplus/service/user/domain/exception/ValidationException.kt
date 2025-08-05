@@ -54,3 +54,17 @@ class PasswordValidationException(
         const val NO_SPECIAL_CHAR = "PASSWORD_NO_SPECIAL_CHAR"
     }
 }
+
+class UserIdValidationException(
+    errorCode: String,
+    message: String,
+) : ValidationException(
+        field = "userId",
+        errorCode = errorCode,
+        message = message,
+    ) {
+    companion object {
+        const val BLANK_USER_ID = "BLANK_USER_ID"
+        const val INVALID_FORMAT = "INVALID_USER_ID_FORMAT"
+    }
+}

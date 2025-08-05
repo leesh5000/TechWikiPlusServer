@@ -3,6 +3,12 @@ package me.helloc.techwikiplus.service.user.application
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.user.adapter.outbound.cache.VerificationCodeFakeStore
+import me.helloc.techwikiplus.service.user.adapter.outbound.clock.FakeClockHolder
+import me.helloc.techwikiplus.service.user.adapter.outbound.id.FakeIdGenerator
+import me.helloc.techwikiplus.service.user.adapter.outbound.persistence.FakeUserRepository
+import me.helloc.techwikiplus.service.user.application.port.inbound.UserVerifyUseCase
+import me.helloc.techwikiplus.service.user.application.service.UserVerifyFacade
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidVerificationCodeException
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
 import me.helloc.techwikiplus.service.user.domain.model.User
@@ -11,15 +17,10 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
+import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
-import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
-import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
-import me.helloc.techwikiplus.service.user.infrastructure.id.FakeIdGenerator
-import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
-import me.helloc.techwikiplus.service.user.interfaces.usecase.UserVerifyUseCase
 import java.time.Instant
 
 class UserVerifyFacadeIntegrationTest : FunSpec({
@@ -60,11 +61,11 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         repository.save(user)
 
         // 인증 코드를 캐시에 저장
-        val verificationCode = VerificationCode("123456")
-        verificationCodeStore.store(email, verificationCode)
+        val registrationCode = RegistrationCode("123456")
+        verificationCodeStore.store(email, registrationCode)
 
         // When
-        sut.execute(UserVerifyUseCase.Command(email, verificationCode))
+        sut.execute(UserVerifyUseCase.Command(email, registrationCode))
 
         // Then
         val updatedUser = repository.findBy(email)
@@ -108,8 +109,8 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         repository.save(user)
 
         // 인증 코듌를 캐시에 저장
-        val correctCode = VerificationCode("123456")
-        val wrongCode = VerificationCode("999999")
+        val correctCode = RegistrationCode("123456")
+        val wrongCode = RegistrationCode("999999")
         verificationCodeStore.store(email, correctCode)
 
         // When & Then
@@ -142,11 +143,11 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
             )
 
         val nonExistentEmail = Email("nonexistent@example.com")
-        val verificationCode = VerificationCode("123456")
+        val registrationCode = RegistrationCode("123456")
 
         // When & Then
         shouldThrow<UserNotFoundException> {
-            sut.execute(UserVerifyUseCase.Command(nonExistentEmail, verificationCode))
+            sut.execute(UserVerifyUseCase.Command(nonExistentEmail, registrationCode))
         }
     }
 
@@ -186,11 +187,11 @@ class UserVerifyFacadeIntegrationTest : FunSpec({
         repository.save(user)
 
         // 캐시에 인증 코드를 저장하지 않음
-        val verificationCode = VerificationCode("123456")
+        val registrationCode = RegistrationCode("123456")
 
         // When & Then
         shouldThrow<InvalidVerificationCodeException> {
-            sut.execute(UserVerifyUseCase.Command(email, verificationCode))
+            sut.execute(UserVerifyUseCase.Command(email, registrationCode))
         }
 
         // 사용자 상태가 변경되지 않았는지 확인

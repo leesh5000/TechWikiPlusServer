@@ -4,17 +4,17 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import me.helloc.techwikiplus.service.user.adapter.outbound.security.FakePasswordCipher
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordCrypter
 import java.time.Instant
 
 class UserUnitTest : FunSpec({
 
-    val testPasswordEncoder = FakePasswordCrypter()
+    val testPasswordEncoder = FakePasswordCipher()
 
     test("모든 필수 필드를 가진 사용자를 생성해야 한다") {
         val now = Instant.now()

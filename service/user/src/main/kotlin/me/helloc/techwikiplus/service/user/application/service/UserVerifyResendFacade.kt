@@ -1,0 +1,21 @@
+package me.helloc.techwikiplus.service.user.application.service
+
+import me.helloc.techwikiplus.service.user.application.port.inbound.UserVerifyResendUseCase
+import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
+import me.helloc.techwikiplus.service.user.domain.service.UserReader
+import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
+
+@Transactional
+@Component
+class UserVerifyResendFacade(
+    private val userReader: UserReader,
+    private val userEmailVerificationCodeManager: UserEmailVerificationCodeManager,
+) : UserVerifyResendUseCase {
+    override fun execute(command: UserVerifyResendUseCase.Command) {
+        // 사용자 조회
+        val user = userReader.getPendingUserBy(command.email)
+        // 인증 메일 재전송
+        userEmailVerificationCodeManager.sendVerifyMailTo(user)
+    }
+}

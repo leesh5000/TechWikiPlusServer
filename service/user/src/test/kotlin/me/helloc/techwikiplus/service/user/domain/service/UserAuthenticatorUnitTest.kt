@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.user.adapter.outbound.security.FakePasswordCipher
 import me.helloc.techwikiplus.service.user.domain.exception.BannedUserException
 import me.helloc.techwikiplus.service.user.domain.exception.DormantUserException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
@@ -16,15 +17,14 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordCrypter
 import java.time.Instant
 
 class UserAuthenticatorUnitTest : FunSpec({
     lateinit var userAuthenticator: UserAuthenticator
-    lateinit var fakePasswordCrypter: FakePasswordCrypter
+    lateinit var fakePasswordCrypter: FakePasswordCipher
 
     beforeEach {
-        fakePasswordCrypter = FakePasswordCrypter()
+        fakePasswordCrypter = FakePasswordCipher()
         userAuthenticator = UserAuthenticator(fakePasswordCrypter)
     }
 

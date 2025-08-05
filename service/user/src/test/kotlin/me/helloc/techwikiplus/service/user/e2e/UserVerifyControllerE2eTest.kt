@@ -2,20 +2,20 @@ package me.helloc.techwikiplus.service.user.e2e
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
-import me.helloc.techwikiplus.service.user.config.BaseE2eTest
-import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.adapter.inbound.web.UserVerifyController
+import me.helloc.techwikiplus.service.user.adapter.outbound.test.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.adapter.outbound.test.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.application.port.outbound.ClockHolder
+import me.helloc.techwikiplus.service.user.application.port.outbound.IdGenerator
+import me.helloc.techwikiplus.service.user.application.port.outbound.UserRepository
+import me.helloc.techwikiplus.service.user.application.port.outbound.VerificationCodeStore
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
-import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
-import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
-import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
-import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
-import me.helloc.techwikiplus.service.user.interfaces.UserVerifyController
+import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -61,7 +61,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         Thread.sleep(10)
         // Given - PENDING 상태의 사용자 생성
         val email = Email("test@example.com")
-        val verificationCode = VerificationCode("123456")
+        val registrationCode = RegistrationCode("123456")
         val now = clockHolder.now()
 
         val pendingUser =
@@ -78,12 +78,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         userRepository.save(pendingUser)
 
         // 인증 코드를 캐시에 저장
-        verificationCodeStore.store(email, verificationCode)
+        verificationCodeStore.store(email, registrationCode)
 
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = verificationCode.value,
+                verificationCode = registrationCode.value,
             )
 
         // When & Then
@@ -135,13 +135,13 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     fun `POST verify - 존재하지 않는 이메일로 인증 시도 시 404 Not Found를 반환해야 한다`() {
         // Given - 캐시에만 인증 코드 저장 (사용자는 없음)
         val email = Email("nonexistent@example.com")
-        val verificationCode = VerificationCode("123456")
-        verificationCodeStore.store(email, verificationCode)
+        val registrationCode = RegistrationCode("123456")
+        verificationCodeStore.store(email, registrationCode)
 
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = verificationCode.value,
+                verificationCode = registrationCode.value,
             )
 
         // When & Then
@@ -170,8 +170,8 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     fun `POST verify - 잘못된 인증 코드로 인증 시도 시 400 Bad Request를 반환해야 한다`() {
         // Given - 사용자는 있지만 다른 코드를 캐시에 저장
         val email = Email("test@example.com")
-        val correctCode = VerificationCode("123456")
-        val wrongCode = VerificationCode("999999")
+        val correctCode = RegistrationCode("123456")
+        val wrongCode = RegistrationCode("999999")
         val now = clockHolder.now()
 
         val pendingUser =
@@ -229,7 +229,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         Thread.sleep(10)
         // Given - 사용자는 있지만 캐시에 코드 없음 (만료된 상황)
         val email = Email("test@example.com")
-        val verificationCode = VerificationCode("123456")
+        val registrationCode = RegistrationCode("123456")
         val now = clockHolder.now()
 
         val pendingUser =
@@ -250,7 +250,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = verificationCode.value,
+                verificationCode = registrationCode.value,
             )
 
         // When & Then
@@ -373,7 +373,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
     fun `POST verify - 이미 활성화된 사용자가 인증 시도 시 401 UNAUTHORIZED를 반환해야 한다`() {
         // Given - ACTIVE 상태의 사용자
         val email = Email("active@example.com")
-        val verificationCode = VerificationCode("123456")
+        val registrationCode = RegistrationCode("123456")
         val now = clockHolder.now()
 
         val activeUser =
@@ -391,12 +391,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         userRepository.save(activeUser)
 
         // 인증 코드를 캐시에 저장
-        verificationCodeStore.store(email, verificationCode)
+        verificationCodeStore.store(email, registrationCode)
 
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = verificationCode.value,
+                verificationCode = registrationCode.value,
             )
 
         // When & Then

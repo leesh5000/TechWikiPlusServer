@@ -3,6 +3,12 @@ package me.helloc.techwikiplus.service.user.application
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.user.adapter.outbound.cache.VerificationCodeFakeStore
+import me.helloc.techwikiplus.service.user.adapter.outbound.mail.FakeEmailTemplatePrinter
+import me.helloc.techwikiplus.service.user.adapter.outbound.messaging.FakeMailSender
+import me.helloc.techwikiplus.service.user.adapter.outbound.persistence.FakeUserRepository
+import me.helloc.techwikiplus.service.user.application.port.inbound.UserVerifyResendUseCase
+import me.helloc.techwikiplus.service.user.application.service.UserVerifyResendFacade
 import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
@@ -12,11 +18,6 @@ import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
-import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
-import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplatePrinter
-import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
-import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
-import me.helloc.techwikiplus.service.user.interfaces.usecase.UserVerifyResendUseCase
 import java.time.Instant
 
 class UserVerifyResendFacadeIntegrationTest : FunSpec({
@@ -65,7 +66,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
 
         // Then
         // 메일이 발송되었는지 확인
-        mailSender.hasMailBeenSentTo(email.value) shouldBe true
+        mailSender.hasMailBeenSentTo(email) shouldBe true
 
         // 발송된 메일 내용 확인
         val sentMail = mailSender.getLastSentMail()
@@ -128,7 +129,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
         exception.message shouldBe "User not found: User with email active@example.com and status PENDING not found"
 
         // 메일이 발송되지 않았는지 확인
-        mailSender.hasMailBeenSentTo(email.value) shouldBe false
+        mailSender.hasMailBeenSentTo(email) shouldBe false
         mailSender.getSentMails().size shouldBe 0
     }
 
@@ -166,7 +167,7 @@ class UserVerifyResendFacadeIntegrationTest : FunSpec({
             "User not found: User with email nonexistent@example.com and status PENDING not found"
 
         // 메일이 발송되지 않았는지 확인
-        mailSender.hasMailBeenSentTo(email.value) shouldBe false
+        mailSender.hasMailBeenSentTo(email) shouldBe false
         mailSender.getSentMails().size shouldBe 0
     }
 })

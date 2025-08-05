@@ -5,10 +5,16 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import me.helloc.techwikiplus.service.user.domain.exception.EmailValidationException
-import me.helloc.techwikiplus.service.user.domain.exception.NicknameValidationException
+import me.helloc.techwikiplus.service.user.adapter.outbound.cache.VerificationCodeFakeStore
+import me.helloc.techwikiplus.service.user.adapter.outbound.clock.FakeClockHolder
+import me.helloc.techwikiplus.service.user.adapter.outbound.id.FakeIdGenerator
+import me.helloc.techwikiplus.service.user.adapter.outbound.mail.FakeEmailTemplatePrinter
+import me.helloc.techwikiplus.service.user.adapter.outbound.messaging.FakeMailSender
+import me.helloc.techwikiplus.service.user.adapter.outbound.persistence.FakeUserRepository
+import me.helloc.techwikiplus.service.user.adapter.outbound.security.FakePasswordCipher
+import me.helloc.techwikiplus.service.user.application.port.inbound.UserSignUpUseCase
+import me.helloc.techwikiplus.service.user.application.service.UserSignUpService
 import me.helloc.techwikiplus.service.user.domain.exception.PasswordMismatchException
-import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationException
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
@@ -22,14 +28,6 @@ import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVe
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
 import me.helloc.techwikiplus.service.user.domain.service.UserPasswordEncoder
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
-import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
-import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
-import me.helloc.techwikiplus.service.user.infrastructure.id.FakeIdGenerator
-import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplatePrinter
-import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
-import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
-import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordCrypter
-import me.helloc.techwikiplus.service.user.interfaces.usecase.UserSignUpUseCase
 import java.time.Instant
 
 class UserSignUpFacadeIntegrationTest : FunSpec({
@@ -38,7 +36,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
 
         val repository = FakeUserRepository()
         val now: Instant = Instant.now()
-        val passwordEncoder = FakePasswordCrypter()
+        val passwordEncoder = FakePasswordCipher()
 
         val writer = UserWriter(repository)
         val userPasswordEncoder = UserPasswordEncoder(passwordEncoder)
@@ -59,7 +57,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val idGenerator = FakeIdGenerator()
 
         val sut =
-            UserSignUpFacade(
+            UserSignUpService(
                 idGenerator = idGenerator,
                 writer = writer,
                 userPasswordEncoder = userPasswordEncoder,
@@ -69,10 +67,10 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
             )
 
         // Given : 올바른 입력값으로 회원가입을 시도한다.
-        val email = "test@gmail.com"
-        val password = "Password!123"
-        val confirmPassword = "Password!123"
-        val nickname = "testUser"
+        val email = Email("test@gmail.com")
+        val password = RawPassword("Password!123")
+        val confirmPassword = RawPassword("Password!123")
+        val nickname = Nickname("testUser")
 
         // When : 회원가입을 시도한다.
 
@@ -89,13 +87,12 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         }
 
         // Then 2 : 저장소에 입력값에 맞는 회원 정보를 가진 회원이 저장되어 있어야하고, 상태가 "PENDING" 이어야 한다.
-        val userEmail = Email(email)
         val user: User =
-            repository.findBy(userEmail)
+            repository.findBy(email)
                 ?: throw IllegalStateException("User not found in repository")
-        user.email.value shouldBe email
-        user.nickname.value shouldBe nickname
-        user.encodedPassword.value shouldBe passwordEncoder.encode(RawPassword(password)).value
+        user.email.value shouldBe email.value
+        user.nickname.value shouldBe nickname.value
+        user.encodedPassword.value shouldBe passwordEncoder.encode(password).value
         user.createdAt shouldBe now
         user.modifiedAt shouldBe now
         user.status shouldBe UserStatus.PENDING
@@ -110,7 +107,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         // 테스트 준비
         val repository = FakeUserRepository()
         val now: Instant = Instant.now()
-        val passwordEncoder = FakePasswordCrypter()
+        val passwordEncoder = FakePasswordCipher()
 
         val writer = UserWriter(repository)
         val userPasswordEncoder = UserPasswordEncoder(passwordEncoder)
@@ -128,7 +125,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val idGenerator = FakeIdGenerator()
 
         val sut =
-            UserSignUpFacade(
+            UserSignUpService(
                 idGenerator = idGenerator,
                 writer = writer,
                 userPasswordEncoder = userPasswordEncoder,
@@ -158,10 +155,10 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
             shouldThrow<UserAlreadyExistsException.ForEmail> {
                 sut.execute(
                     UserSignUpUseCase.Command(
-                        email = email,
-                        password = "NewPassword!123",
-                        confirmPassword = "NewPassword!123",
-                        nickname = "newUser",
+                        email = Email(email),
+                        password = RawPassword("NewPassword!123"),
+                        confirmPassword = RawPassword("NewPassword!123"),
+                        nickname = Nickname("newUser"),
                     ),
                 )
             }
@@ -173,7 +170,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         // 테스트 준비
         val repository = FakeUserRepository()
         val now: Instant = Instant.now()
-        val passwordEncoder = FakePasswordCrypter()
+        val passwordEncoder = FakePasswordCipher()
 
         val writer = UserWriter(repository)
         val userPasswordEncoder = UserPasswordEncoder(passwordEncoder)
@@ -191,7 +188,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val idGenerator = FakeIdGenerator()
 
         val sut =
-            UserSignUpFacade(
+            UserSignUpService(
                 idGenerator = idGenerator,
                 writer = writer,
                 userPasswordEncoder = userPasswordEncoder,
@@ -201,10 +198,10 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
             )
 
         // Given: 서로 다른 비밀번호 입력
-        val email = "test@gmail.com"
-        val password = "Password!123"
-        val confirmPassword = "DifferentPassword!123"
-        val nickname = "testUser"
+        val email = Email("test@gmail.com")
+        val password = RawPassword("Password!123")
+        val confirmPassword = RawPassword("DifferentPassword!123")
+        val nickname = Nickname("testUser")
 
         // When & Then: 예외 발생
         shouldThrow<PasswordMismatchException> {
@@ -219,179 +216,14 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         }
 
         // 사용자가 저장되지 않았는지 확인
-        repository.findBy(Email(email)) shouldBe null
-    }
-
-    test("비밀번호 정책을 만족하지 않으면 PasswordValidationException 발생") {
-        // 테스트 준비
-        val repository = FakeUserRepository()
-        val now: Instant = Instant.now()
-        val passwordEncoder = FakePasswordCrypter()
-
-        val writer = UserWriter(repository)
-        val userPasswordEncoder = UserPasswordEncoder(passwordEncoder)
-        val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
-        val mailSender = FakeMailSender()
-        val userCacheStore = VerificationCodeFakeStore()
-        val emailTemplateService = FakeEmailTemplatePrinter()
-        val userEmailVerificationCodeManager =
-            UserEmailVerificationCodeManager(
-                mailSender,
-                userCacheStore,
-                emailTemplateService,
-            )
-        val passwordConfirmationVerifier = PasswordConfirmationVerifier()
-        val idGenerator = FakeIdGenerator()
-
-        val sut =
-            UserSignUpFacade(
-                idGenerator = idGenerator,
-                writer = writer,
-                userPasswordEncoder = userPasswordEncoder,
-                passwordConfirmationVerifier = passwordConfirmationVerifier,
-                auditor = auditor,
-                userEmailVerificationCodeManager = userEmailVerificationCodeManager,
-            )
-
-        // Given: 정책을 만족하지 않는 비밀번호 (특수문자 없음)
-        val email = "test@gmail.com"
-        val password = "Password123"
-        val confirmPassword = "Password123"
-        val nickname = "testUser"
-
-        // When & Then: 예외 발생
-        val exception =
-            shouldThrow<PasswordValidationException> {
-                sut.execute(
-                    UserSignUpUseCase.Command(
-                        email = email,
-                        password = password,
-                        confirmPassword = confirmPassword,
-                        nickname = nickname,
-                    ),
-                )
-            }
-
-        exception.errorCode shouldBe PasswordValidationException.NO_SPECIAL_CHAR
-        exception.message shouldContain "특수문자"
-
-        // 사용자가 저장되지 않았는지 확인
-        repository.findBy(Email(email)) shouldBe null
-    }
-
-    test("잘못된 이메일 형식으로 회원가입 시 EmailValidationException 발생") {
-        // 테스트 준비
-        val repository = FakeUserRepository()
-        val now: Instant = Instant.now()
-        val passwordEncoder = FakePasswordCrypter()
-
-        val writer = UserWriter(repository)
-        val userPasswordEncoder = UserPasswordEncoder(passwordEncoder)
-        val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
-        val mailSender = FakeMailSender()
-        val userCacheStore = VerificationCodeFakeStore()
-        val emailTemplateService = FakeEmailTemplatePrinter()
-        val userEmailVerificationCodeManager =
-            UserEmailVerificationCodeManager(
-                mailSender,
-                userCacheStore,
-                emailTemplateService,
-            )
-        val passwordConfirmationVerifier = PasswordConfirmationVerifier()
-        val idGenerator = FakeIdGenerator()
-
-        val sut =
-            UserSignUpFacade(
-                idGenerator = idGenerator,
-                writer = writer,
-                userPasswordEncoder = userPasswordEncoder,
-                passwordConfirmationVerifier = passwordConfirmationVerifier,
-                auditor = auditor,
-                userEmailVerificationCodeManager = userEmailVerificationCodeManager,
-            )
-
-        // Given: 잘못된 이메일 형식
-        val email = "invalid-email"
-        val password = "Password!123"
-        val confirmPassword = "Password!123"
-        val nickname = "testUser"
-
-        // When & Then: 예외 발생
-        val exception =
-            shouldThrow<EmailValidationException> {
-                sut.execute(
-                    UserSignUpUseCase.Command(
-                        email = email,
-                        password = password,
-                        confirmPassword = confirmPassword,
-                        nickname = nickname,
-                    ),
-                )
-            }
-
-        exception.errorCode shouldBe EmailValidationException.INVALID_FORMAT
-        exception.message shouldContain "올바른 이메일 형식"
-    }
-
-    test("잘못된 닉네임으로 회원가입 시 NicknameValidationException 발생") {
-        // 테스트 준비
-        val repository = FakeUserRepository()
-        val now: Instant = Instant.now()
-        val passwordEncoder = FakePasswordCrypter()
-
-        val writer = UserWriter(repository)
-        val userPasswordEncoder = UserPasswordEncoder(passwordEncoder)
-        val auditor = Auditor(clockHolder = FakeClockHolder(now = now))
-        val mailSender = FakeMailSender()
-        val userCacheStore = VerificationCodeFakeStore()
-        val emailTemplateService = FakeEmailTemplatePrinter()
-        val userEmailVerificationCodeManager =
-            UserEmailVerificationCodeManager(
-                mailSender,
-                userCacheStore,
-                emailTemplateService,
-            )
-        val passwordConfirmationVerifier = PasswordConfirmationVerifier()
-        val idGenerator = FakeIdGenerator()
-
-        val sut =
-            UserSignUpFacade(
-                idGenerator = idGenerator,
-                writer = writer,
-                userPasswordEncoder = userPasswordEncoder,
-                passwordConfirmationVerifier = passwordConfirmationVerifier,
-                auditor = auditor,
-                userEmailVerificationCodeManager = userEmailVerificationCodeManager,
-            )
-
-        // Given: 빈 닉네임
-        val email = "test@gmail.com"
-        val password = "Password!123"
-        val confirmPassword = "Password!123"
-        val nickname = ""
-
-        // When & Then: 예외 발생
-        val exception =
-            shouldThrow<NicknameValidationException> {
-                sut.execute(
-                    UserSignUpUseCase.Command(
-                        email = email,
-                        password = password,
-                        confirmPassword = confirmPassword,
-                        nickname = nickname,
-                    ),
-                )
-            }
-
-        exception.errorCode shouldBe NicknameValidationException.BLANK_NICKNAME
-        exception.message shouldContain "닉네임은 필수"
+        repository.findBy(email) shouldBe null
     }
 
     test("회원가입 시 이메일 발송이 정상적으로 이루어지는지 확인") {
         // 테스트 준비
         val repository = FakeUserRepository()
         val now: Instant = Instant.now()
-        val passwordEncoder = FakePasswordCrypter()
+        val passwordEncoder = FakePasswordCipher()
 
         val writer = UserWriter(repository)
         val userPasswordEncoder = UserPasswordEncoder(passwordEncoder)
@@ -409,7 +241,7 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         val idGenerator = FakeIdGenerator()
 
         val sut =
-            UserSignUpFacade(
+            UserSignUpService(
                 idGenerator = idGenerator,
                 writer = writer,
                 userPasswordEncoder = userPasswordEncoder,
@@ -419,10 +251,10 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
             )
 
         // Given
-        val email = "test@gmail.com"
-        val password = "Password!123"
-        val confirmPassword = "Password!123"
-        val nickname = "testUser"
+        val email = Email("test@gmail.com")
+        val password = RawPassword("Password!123")
+        val confirmPassword = RawPassword("Password!123")
+        val nickname = Nickname("testUser")
 
         // When
         sut.execute(
@@ -438,6 +270,6 @@ class UserSignUpFacadeIntegrationTest : FunSpec({
         mailSender.hasMailBeenSentTo(email) shouldBe true
 
         // Then: 캐시에 인증 코드가 저장되었는지 확인
-        userCacheStore.exists(Email(email)) shouldBe true
+        userCacheStore.exists(email) shouldBe true
     }
 })

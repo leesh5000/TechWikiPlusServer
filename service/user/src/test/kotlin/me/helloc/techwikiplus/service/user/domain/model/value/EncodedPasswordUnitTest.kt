@@ -4,12 +4,12 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.user.domain.service.port.PasswordCrypter
+import me.helloc.techwikiplus.service.user.application.port.outbound.PasswordCipher
 
 class EncodedPasswordUnitTest : FunSpec({
 
-    val testPasswordCrypter =
-        object : PasswordCrypter {
+    val testPasswordCipher =
+        object : PasswordCipher {
             override fun encode(rawPassword: RawPassword): EncodedPassword {
                 // Simple test encoder that creates a fixed 60 char hash
                 val hash = rawPassword.value.hashCode().toString()
@@ -29,7 +29,7 @@ class EncodedPasswordUnitTest : FunSpec({
         val rawPassword = RawPassword("mySecretPassword123!")
 
         // Create EncodedPassword with encoded value
-        val encodedPassword = testPasswordCrypter.encode(rawPassword)
+        val encodedPassword = testPasswordCipher.encode(rawPassword)
         encodedPassword.value shouldNotBe "mySecretPassword123!"
         encodedPassword.value.length shouldBe 60
         encodedPassword.value.startsWith("encoded:") shouldBe true
@@ -63,7 +63,7 @@ class EncodedPasswordUnitTest : FunSpec({
             // This should not throw
             val rawPassword = RawPassword(rawPasswordStr)
 
-            val encodedPassword = testPasswordCrypter.encode(rawPassword)
+            val encodedPassword = testPasswordCipher.encode(rawPassword)
             encodedPassword.value shouldNotBe rawPasswordStr
         }
     }
@@ -71,26 +71,26 @@ class EncodedPasswordUnitTest : FunSpec({
     test("올바른 패스워드를 검증해야 한다") {
         val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedPassword = testPasswordCrypter.encode(rawPassword)
+        val encodedPassword = testPasswordCipher.encode(rawPassword)
 
         // Test password matching using encoder directly
-        testPasswordCrypter.matches(rawPassword, encodedPassword) shouldBe true
+        testPasswordCipher.matches(rawPassword, encodedPassword) shouldBe true
     }
 
     test("올바르지 않은 패스워드를 거부해야 한다") {
         val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedPassword = testPasswordCrypter.encode(rawPassword)
+        val encodedPassword = testPasswordCipher.encode(rawPassword)
 
-        testPasswordCrypter.matches(RawPassword("wrongPassword123!"), encodedPassword) shouldBe false
-        testPasswordCrypter.matches(RawPassword("mySecretPassword123@"), encodedPassword) shouldBe false
-        testPasswordCrypter.matches(RawPassword("MySecretPassword123!"), encodedPassword) shouldBe false
+        testPasswordCipher.matches(RawPassword("wrongPassword123!"), encodedPassword) shouldBe false
+        testPasswordCipher.matches(RawPassword("mySecretPassword123@"), encodedPassword) shouldBe false
+        testPasswordCipher.matches(RawPassword("MySecretPassword123!"), encodedPassword) shouldBe false
     }
 
     test("실제 BCrypt와 유사한 동작으로 동일한 패스워드에 대해 다른 해시를 생성해야 한다") {
         // For this test, we'll use a more realistic encoder that simulates BCrypt's random salt
         val bcryptLikeEncoder =
-            object : PasswordCrypter {
+            object : PasswordCipher {
                 private var counter = 0
 
                 override fun encode(rawPassword: RawPassword): EncodedPassword {
@@ -121,7 +121,7 @@ class EncodedPasswordUnitTest : FunSpec({
     test("원시 패스워드를 절대 노출하지 않아야 한다") {
         val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedPassword = testPasswordCrypter.encode(rawPassword)
+        val encodedPassword = testPasswordCipher.encode(rawPassword)
 
         encodedPassword.toString() shouldNotBe "Password(value=mySecretPassword123!)"
         encodedPassword.toString() shouldBe "EncodedPassword(****)"
@@ -130,7 +130,7 @@ class EncodedPasswordUnitTest : FunSpec({
     test("불변 객체여야 한다") {
         val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedPassword = testPasswordCrypter.encode(rawPassword)
+        val encodedPassword = testPasswordCipher.encode(rawPassword)
         val originalValue = encodedPassword.value
         // Value should not be modifiable (enforced by val property)
         encodedPassword.value shouldBe originalValue
@@ -138,11 +138,11 @@ class EncodedPasswordUnitTest : FunSpec({
 
     test("equals를 올바르게 구현해야 한다") {
         val rawPwd = RawPassword("mySecretPassword123!")
-        val encodedPassword = testPasswordCrypter.encode(rawPwd)
+        val encodedPassword = testPasswordCipher.encode(rawPwd)
 
         val encodedPassword1 = encodedPassword
         val encodedPassword2 = encodedPassword
-        val encodedPassword3 = testPasswordCrypter.encode(RawPassword("differentPassword123!"))
+        val encodedPassword3 = testPasswordCipher.encode(RawPassword("differentPassword123!"))
 
         encodedPassword1 shouldBe encodedPassword2
         encodedPassword1 shouldNotBe encodedPassword3
@@ -153,7 +153,7 @@ class EncodedPasswordUnitTest : FunSpec({
     test("hashCode를 올바르게 구현해야 한다") {
         val rawPassword = RawPassword("mySecretPassword123!")
 
-        val encodedPassword = testPasswordCrypter.encode(rawPassword)
+        val encodedPassword = testPasswordCipher.encode(rawPassword)
         val encodedPassword1 = encodedPassword
         val encodedPassword2 = encodedPassword
 

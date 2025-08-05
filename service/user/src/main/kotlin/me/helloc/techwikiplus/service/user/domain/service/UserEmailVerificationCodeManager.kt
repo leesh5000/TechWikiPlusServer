@@ -1,10 +1,10 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
+import me.helloc.techwikiplus.service.user.application.port.outbound.EmailTemplatePrinter
+import me.helloc.techwikiplus.service.user.application.port.outbound.MailSender
+import me.helloc.techwikiplus.service.user.application.port.outbound.VerificationCodeStore
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
-import me.helloc.techwikiplus.service.user.domain.service.port.EmailTemplatePrinter
-import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
-import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
+import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
 
 class UserEmailVerificationCodeManager(
     private val mailSender: MailSender,
@@ -12,10 +12,10 @@ class UserEmailVerificationCodeManager(
     private val emailTemplatePrinter: EmailTemplatePrinter,
 ) {
     fun sendVerifyMailTo(user: User) {
-        val verificationCode = VerificationCode.generate()
-        val emailContent = emailTemplatePrinter.createVerificationEmailContent(verificationCode)
+        val registrationCode = RegistrationCode.generate()
+        val emailContent = emailTemplatePrinter.createVerificationEmailContent(registrationCode)
         mailSender.send(user.email, emailContent.subject, emailContent.body)
-        verificationCodeStore.store(user.email, verificationCode)
+        verificationCodeStore.store(user.email, registrationCode)
     }
 
     fun hasMailBeenSentTo(to: User): Boolean {

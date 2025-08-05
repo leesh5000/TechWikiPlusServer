@@ -3,11 +3,11 @@ package me.helloc.techwikiplus.service.user.domain.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.user.adapter.outbound.token.FakeTokenValidator
+import me.helloc.techwikiplus.service.user.application.port.outbound.TokenValidator
 import me.helloc.techwikiplus.service.user.domain.exception.ExpiredTokenException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidTokenException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidTokenTypeException
-import me.helloc.techwikiplus.service.user.domain.service.port.TokenValidator
-import me.helloc.techwikiplus.service.user.infrastructure.token.FakeTokenValidator
 import java.time.Instant
 
 class UserTokenValidatorUnitTest : FunSpec(

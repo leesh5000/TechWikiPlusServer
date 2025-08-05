@@ -4,16 +4,16 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldMatch
+import me.helloc.techwikiplus.service.user.adapter.outbound.cache.VerificationCodeFakeStore
+import me.helloc.techwikiplus.service.user.adapter.outbound.mail.FakeEmailTemplatePrinter
+import me.helloc.techwikiplus.service.user.adapter.outbound.messaging.FakeMailSender
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
-import me.helloc.techwikiplus.service.user.infrastructure.cache.VerificationCodeFakeStore
-import me.helloc.techwikiplus.service.user.infrastructure.mail.FakeEmailTemplatePrinter
-import me.helloc.techwikiplus.service.user.infrastructure.messaging.FakeMailSender
+import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
 import java.time.Instant
 
 class UserEmailVerificationCodeManagerUnitTest : FunSpec({
@@ -52,7 +52,7 @@ class UserEmailVerificationCodeManagerUnitTest : FunSpec({
         manager.sendVerifyMailTo(user)
 
         // Then - 메일이 발송되었는지 확인
-        mailSender.hasMailBeenSentTo("test@example.com") shouldBe true
+        mailSender.hasMailBeenSentTo(Email("test@example.com")) shouldBe true
 
         // Then - 발송된 메일의 내용 확인
         val sentMail = mailSender.getLastSentMail()
@@ -184,11 +184,11 @@ class UserEmailVerificationCodeManagerUnitTest : FunSpec({
         val email = Email("format@example.com")
 
         // When - 캐시에 저장하고 확인
-        val verificationCode = VerificationCode("123456")
-        verificationCodeStore.store(email, verificationCode)
+        val registrationCode = RegistrationCode("123456")
+        verificationCodeStore.store(email, registrationCode)
 
         // Then - 정상적으로 저장되고 조회되는지 확인
         verificationCodeStore.exists(email) shouldBe true
-        verificationCodeStore.get(email) shouldBe verificationCode
+        verificationCodeStore.get(email) shouldBe registrationCode
     }
 })

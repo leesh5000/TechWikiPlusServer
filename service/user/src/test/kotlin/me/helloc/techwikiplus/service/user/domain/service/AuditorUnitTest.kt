@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.service.user.domain.service
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
+import me.helloc.techwikiplus.service.user.adapter.outbound.clock.FakeClockHolder
 import java.time.Clock
 import java.time.Instant
 

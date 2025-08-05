@@ -3,6 +3,7 @@ package me.helloc.techwikiplus.service.user.domain.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.user.adapter.outbound.persistence.FakeUserRepository
 import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
@@ -10,7 +11,6 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
 import java.time.Instant
 
 class UserWriterUnitTest : FunSpec({

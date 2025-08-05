@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
+import me.helloc.techwikiplus.service.user.application.port.outbound.ClockHolder
 import java.time.Instant
 
 class Auditor(

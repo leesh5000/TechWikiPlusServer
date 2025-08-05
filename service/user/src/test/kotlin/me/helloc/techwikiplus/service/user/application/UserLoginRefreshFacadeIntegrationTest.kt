@@ -4,6 +4,14 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import me.helloc.techwikiplus.service.user.adapter.outbound.clock.FakeClockHolder
+import me.helloc.techwikiplus.service.user.adapter.outbound.persistence.FakeUserRepository
+import me.helloc.techwikiplus.service.user.adapter.outbound.security.FakePasswordCipher
+import me.helloc.techwikiplus.service.user.adapter.outbound.security.FakeTokenGenerator
+import me.helloc.techwikiplus.service.user.adapter.outbound.token.FakeTokenValidator
+import me.helloc.techwikiplus.service.user.application.port.inbound.UserLoginRefreshUseCase
+import me.helloc.techwikiplus.service.user.application.port.outbound.TokenValidator
+import me.helloc.techwikiplus.service.user.application.service.UserLoginRefreshFacade
 import me.helloc.techwikiplus.service.user.domain.exception.BannedUserException
 import me.helloc.techwikiplus.service.user.domain.exception.DormantUserException
 import me.helloc.techwikiplus.service.user.domain.exception.ExpiredTokenException
@@ -21,13 +29,6 @@ import me.helloc.techwikiplus.service.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.domain.service.UserTokenGenerator
 import me.helloc.techwikiplus.service.user.domain.service.UserTokenValidator
-import me.helloc.techwikiplus.service.user.domain.service.port.TokenValidator
-import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
-import me.helloc.techwikiplus.service.user.infrastructure.persistence.FakeUserRepository
-import me.helloc.techwikiplus.service.user.infrastructure.security.FakePasswordCrypter
-import me.helloc.techwikiplus.service.user.infrastructure.security.FakeTokenGenerator
-import me.helloc.techwikiplus.service.user.infrastructure.token.FakeTokenValidator
-import me.helloc.techwikiplus.service.user.interfaces.usecase.UserLoginRefreshUseCase
 import java.time.Instant
 
 class UserLoginRefreshFacadeIntegrationTest : FunSpec({
@@ -39,7 +40,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
         val tokenGenerator = FakeTokenGenerator()
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // 테스트 사용자 생성
         val userId = "test-user-id"
@@ -93,7 +94,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
         val tokenGenerator = FakeTokenGenerator()
 
         // 의존성 생성
@@ -125,7 +126,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // 만료된 토큰 설정
         val expiredToken = "expired.refresh.token"
@@ -172,7 +173,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // 액세스 토큰을 설정 (타입이 access)
         val accessToken = "access.token"
@@ -216,7 +217,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // 존재하지 않는 사용자의 토큰 설정
         val refreshToken = "valid.refresh.token"
@@ -252,7 +253,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // PENDING 사용자 생성
         val userId = "pending-user-id"
@@ -303,7 +304,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // DORMANT 사용자 생성
         val userId = "dormant-user-id"
@@ -355,7 +356,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // BANNED 사용자 생성
         val userId = "banned-user-id"
@@ -406,7 +407,7 @@ class UserLoginRefreshFacadeIntegrationTest : FunSpec({
         val now = Instant.parse("2025-01-01T00:00:00Z")
         val clockHolder = FakeClockHolder(now = now)
         val tokenValidator = FakeTokenValidator(clockHolder)
-        val crypter = FakePasswordCrypter()
+        val crypter = FakePasswordCipher()
 
         // DELETED 사용자 생성
         val userId = "deleted-user-id"

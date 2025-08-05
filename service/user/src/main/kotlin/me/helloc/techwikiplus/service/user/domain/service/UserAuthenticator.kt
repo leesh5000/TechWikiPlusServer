@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
+import me.helloc.techwikiplus.service.user.application.port.outbound.PasswordCipher
 import me.helloc.techwikiplus.service.user.domain.exception.BannedUserException
 import me.helloc.techwikiplus.service.user.domain.exception.DormantUserException
 import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
@@ -8,10 +9,9 @@ import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundExceptio
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.service.port.PasswordCrypter
 
 class UserAuthenticator(
-    private val crypter: PasswordCrypter,
+    private val crypter: PasswordCipher,
 ) {
     fun authenticateOrThrows(
         user: User,

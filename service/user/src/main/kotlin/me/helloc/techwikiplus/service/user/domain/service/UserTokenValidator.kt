@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.service.port.TokenValidator
-import me.helloc.techwikiplus.service.user.domain.service.port.TokenValidator.TokenClaims
+import me.helloc.techwikiplus.service.user.application.port.outbound.TokenValidator
+import me.helloc.techwikiplus.service.user.application.port.outbound.TokenValidator.TokenClaims
 
 class UserTokenValidator(
     private val tokenValidator: TokenValidator,

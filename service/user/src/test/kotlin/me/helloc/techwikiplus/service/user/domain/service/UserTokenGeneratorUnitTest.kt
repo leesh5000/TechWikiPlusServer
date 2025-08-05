@@ -3,8 +3,8 @@ package me.helloc.techwikiplus.service.user.domain.service
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.user.infrastructure.clock.FakeClockHolder
-import me.helloc.techwikiplus.service.user.infrastructure.security.FakeTokenGenerator
+import me.helloc.techwikiplus.service.user.adapter.outbound.clock.FakeClockHolder
+import me.helloc.techwikiplus.service.user.adapter.outbound.security.FakeTokenGenerator
 import java.time.Instant
 
 class UserTokenGeneratorUnitTest : FunSpec({

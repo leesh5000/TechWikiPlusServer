@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
-import me.helloc.techwikiplus.service.user.domain.service.port.TokenGenerator
+import me.helloc.techwikiplus.service.user.application.port.outbound.ClockHolder
+import me.helloc.techwikiplus.service.user.application.port.outbound.TokenGenerator
 import java.time.Instant
 
 class UserTokenGenerator(
