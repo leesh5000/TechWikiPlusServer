@@ -10,6 +10,11 @@ class FakeUserRepository : UserRepository {
     private val users = mutableMapOf<String, User>()
     private var simulatedError: String? = null
 
+    override fun findBy(id: String): User? {
+        simulatedError?.let { throw RuntimeException(it) }
+        return users.values.find { it.id == id }
+    }
+
     override fun findBy(email: Email): User? {
         simulatedError?.let { throw RuntimeException(it) }
         return users[email.value]

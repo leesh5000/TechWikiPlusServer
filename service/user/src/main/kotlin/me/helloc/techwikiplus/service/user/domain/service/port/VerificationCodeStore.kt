@@ -12,4 +12,9 @@ interface VerificationCodeStore {
     fun exists(email: Email): Boolean
 
     fun get(email: Email): VerificationCode
+
+    fun equalsOrThrows(
+        email: Email,
+        code: VerificationCode,
+    )
 }

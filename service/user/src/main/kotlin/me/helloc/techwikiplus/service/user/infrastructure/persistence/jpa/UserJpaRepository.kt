@@ -12,6 +12,14 @@ interface UserJpaRepository : JpaRepository<UserEntity, String> {
     @Query("SELECT COUNT(u) > 0 FROM UserEntity u WHERE LOWER(u.nickname) = LOWER(:nickname)")
     fun existsByNickname(nickname: String): Boolean
 
+    @Query(
+        value = """
+            SELECT id, email, nickname, password, status, role, created_at, modified_at
+            FROM users u
+            WHERE u.email = :email
+        """,
+        nativeQuery = true,
+    )
     fun findByEmail(email: String): UserEntity?
 
     @Query(

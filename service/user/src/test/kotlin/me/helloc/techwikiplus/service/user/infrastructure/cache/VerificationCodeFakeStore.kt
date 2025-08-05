@@ -57,6 +57,23 @@ class VerificationCodeFakeStore : VerificationCodeStore {
         return VerificationCode(entry.value)
     }
 
+    override fun equalsOrThrows(
+        email: Email,
+        code: VerificationCode,
+    ) {
+        if (!exists(email)) {
+            throw InvalidVerificationCodeException(
+                "Verification code not found for email: ${email.value}",
+            )
+        }
+
+        if (get(email) != code) {
+            throw InvalidVerificationCodeException(
+                "Verification code is invalid for email: ${email.value}",
+            )
+        }
+    }
+
     fun clear() {
         store.clear()
     }

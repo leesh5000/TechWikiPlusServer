@@ -38,4 +38,16 @@ class VerificationCodeRedisStore(
                 ?: throw InvalidVerificationCodeException("Verification code not found for email: ${email.value}")
         return VerificationCode(value)
     }
+
+    override fun equalsOrThrows(
+        email: Email,
+        code: VerificationCode,
+    ) {
+        if (!exists(email)) {
+            throw InvalidVerificationCodeException("Verification code not found for email: ${email.value}")
+        }
+        if (get(email) != code) {
+            throw InvalidVerificationCodeException("Invalid verification code for email: ${email.value}")
+        }
+    }
 }

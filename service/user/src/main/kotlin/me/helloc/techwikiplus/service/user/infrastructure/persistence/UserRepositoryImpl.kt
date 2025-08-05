@@ -16,6 +16,12 @@ class UserRepositoryImpl(
     private val jpaRepository: UserJpaRepository,
     private val mapper: UserEntityMapper,
 ) : UserRepository {
+    override fun findBy(id: String): User? {
+        return jpaRepository.findById(id).orElse(null)?.let {
+            mapper.toDomain(it)
+        }
+    }
+
     override fun findBy(email: Email): User? {
         return jpaRepository.findByEmail(email.value)?.let {
             mapper.toDomain(it)

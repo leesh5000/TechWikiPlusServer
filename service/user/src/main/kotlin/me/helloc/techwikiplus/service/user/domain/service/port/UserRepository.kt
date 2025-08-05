@@ -6,6 +6,8 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 
 interface UserRepository {
+    fun findBy(id: String): User?
+
     fun findBy(email: Email): User?
 
     fun findBy(
