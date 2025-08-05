@@ -8,7 +8,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.VerificationCode
 
 class RegistrationEmailTemplateServiceTest : FunSpec({
     val emailTemplateService =
-        RegistrationEmailTemplateService().apply {
+        RegistrationEmailTemplatePrinter().apply {
             loadTemplate()
         }
 

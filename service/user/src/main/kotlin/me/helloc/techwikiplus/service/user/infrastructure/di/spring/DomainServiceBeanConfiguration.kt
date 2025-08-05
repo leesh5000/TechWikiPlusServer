@@ -2,16 +2,19 @@ package me.helloc.techwikiplus.service.user.infrastructure.di.spring
 
 import me.helloc.techwikiplus.service.user.domain.service.Auditor
 import me.helloc.techwikiplus.service.user.domain.service.PasswordConfirmationVerifier
-import me.helloc.techwikiplus.service.user.domain.service.TokenService
+import me.helloc.techwikiplus.service.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.service.user.domain.service.UserEmailVerificationCodeManager
-import me.helloc.techwikiplus.service.user.domain.service.UserPasswordService
+import me.helloc.techwikiplus.service.user.domain.service.UserPasswordEncoder
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
+import me.helloc.techwikiplus.service.user.domain.service.UserTokenGenerator
+import me.helloc.techwikiplus.service.user.domain.service.UserTokenValidator
 import me.helloc.techwikiplus.service.user.domain.service.UserWriter
 import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
-import me.helloc.techwikiplus.service.user.domain.service.port.EmailTemplateService
+import me.helloc.techwikiplus.service.user.domain.service.port.EmailTemplatePrinter
 import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
-import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncoder
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordCrypter
 import me.helloc.techwikiplus.service.user.domain.service.port.TokenGenerator
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenValidator
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import me.helloc.techwikiplus.service.user.domain.service.port.VerificationCodeStore
 import org.springframework.context.annotation.Bean
@@ -36,8 +39,8 @@ class DomainServiceBeanConfiguration {
     }
 
     @Bean
-    fun userPasswordService(passwordEncoder: PasswordEncoder): UserPasswordService {
-        return UserPasswordService(passwordEncoder)
+    fun userPasswordEncoder(passwordCrypter: PasswordCrypter): UserPasswordEncoder {
+        return UserPasswordEncoder(passwordCrypter)
     }
 
     @Bean
@@ -49,9 +52,9 @@ class DomainServiceBeanConfiguration {
     fun emailVerificationCodeSender(
         mailSender: MailSender,
         codeStore: VerificationCodeStore,
-        emailTemplateService: EmailTemplateService,
+        emailTemplatePrinter: EmailTemplatePrinter,
     ): UserEmailVerificationCodeManager {
-        return UserEmailVerificationCodeManager(mailSender, codeStore, emailTemplateService)
+        return UserEmailVerificationCodeManager(mailSender, codeStore, emailTemplatePrinter)
     }
 
     @Bean
@@ -60,10 +63,20 @@ class DomainServiceBeanConfiguration {
     }
 
     @Bean
-    fun tokenService(
+    fun userTokenGenerator(
         tokenGenerator: TokenGenerator,
         clockHolder: ClockHolder,
-    ): TokenService {
-        return TokenService(tokenGenerator, clockHolder)
+    ): UserTokenGenerator {
+        return UserTokenGenerator(tokenGenerator, clockHolder)
+    }
+
+    @Bean
+    fun userTokenValidator(tokenValidator: TokenValidator): UserTokenValidator {
+        return UserTokenValidator(tokenValidator)
+    }
+
+    @Bean
+    fun userAuthenticator(crypter: PasswordCrypter): UserAuthenticator {
+        return UserAuthenticator(crypter)
     }
 }
