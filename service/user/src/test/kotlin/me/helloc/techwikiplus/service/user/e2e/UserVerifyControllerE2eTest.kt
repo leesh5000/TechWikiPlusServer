@@ -2,13 +2,8 @@ package me.helloc.techwikiplus.service.user.e2e
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
-import me.helloc.techwikiplus.service.user.adapter.inbound.web.UserVerifyController
-import me.helloc.techwikiplus.service.user.adapter.outbound.test.config.BaseE2eTest
-import me.helloc.techwikiplus.service.user.adapter.outbound.test.config.annotations.E2eTest
-import me.helloc.techwikiplus.service.user.application.port.outbound.ClockHolder
-import me.helloc.techwikiplus.service.user.application.port.outbound.IdGenerator
-import me.helloc.techwikiplus.service.user.application.port.outbound.UserRepository
-import me.helloc.techwikiplus.service.user.application.port.outbound.VerificationCodeStore
+import me.helloc.techwikiplus.service.config.BaseE2eTest
+import me.helloc.techwikiplus.service.config.annotations.E2eTest
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
@@ -16,6 +11,11 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
+import me.helloc.techwikiplus.service.user.domain.port.ClockHolder
+import me.helloc.techwikiplus.service.user.domain.port.IdGenerator
+import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.port.VerificationCodeStore
+import me.helloc.techwikiplus.service.user.interfaces.web.UserVerifyController
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -83,7 +83,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = registrationCode.value,
+                registrationCode = registrationCode.value,
             )
 
         // When & Then
@@ -141,7 +141,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = registrationCode.value,
+                registrationCode = registrationCode.value,
             )
 
         // When & Then
@@ -194,7 +194,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             UserVerifyController.Request(
                 email = email.value,
                 // 잘못된 코드 사용
-                verificationCode = wrongCode.value,
+                registrationCode = wrongCode.value,
             )
 
         // When & Then
@@ -250,7 +250,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = registrationCode.value,
+                registrationCode = registrationCode.value,
             )
 
         // When & Then
@@ -281,7 +281,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         val request =
             UserVerifyController.Request(
                 email = "invalid-email",
-                verificationCode = "123456",
+                registrationCode = "123456",
             )
 
         // When & Then
@@ -314,7 +314,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             UserVerifyController.Request(
                 email = "test@example.com",
                 // 5자리
-                verificationCode = "12345",
+                registrationCode = "12345",
             )
 
         // When & Then
@@ -396,7 +396,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
         val request =
             UserVerifyController.Request(
                 email = email.value,
-                verificationCode = registrationCode.value,
+                registrationCode = registrationCode.value,
             )
 
         // When & Then
@@ -428,7 +428,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             UserVerifyController.Request(
                 email = "test@example.com",
                 // 문자 포함
-                verificationCode = "12345A",
+                registrationCode = "12345A",
             )
 
         // When & Then

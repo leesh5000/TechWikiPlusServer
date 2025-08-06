@@ -1,11 +1,11 @@
 package me.helloc.techwikiplus.service.user.application.service
 
 import jakarta.transaction.Transactional
-import me.helloc.techwikiplus.service.user.application.port.inbound.UserLoginRefreshUseCase
+import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
-import me.helloc.techwikiplus.service.user.domain.service.UserTokenGenerator
-import me.helloc.techwikiplus.service.user.domain.service.UserTokenValidator
+import me.helloc.techwikiplus.service.user.domain.service.UserTokenService
+import me.helloc.techwikiplus.service.user.interfaces.web.port.UserLoginRefreshUseCase
 import org.springframework.stereotype.Component
 
 @Transactional
@@ -13,29 +13,26 @@ import org.springframework.stereotype.Component
 class UserLoginRefreshFacade(
     private val reader: UserReader,
     private val authenticator: UserAuthenticator,
-    private val userTokenGenerator: UserTokenGenerator,
-    private val userTokenValidator: UserTokenValidator,
+    private val userTokenService: UserTokenService,
 ) : UserLoginRefreshUseCase {
-    override fun execute(command: UserLoginRefreshUseCase.Command): UserLoginRefreshUseCase.Result {
-        // Validate refresh token and extract claims
-        val claims = userTokenValidator.validateRefreshTokenOrThrows(command.refreshToken)
-
-        // Get user by ID from claims
-        val user = reader.getBy(claims.userId)
-
-        // Check if the user is active (throws appropriate exceptions for other statuses)
-        authenticator.validateOrThrows(user)
+    override fun execute(
+        userId: UserId,
+        refreshToken: String,
+    ): UserLoginRefreshUseCase.Result {
+        val activeUser = reader.getActiveUserBy(userId)
+        authenticator.authenticate(
+            user = activeUser,
+            refreshToken = refreshToken,
+        )
 
         // Generate new tokens
-        val tokenPair = userTokenGenerator.generateTokens(user.id)
+        val tokenPair = userTokenService.generateTokens(activeUser.id)
 
         // Return result with new tokens
         return UserLoginRefreshUseCase.Result(
             accessToken = tokenPair.accessToken,
             refreshToken = tokenPair.refreshToken,
-            userId = user.id,
-            accessTokenExpiresAt = tokenPair.accessTokenExpiresAt,
-            refreshTokenExpiresAt = tokenPair.refreshTokenExpiresAt,
+            userId = activeUser.id,
         )
     }
 }

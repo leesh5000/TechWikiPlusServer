@@ -62,6 +62,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     // Kotlin Coroutines - 병렬 처리를 위한 코루틴
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // Apache Commons Text - XSS 방어를 위한 HTML 이스케이프
+    implementation("org.apache.commons:commons-text:1.11.0")
 }
 
 // OpenAPI 3.0.1 문서 생성 설정

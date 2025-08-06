@@ -1,14 +1,18 @@
 package me.helloc.techwikiplus.service.user.domain.model
 
+import me.helloc.techwikiplus.service.user.domain.exception.BannedUserException
+import me.helloc.techwikiplus.service.user.domain.exception.DeletedUserException
+import me.helloc.techwikiplus.service.user.domain.exception.PendingUserException
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import java.time.Instant
 
 class User(
-    val id: String,
+    val id: UserId,
     val email: Email,
     val nickname: Nickname,
     val encodedPassword: EncodedPassword,
@@ -22,7 +26,7 @@ class User(
     }
 
     fun copy(
-        id: String = this.id,
+        id: UserId = this.id,
         email: Email = this.email,
         nickname: Nickname = this.nickname,
         encodedPassword: EncodedPassword = this.encodedPassword,
@@ -68,15 +72,43 @@ class User(
     }
 
     fun activate(modifiedAt: Instant): User {
+        if (status == UserStatus.ACTIVE) {
+            return this // 이미 활성화된 상태면 그대로 반환
+        }
         return copy(
             status = UserStatus.ACTIVE,
             modifiedAt = modifiedAt,
         )
     }
 
+    fun setPending(modifiedAt: Instant): User {
+        if (status == UserStatus.PENDING) {
+            return this // 이미 대기 상태면 그대로 반환
+        }
+        return copy(
+            status = UserStatus.PENDING,
+            modifiedAt = modifiedAt,
+        )
+    }
+
+    fun validateUserStatus() {
+        when (status) {
+            UserStatus.BANNED -> {
+                throw BannedUserException(email)
+            }
+            UserStatus.DELETED -> {
+                throw DeletedUserException(email)
+            }
+            UserStatus.PENDING -> {
+                throw PendingUserException(email)
+            }
+            else -> {}
+        }
+    }
+
     companion object {
         fun create(
-            id: String,
+            id: UserId,
             email: Email,
             nickname: Nickname,
             encodedPassword: EncodedPassword,

@@ -12,9 +12,9 @@ class RegistrationMailTemplate {
                 body = getHtmlTemplate(registrationCode).replace(CODE_PLACEHOLDER, registrationCode.value),
             )
         }
-        
+
         private fun getSubject(): String = "TechWiki+ 회원가입 인증 코드"
-        
+
         private fun getHtmlTemplate(registrationCode: RegistrationCode): String {
             return TEMPLATE.replace(CODE_PLACEHOLDER, registrationCode.value)
         }

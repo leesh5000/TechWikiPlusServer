@@ -1,31 +1,32 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.application.port.outbound.UserRepository
-import me.helloc.techwikiplus.service.user.domain.exception.UserNotFoundException
+import me.helloc.techwikiplus.service.user.domain.exception.ActiveUserNotFoundException
+import me.helloc.techwikiplus.service.user.domain.exception.PendingUserNotFoundException
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import org.springframework.stereotype.Service
 
+@Service
 class UserReader(
     private val repository: UserRepository,
 ) {
-    fun getBy(email: Email): User {
-        return repository.findBy(email)
-            ?: throw UserNotFoundException("User with email ${email.value} not found")
+    fun getActiveUserBy(userId: UserId): User {
+        return repository.findBy(userId)
+            ?: throw ActiveUserNotFoundException(userId)
     }
 
-    fun getBy(id: String): User {
-        return repository.findBy(id)
-            ?: throw UserNotFoundException("User with id $id not found")
-    }
-
+    @Throws(PendingUserNotFoundException::class)
     fun getPendingUserBy(email: Email): User {
         return repository.findBy(email, UserStatus.PENDING)
-            ?: throw UserNotFoundException("User with email ${email.value} and status ${UserStatus.PENDING} not found")
+            ?: throw PendingUserNotFoundException(email)
     }
 
+    @Throws(ActiveUserNotFoundException::class)
     fun getActiveUserBy(email: Email): User {
         return repository.findBy(email, UserStatus.ACTIVE)
-            ?: throw UserNotFoundException("User with email ${email.value} and status ${UserStatus.ACTIVE} not found")
+            ?: throw ActiveUserNotFoundException(email)
     }
 }

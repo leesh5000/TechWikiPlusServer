@@ -1,12 +1,12 @@
 package me.helloc.techwikiplus.service.user.application.service
 
 import jakarta.transaction.Transactional
-import me.helloc.techwikiplus.service.user.application.port.inbound.UserLoginUseCase
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
-import me.helloc.techwikiplus.service.user.domain.service.UserTokenGenerator
+import me.helloc.techwikiplus.service.user.domain.service.UserTokenService
+import me.helloc.techwikiplus.service.user.interfaces.web.port.UserLoginUseCase
 import org.springframework.stereotype.Component
 
 @Transactional
@@ -14,29 +14,26 @@ import org.springframework.stereotype.Component
 class UserLoginFacade(
     private val reader: UserReader,
     private val authenticator: UserAuthenticator,
-    private val userTokenGenerator: UserTokenGenerator,
+    private val userTokenService: UserTokenService,
 ) : UserLoginUseCase {
-    override fun execute(command: UserLoginUseCase.Command): UserLoginUseCase.Result {
-        // Convert string inputs to value objects
-        val email = Email(command.email)
-        val rawPassword = RawPassword(command.password)
-
+    override fun execute(
+        email: Email,
+        password: RawPassword,
+    ): UserLoginUseCase.Result {
         // Retrieve user by email
-        val user = reader.getBy(email)
+        val user = reader.getActiveUserBy(email)
 
         // Authenticate user
-        authenticator.authenticateOrThrows(user, rawPassword)
+        authenticator.authenticate(user, password)
 
         // Generate tokens
-        val tokenPair = userTokenGenerator.generateTokens(user.id)
+        val tokenPair = userTokenService.generateTokens(user.id)
 
         // Return result
         return UserLoginUseCase.Result(
             accessToken = tokenPair.accessToken,
             refreshToken = tokenPair.refreshToken,
             userId = user.id,
-            accessTokenExpiresAt = tokenPair.accessTokenExpiresAt,
-            refreshTokenExpiresAt = tokenPair.refreshTokenExpiresAt,
         )
     }
 }

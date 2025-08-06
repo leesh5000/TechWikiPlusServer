@@ -21,4 +21,8 @@ class UserId(value: String) {
     companion object {
         fun from(value: String): UserId = UserId(value)
     }
+
+    fun isNotBlank(): Boolean {
+        return value.isNotBlank()
+    }
 }
