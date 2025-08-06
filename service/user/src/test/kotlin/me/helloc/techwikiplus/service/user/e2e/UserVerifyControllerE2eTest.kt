@@ -2,8 +2,8 @@ package me.helloc.techwikiplus.service.user.e2e
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
-import me.helloc.techwikiplus.service.config.BaseE2eTest
-import me.helloc.techwikiplus.service.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus

@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.service.user.interfaces.web.security
 
+import me.helloc.techwikiplus.service.user.infrastructure.security.InputSanitizer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -85,15 +86,15 @@ class XssPreventionTest {
     @Test
     @DisplayName("제어 문자가 제거되는지 확인")
     fun `should remove control characters`() {
-        val inputWithControlChars = "Hello\x00World\x1F\x7FTest\x0D\x0A"
+        val inputWithControlChars = "Hello\u0000World\u001F\u007FTest\r\n"
         val sanitized = sanitizer.sanitizeMessage(inputWithControlChars)
 
         assertThat(sanitized).isNotNull()
-        assertThat(sanitized).doesNotContain("\x00")
-        assertThat(sanitized).doesNotContain("\x1F")
-        assertThat(sanitized).doesNotContain("\x7F")
-        assertThat(sanitized).doesNotContain("\x0D")
-        assertThat(sanitized).doesNotContain("\x0A")
+        assertThat(sanitized).doesNotContain("\u0000")
+        assertThat(sanitized).doesNotContain("\u001F")
+        assertThat(sanitized).doesNotContain("\u007F")
+        assertThat(sanitized).doesNotContain("\r")
+        assertThat(sanitized).doesNotContain("\n")
         assertThat(sanitized).isEqualTo("HelloWorldTest")
     }
 

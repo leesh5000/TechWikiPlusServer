@@ -22,8 +22,8 @@ dependencies {
     // Spring Boot Data JPA - 데이터베이스 연동
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
-    // Spring Security - 비밀번호 암호화를 위한 BCrypt
-    implementation("org.springframework.security:spring-security-crypto")
+    // Spring Security - 인증/인가 및 비밀번호 암호화
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
@@ -35,6 +35,8 @@ dependencies {
 
     // Spring Boot 테스트 지원
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // Spring Security 테스트 지원
+    testImplementation("org.springframework.security:spring-security-test")
     // WebTestClient를 위한 WebFlux 의존성
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     // TestContainers 핵심 라이브러리
@@ -65,6 +67,9 @@ dependencies {
 
     // Apache Commons Text - XSS 방어를 위한 HTML 이스케이프
     implementation("org.apache.commons:commons-text:1.11.0")
+    
+    // MockK - Kotlin mocking library for testing
+    testImplementation("io.mockk:mockk:1.13.8")
 }
 
 // OpenAPI 3.0.1 문서 생성 설정
@@ -94,4 +99,9 @@ tasks.register<Copy>("copyOpenApiToResources") {
 // 테스트 실행 후 자동으로 OpenAPI 문서 생성 및 복사
 tasks.named("test") {
     finalizedBy("copyOpenApiToResources")
+}
+
+// Spring Boot 메인 클래스 지정
+springBoot {
+    mainClass.set("me.helloc.techwikiplus.service.user.UserApplicationKt")
 }

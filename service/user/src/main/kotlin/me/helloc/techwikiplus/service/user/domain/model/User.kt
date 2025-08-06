@@ -1,8 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.model
 
-import me.helloc.techwikiplus.service.user.domain.exception.BannedUserException
-import me.helloc.techwikiplus.service.user.domain.exception.DeletedUserException
-import me.helloc.techwikiplus.service.user.domain.exception.PendingUserException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
@@ -94,13 +93,13 @@ class User(
     fun validateUserStatus() {
         when (status) {
             UserStatus.BANNED -> {
-                throw BannedUserException(email)
+                throw DomainException(ErrorCode.USER_BANNED)
             }
             UserStatus.DELETED -> {
-                throw DeletedUserException(email)
+                throw DomainException(ErrorCode.USER_DELETED)
             }
             UserStatus.PENDING -> {
-                throw PendingUserException(email)
+                throw DomainException(ErrorCode.USER_PENDING)
             }
             else -> {}
         }

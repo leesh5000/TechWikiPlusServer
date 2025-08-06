@@ -1,9 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.ExpiredTokenException
-import me.helloc.techwikiplus.service.user.domain.exception.InvalidCredentialsException
-import me.helloc.techwikiplus.service.user.domain.exception.InvalidTokenException
-import me.helloc.techwikiplus.service.user.domain.exception.InvalidTokenTypeException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
@@ -22,11 +20,11 @@ class UserAuthenticator(
     ) {
         user.validateUserStatus()
         if (!crypter.matches(rawPassword, user.encodedPassword)) {
-            throw InvalidCredentialsException()
+            throw DomainException(ErrorCode.INVALID_CREDENTIALS)
         }
     }
 
-    @Throws(ExpiredTokenException::class, InvalidTokenException::class, InvalidTokenTypeException::class)
+    @Throws(DomainException::class)
     fun authenticate(
         user: User,
         refreshToken: String,

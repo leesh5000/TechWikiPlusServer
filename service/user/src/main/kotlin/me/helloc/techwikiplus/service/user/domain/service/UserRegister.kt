@@ -1,14 +1,13 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.PasswordsDoNotMatchException
-import me.helloc.techwikiplus.service.user.domain.exception.UserAlreadyExistsException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.port.ClockHolder
 import me.helloc.techwikiplus.service.user.domain.port.IdGenerator
 import me.helloc.techwikiplus.service.user.domain.port.PasswordEncryptor
@@ -23,7 +22,7 @@ class UserRegister(
     private val repository: UserRepository,
     private val passwordEncryptor: PasswordEncryptor,
 ) {
-    @Throws(UserAlreadyExistsException::class, PasswordsDoNotMatchException::class)
+    @Throws(DomainException::class)
     fun insert(
         email: Email,
         nickname: Nickname,
@@ -31,22 +30,22 @@ class UserRegister(
         passwordConfirm: RawPassword,
     ): User {
         if (password != passwordConfirm) {
-            throw PasswordsDoNotMatchException()
+            throw DomainException(ErrorCode.PASSWORDS_MISMATCH)
         }
 
         if (repository.exists(email)) {
-            throw UserAlreadyExistsException(email)
+            throw DomainException(ErrorCode.USER_ALREADY_EXISTS, arrayOf(email.value))
         }
 
         if (repository.exists(nickname)) {
-            throw UserAlreadyExistsException(nickname)
+            throw DomainException(ErrorCode.USER_ALREADY_EXISTS, arrayOf(nickname.value))
         }
 
         val encodedPassword: EncodedPassword = passwordEncryptor.encode(rawPassword = password)
         val now: Instant = clockHolder.now()
         val user =
             User.create(
-                id = UserId(idGenerator.next()),
+                id = idGenerator.next(),
                 email = email,
                 encodedPassword = encodedPassword,
                 nickname = nickname,

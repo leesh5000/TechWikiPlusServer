@@ -1,21 +1,22 @@
 package me.helloc.techwikiplus.service.user.domain.model.value
 
-import me.helloc.techwikiplus.service.user.domain.exception.EmailValidationException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 
 class Email(value: String) {
     val value: String = value.lowercase()
 
     init {
         if (this.value.isBlank()) {
-            throw EmailValidationException(
-                errorCode = EmailValidationException.BLANK_EMAIL,
-                message = "이메일은 필수 입력 항목입니다",
+            throw DomainException(
+                errorCode = ErrorCode.BLANK_EMAIL,
+                params = arrayOf("email")
             )
         }
         if (!EMAIL_REGEX.matches(this.value)) {
-            throw EmailValidationException(
-                errorCode = EmailValidationException.INVALID_FORMAT,
-                message = "올바른 이메일 형식이 아닙니다",
+            throw DomainException(
+                errorCode = ErrorCode.INVALID_EMAIL_FORMAT,
+                params = arrayOf("email")
             )
         }
     }

@@ -1,37 +1,38 @@
 package me.helloc.techwikiplus.service.user.domain.model.value
 
-import me.helloc.techwikiplus.service.user.domain.exception.NicknameValidationException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 
 class Nickname(val value: String) {
     init {
         if (value.isBlank()) {
-            throw NicknameValidationException(
-                errorCode = NicknameValidationException.BLANK_NICKNAME,
-                message = "닉네임은 필수 입력 항목입니다",
+            throw DomainException(
+                errorCode = ErrorCode.BLANK_NICKNAME,
+                params = arrayOf("nickname")
             )
         }
         if (value.length < MIN_LENGTH) {
-            throw NicknameValidationException(
-                errorCode = NicknameValidationException.TOO_SHORT,
-                message = "닉네임은 최소 ${MIN_LENGTH}자 이상이어야 합니다",
+            throw DomainException(
+                errorCode = ErrorCode.NICKNAME_TOO_SHORT,
+                params = arrayOf<Any>("nickname", MIN_LENGTH)
             )
         }
         if (value.length > MAX_LENGTH) {
-            throw NicknameValidationException(
-                errorCode = NicknameValidationException.TOO_LONG,
-                message = "닉네임은 최대 ${MAX_LENGTH}자 이하여야 합니다",
+            throw DomainException(
+                errorCode = ErrorCode.NICKNAME_TOO_LONG,
+                params = arrayOf<Any>("nickname", MAX_LENGTH)
             )
         }
         if (value.contains(' ')) {
-            throw NicknameValidationException(
-                errorCode = NicknameValidationException.CONTAINS_SPACE,
-                message = "닉네임에는 공백을 포함할 수 없습니다",
+            throw DomainException(
+                errorCode = ErrorCode.NICKNAME_CONTAINS_SPACE,
+                params = arrayOf("nickname")
             )
         }
         if (!value.matches(ALLOWED_PATTERN)) {
-            throw NicknameValidationException(
-                errorCode = NicknameValidationException.CONTAINS_SPECIAL_CHAR,
-                message = "닉네임은 한글, 영문, 숫자, 언더스코어(_), 하이픈(-)만 사용할 수 있습니다",
+            throw DomainException(
+                errorCode = ErrorCode.NICKNAME_CONTAINS_SPECIAL_CHAR,
+                params = arrayOf("nickname")
             )
         }
     }

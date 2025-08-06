@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.service.user.infrastructure.id
 
 import me.helloc.common.snowflake.Snowflake
+import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.port.IdGenerator
 import org.springframework.stereotype.Component
 
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component
 class SnowflakeIdGenerator : IdGenerator {
     private val snowflake = Snowflake()
 
-    override fun next(): String {
-        return snowflake.nextId().toString()
+    override fun next(): UserId {
+        return UserId(snowflake.nextId().toString())
     }
 }

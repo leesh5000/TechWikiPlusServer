@@ -1,11 +1,24 @@
 package me.helloc.techwikiplus.service.user.domain.model.value
 
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+
 class UserId(value: String) {
     val value: String = value.trim()
 
     init {
-        require(this.value.isNotBlank()) { "User ID cannot be blank" }
-        require(this.value.length <= 64) { "User ID cannot exceed 64 characters" }
+        if (this.value.isBlank()) {
+            throw DomainException(
+                errorCode = ErrorCode.BLANK_USER_ID,
+                params = arrayOf("userId")
+            )
+        }
+        if (this.value.length > 64) {
+            throw DomainException(
+                errorCode = ErrorCode.USER_ID_TOO_LONG,
+                params = arrayOf<Any>("userId", 64)
+            )
+        }
     }
 
     override fun equals(other: Any?): Boolean {

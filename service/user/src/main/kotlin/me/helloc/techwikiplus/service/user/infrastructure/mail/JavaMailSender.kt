@@ -1,12 +1,12 @@
 package me.helloc.techwikiplus.service.user.infrastructure.mail
 
-import me.helloc.techwikiplus.service.user.domain.exception.MailSendException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.port.MailSender
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.mail.MailProperties
-import org.springframework.mail.MailException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Component
@@ -33,11 +33,12 @@ class JavaMailSender(
                 sendPlainTextEmail(to, content.subject, content.body)
             }
             logger.info("Email sent successfully to: ${to.value}")
-        } catch (e: MailException) {
+        } catch (e: Exception) {
             logger.error("Failed to send email to: ${to.value}", e)
-            throw MailSendException(
-                email = to,
-                cause = e,
+            throw DomainException(
+                errorCode = ErrorCode.NOTIFICATION_FAILED,
+                params = arrayOf(to.value),
+                cause = e
             )
         }
     }

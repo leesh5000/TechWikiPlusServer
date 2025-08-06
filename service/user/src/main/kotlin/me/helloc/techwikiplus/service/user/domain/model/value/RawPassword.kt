@@ -1,43 +1,44 @@
 package me.helloc.techwikiplus.service.user.domain.model.value
 
-import me.helloc.techwikiplus.service.user.domain.exception.PasswordValidationException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 
 class RawPassword(val value: String) {
     init {
         if (value.isBlank()) {
-            throw PasswordValidationException(
-                errorCode = PasswordValidationException.BLANK_PASSWORD,
-                message = "비밀번호는 필수 입력 항목입니다",
+            throw DomainException(
+                errorCode = ErrorCode.BLANK_PASSWORD,
+                params = arrayOf("password")
             )
         }
         if (value.length < MIN_LENGTH) {
-            throw PasswordValidationException(
-                errorCode = PasswordValidationException.TOO_SHORT,
-                message = "비밀번호는 최소 ${MIN_LENGTH}자 이상이어야 합니다",
+            throw DomainException(
+                errorCode = ErrorCode.PASSWORD_TOO_SHORT,
+                params = arrayOf<Any>("password", MIN_LENGTH)
             )
         }
         if (value.length > MAX_LENGTH) {
-            throw PasswordValidationException(
-                errorCode = PasswordValidationException.TOO_LONG,
-                message = "비밀번호는 최대 ${MAX_LENGTH}자 이하여야 합니다",
+            throw DomainException(
+                errorCode = ErrorCode.PASSWORD_TOO_LONG,
+                params = arrayOf<Any>("password", MAX_LENGTH)
             )
         }
         if (!value.any { it.isUpperCase() }) {
-            throw PasswordValidationException(
-                errorCode = PasswordValidationException.NO_UPPERCASE,
-                message = "비밀번호는 대문자를 포함해야 합니다",
+            throw DomainException(
+                errorCode = ErrorCode.PASSWORD_NO_UPPERCASE,
+                params = arrayOf("password")
             )
         }
         if (!value.any { it.isLowerCase() }) {
-            throw PasswordValidationException(
-                errorCode = PasswordValidationException.NO_LOWERCASE,
-                message = "비밀번호는 소문자를 포함해야 합니다",
+            throw DomainException(
+                errorCode = ErrorCode.PASSWORD_NO_LOWERCASE,
+                params = arrayOf("password")
             )
         }
         if (!SPECIAL_CHAR_REGEX.containsMatchIn(value)) {
-            throw PasswordValidationException(
-                errorCode = PasswordValidationException.NO_SPECIAL_CHAR,
-                message = "비밀번호는 특수문자를 포함해야 합니다",
+            throw DomainException(
+                errorCode = ErrorCode.PASSWORD_NO_SPECIAL_CHAR,
+                params = arrayOf("password")
             )
         }
     }

@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.ActiveUserNotFoundException
-import me.helloc.techwikiplus.service.user.domain.exception.PendingUserNotFoundException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
@@ -15,18 +15,18 @@ class UserReader(
 ) {
     fun getActiveUserBy(userId: UserId): User {
         return repository.findBy(userId)
-            ?: throw ActiveUserNotFoundException(userId)
+            ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(userId.value))
     }
 
-    @Throws(PendingUserNotFoundException::class)
+    @Throws(DomainException::class)
     fun getPendingUserBy(email: Email): User {
         return repository.findBy(email, UserStatus.PENDING)
-            ?: throw PendingUserNotFoundException(email)
+            ?: throw DomainException(ErrorCode.PENDING_USER_NOT_FOUND, arrayOf(email.value))
     }
 
-    @Throws(ActiveUserNotFoundException::class)
+    @Throws(DomainException::class)
     fun getActiveUserBy(email: Email): User {
         return repository.findBy(email, UserStatus.ACTIVE)
-            ?: throw ActiveUserNotFoundException(email)
+            ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(email.value))
     }
 }

@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.RegistrationCodeMismatchException
-import me.helloc.techwikiplus.service.user.domain.exception.RegistrationEmailNotFoundException
+import me.helloc.techwikiplus.service.user.domain.exception.DomainException
+import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
 import me.helloc.techwikiplus.service.user.domain.model.RegistrationMailTemplate
 import me.helloc.techwikiplus.service.user.domain.model.User
@@ -30,7 +30,7 @@ class EmailVerifyService(
         store(registrationCode, user.email)
     }
 
-    @Throws(RegistrationEmailNotFoundException::class)
+    @Throws(DomainException::class)
     fun verify(
         email: Email,
         registrationCode: RegistrationCode,
@@ -38,9 +38,9 @@ class EmailVerifyService(
         val registrationCodeKey = getRegistrationCodeKey(email)
         val code: String =
             cacheStore.get(registrationCodeKey)
-                ?: throw RegistrationEmailNotFoundException(email)
+                ?: throw DomainException(ErrorCode.REGISTRATION_NOT_FOUND, arrayOf(email.value))
         if (code != registrationCode.value) {
-            throw RegistrationCodeMismatchException(email)
+            throw DomainException(ErrorCode.CODE_MISMATCH)
         }
         cacheStore.delete(registrationCodeKey)
     }

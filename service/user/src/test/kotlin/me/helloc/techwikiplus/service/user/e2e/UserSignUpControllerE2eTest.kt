@@ -2,8 +2,8 @@ package me.helloc.techwikiplus.service.user.e2e
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
-import me.helloc.techwikiplus.service.config.BaseE2eTest
-import me.helloc.techwikiplus.service.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
 import me.helloc.techwikiplus.service.user.interfaces.web.UserSignUpController
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType

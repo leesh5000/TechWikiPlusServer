@@ -8,7 +8,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
-import java.sql.Connection
 import java.sql.PreparedStatement
 import java.time.Instant
 import java.util.UUID
@@ -184,14 +183,14 @@ object DataInitializerMain {
                     batchCount++
 
                     if (batchCount >= BATCH_SIZE) {
-                        executeBatch(pstmt, conn)
+                        executeBatch(pstmt)
                         batchCount = 0
                     }
                 }
 
                 // 남은 배치 실행
                 if (batchCount > 0) {
-                    executeBatch(pstmt, conn)
+                    executeBatch(pstmt)
                 }
 
                 conn.commit()
@@ -225,7 +224,6 @@ object DataInitializerMain {
 
     private fun executeBatch(
         pstmt: PreparedStatement,
-        conn: Connection,
     ) {
         val results = pstmt.executeBatch()
         val insertedCount = results.sum()
