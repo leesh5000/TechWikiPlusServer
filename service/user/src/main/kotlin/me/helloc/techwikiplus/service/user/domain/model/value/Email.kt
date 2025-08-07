@@ -10,13 +10,13 @@ class Email(value: String) {
         if (this.value.isBlank()) {
             throw DomainException(
                 errorCode = ErrorCode.BLANK_EMAIL,
-                params = arrayOf("email")
+                params = arrayOf("email"),
             )
         }
         if (!EMAIL_REGEX.matches(this.value)) {
             throw DomainException(
                 errorCode = ErrorCode.INVALID_EMAIL_FORMAT,
-                params = arrayOf("email")
+                params = arrayOf("email"),
             )
         }
     }

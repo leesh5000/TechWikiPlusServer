@@ -11,26 +11,26 @@ import org.springframework.stereotype.Component
 
 @Component
 class JwtAuthenticationEntryPoint(
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) : AuthenticationEntryPoint {
-    
     companion object {
         private val logger = LoggerFactory.getLogger(JwtAuthenticationEntryPoint::class.java)
         private const val DEFAULT_ERROR_MESSAGE = "인증이 필요합니다"
     }
-    
+
     override fun commence(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        authException: AuthenticationException
+        authException: AuthenticationException,
     ) {
         logger.debug("Authentication failed: ${authException.message}")
-        
-        val errorResponse = ErrorResponse.of(
-            code = "UNAUTHORIZED",
-            message = DEFAULT_ERROR_MESSAGE
-        )
-        
+
+        val errorResponse =
+            ErrorResponse.of(
+                code = "UNAUTHORIZED",
+                message = DEFAULT_ERROR_MESSAGE,
+            )
+
         response.status = HttpServletResponse.SC_UNAUTHORIZED
         response.contentType = "application/json;charset=UTF-8"
         response.writer.write(objectMapper.writeValueAsString(errorResponse))

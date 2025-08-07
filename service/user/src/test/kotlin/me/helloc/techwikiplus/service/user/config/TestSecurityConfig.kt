@@ -10,7 +10,6 @@ import org.springframework.security.web.SecurityFilterChain
 @TestConfiguration
 @EnableWebSecurity
 class TestSecurityConfig {
-    
     @Bean
     @Primary
     fun testSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -19,7 +18,7 @@ class TestSecurityConfig {
             .authorizeHttpRequests { auth ->
                 auth.anyRequest().permitAll()
             }
-        
+
         return http.build()
     }
 }

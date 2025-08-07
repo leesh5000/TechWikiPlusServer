@@ -222,9 +222,7 @@ object DataInitializerMain {
         }
     }
 
-    private fun executeBatch(
-        pstmt: PreparedStatement,
-    ) {
+    private fun executeBatch(pstmt: PreparedStatement) {
         val results = pstmt.executeBatch()
         val insertedCount = results.sum()
 

@@ -12,4 +12,6 @@ interface TokenManager {
         userId: UserId,
         refreshToken: String,
     ): UserId
+
+    fun validateAccessToken(token: String): UserId
 }

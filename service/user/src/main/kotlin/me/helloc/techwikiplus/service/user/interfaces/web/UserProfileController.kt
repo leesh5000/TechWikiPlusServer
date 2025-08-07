@@ -16,30 +16,34 @@ import java.time.Instant
 @RequestMapping("/api/v1/users")
 class UserProfileController(
     private val userRepository: UserRepository,
-    private val securityContextService: SecurityContextService
+    private val securityContextService: SecurityContextService,
 ) {
-    
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     fun getMyProfile(): ResponseEntity<ProfileResponse> {
-        val userId = securityContextService.getCurrentUserId()
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-        
-        val user = userRepository.findBy(userId)
-            ?: return ResponseEntity.notFound().build()
-        
+        val userId =
+            securityContextService.getCurrentUserId()
+                ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        val user =
+            userRepository.findBy(userId)
+                ?: return ResponseEntity.notFound().build()
+
         return ResponseEntity.ok(ProfileResponse.from(user))
     }
-    
+
     @GetMapping("/profile/{userId}")
     @PreAuthorize("isAuthenticated() and (#userId == authentication.principal.value or hasRole('ADMIN'))")
-    fun getUserProfile(@PathVariable userId: String): ResponseEntity<ProfileResponse> {
-        val user = userRepository.findBy(UserId(userId))
-            ?: return ResponseEntity.notFound().build()
-        
+    fun getUserProfile(
+        @PathVariable userId: String,
+    ): ResponseEntity<ProfileResponse> {
+        val user =
+            userRepository.findBy(UserId(userId))
+                ?: return ResponseEntity.notFound().build()
+
         return ResponseEntity.ok(ProfileResponse.from(user))
     }
-    
+
     data class ProfileResponse(
         val userId: String,
         val email: String,
@@ -47,7 +51,7 @@ class UserProfileController(
         val role: String,
         val status: String,
         val createdAt: Instant,
-        val modifiedAt: Instant
+        val modifiedAt: Instant,
     ) {
         companion object {
             fun from(user: me.helloc.techwikiplus.service.user.domain.model.User): ProfileResponse {
@@ -58,7 +62,7 @@ class UserProfileController(
                     role = user.role.name,
                     status = user.status.name,
                     createdAt = user.createdAt,
-                    modifiedAt = user.modifiedAt
+                    modifiedAt = user.modifiedAt,
                 )
             }
         }

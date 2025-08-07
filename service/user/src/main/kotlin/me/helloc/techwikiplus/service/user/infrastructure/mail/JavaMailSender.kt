@@ -38,7 +38,7 @@ class JavaMailSender(
             throw DomainException(
                 errorCode = ErrorCode.NOTIFICATION_FAILED,
                 params = arrayOf(to.value),
-                cause = e
+                cause = e,
             )
         }
     }

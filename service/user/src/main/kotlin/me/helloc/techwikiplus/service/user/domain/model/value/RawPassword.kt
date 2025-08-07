@@ -8,37 +8,37 @@ class RawPassword(val value: String) {
         if (value.isBlank()) {
             throw DomainException(
                 errorCode = ErrorCode.BLANK_PASSWORD,
-                params = arrayOf("password")
+                params = arrayOf("password"),
             )
         }
         if (value.length < MIN_LENGTH) {
             throw DomainException(
                 errorCode = ErrorCode.PASSWORD_TOO_SHORT,
-                params = arrayOf<Any>("password", MIN_LENGTH)
+                params = arrayOf<Any>("password", MIN_LENGTH),
             )
         }
         if (value.length > MAX_LENGTH) {
             throw DomainException(
                 errorCode = ErrorCode.PASSWORD_TOO_LONG,
-                params = arrayOf<Any>("password", MAX_LENGTH)
+                params = arrayOf<Any>("password", MAX_LENGTH),
             )
         }
         if (!value.any { it.isUpperCase() }) {
             throw DomainException(
                 errorCode = ErrorCode.PASSWORD_NO_UPPERCASE,
-                params = arrayOf("password")
+                params = arrayOf("password"),
             )
         }
         if (!value.any { it.isLowerCase() }) {
             throw DomainException(
                 errorCode = ErrorCode.PASSWORD_NO_LOWERCASE,
-                params = arrayOf("password")
+                params = arrayOf("password"),
             )
         }
         if (!SPECIAL_CHAR_REGEX.containsMatchIn(value)) {
             throw DomainException(
                 errorCode = ErrorCode.PASSWORD_NO_SPECIAL_CHAR,
-                params = arrayOf("password")
+                params = arrayOf("password"),
             )
         }
     }

@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.jwt.jwt
+package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
 
 import me.helloc.techwikiplus.service.user.domain.port.TokenManager
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(JwtProperties::class)
 class JwtConfig {
     @Bean
-    fun tokenGenerator(jwtProperties: JwtProperties): TokenManager {
+    fun jwtTokenManager(jwtProperties: JwtProperties): TokenManager {
         return JwtTokenManager(
             secret = jwtProperties.secret,
             accessTokenValidityInSeconds = jwtProperties.accessTokenValidityInSeconds,

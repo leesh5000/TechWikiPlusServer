@@ -67,7 +67,7 @@ dependencies {
 
     // Apache Commons Text - XSS 방어를 위한 HTML 이스케이프
     implementation("org.apache.commons:commons-text:1.11.0")
-    
+
     // MockK - Kotlin mocking library for testing
     testImplementation("io.mockk:mockk:1.13.8")
 }

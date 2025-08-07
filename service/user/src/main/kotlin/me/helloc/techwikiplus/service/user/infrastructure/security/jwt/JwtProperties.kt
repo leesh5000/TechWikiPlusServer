@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.jwt.jwt
+package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

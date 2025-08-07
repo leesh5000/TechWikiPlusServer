@@ -1,8 +1,8 @@
 package me.helloc.techwikiplus.service.user.infrastructure.security.config
 
+import me.helloc.techwikiplus.service.user.domain.port.TokenManager
 import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtAuthenticationEntryPoint
 import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtAuthenticationFilter
-import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.jwt.JwtTokenManager
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -19,10 +19,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfiguration(
-    private val jwtTokenManager: JwtTokenManager,
-    private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint
+    private val jwtTokenManager: TokenManager,
+    private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
 ) {
-    
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -43,23 +42,23 @@ class SecurityConfiguration(
                         "/api/v1/users/login",
                         "/api/v1/users/verify",
                         "/api/v1/users/verify/resend",
-                        "/api/v1/users/refresh"
+                        "/api/v1/users/refresh",
                     ).permitAll()
                     // Actuator 엔드포인트
                     .requestMatchers(
                         "/actuator/health",
-                        "/actuator/health/**"
+                        "/actuator/health/**",
                     ).permitAll()
                     // Swagger/OpenAPI 문서
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/api-docs/**"
+                        "/api-docs/**",
                     ).permitAll()
                     // 정적 리소스
                     .requestMatchers(
                         "/static/**",
-                        "/resources/**"
+                        "/resources/**",
                     ).permitAll()
                     // 나머지 모든 요청은 인증 필요
                     .anyRequest().authenticated()
@@ -69,27 +68,28 @@ class SecurityConfiguration(
             }
             .addFilterBefore(
                 jwtAuthenticationFilter(),
-                UsernamePasswordAuthenticationFilter::class.java
+                UsernamePasswordAuthenticationFilter::class.java,
             )
-        
+
         return http.build()
     }
-    
+
     @Bean
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
         return JwtAuthenticationFilter(jwtTokenManager)
     }
-    
+
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration().apply {
-            allowedOriginPatterns = listOf("*")
-            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            allowedHeaders = listOf("*")
-            allowCredentials = true
-            maxAge = 3600L
-        }
-        
+        val configuration =
+            CorsConfiguration().apply {
+                allowedOriginPatterns = listOf("*")
+                allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                allowedHeaders = listOf("*")
+                allowCredentials = true
+                maxAge = 3600L
+            }
+
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source

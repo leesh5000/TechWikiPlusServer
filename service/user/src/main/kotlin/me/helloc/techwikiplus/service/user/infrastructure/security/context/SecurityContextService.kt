@@ -6,26 +6,25 @@ import org.springframework.stereotype.Service
 
 @Service
 class SecurityContextService {
-    
     fun getCurrentUserId(): UserId? {
         val authentication = SecurityContextHolder.getContext().authentication
-        
+
         return when (val principal = authentication?.principal) {
             is UserId -> principal
             is String -> UserId(principal)
             else -> null
         }
     }
-    
+
     fun isAuthenticated(): Boolean {
         val authentication = SecurityContextHolder.getContext().authentication
         return authentication != null && authentication.isAuthenticated
     }
-    
+
     fun hasRole(role: String): Boolean {
         val authentication = SecurityContextHolder.getContext().authentication
-        return authentication?.authorities?.any { 
-            it.authority == "ROLE_$role" 
+        return authentication?.authorities?.any {
+            it.authority == "ROLE_$role"
         } ?: false
     }
 }

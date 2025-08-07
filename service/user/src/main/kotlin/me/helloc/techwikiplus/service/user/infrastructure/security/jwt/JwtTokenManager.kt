@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.jwt.jwt
+package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
 
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
@@ -85,8 +85,8 @@ class JwtTokenManager(
             throw DomainException(ErrorCode.TOKEN_EXPIRED, arrayOf("Refresh token"))
         }
     }
-    
-    fun validateAccessToken(token: String): UserId {
+
+    override fun validateAccessToken(token: String): UserId {
         try {
             val claims =
                 Jwts.parserBuilder()

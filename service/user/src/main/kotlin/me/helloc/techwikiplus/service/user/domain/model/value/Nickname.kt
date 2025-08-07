@@ -8,31 +8,31 @@ class Nickname(val value: String) {
         if (value.isBlank()) {
             throw DomainException(
                 errorCode = ErrorCode.BLANK_NICKNAME,
-                params = arrayOf("nickname")
+                params = arrayOf("nickname"),
             )
         }
         if (value.length < MIN_LENGTH) {
             throw DomainException(
                 errorCode = ErrorCode.NICKNAME_TOO_SHORT,
-                params = arrayOf<Any>("nickname", MIN_LENGTH)
+                params = arrayOf<Any>("nickname", MIN_LENGTH),
             )
         }
         if (value.length > MAX_LENGTH) {
             throw DomainException(
                 errorCode = ErrorCode.NICKNAME_TOO_LONG,
-                params = arrayOf<Any>("nickname", MAX_LENGTH)
+                params = arrayOf<Any>("nickname", MAX_LENGTH),
             )
         }
         if (value.contains(' ')) {
             throw DomainException(
                 errorCode = ErrorCode.NICKNAME_CONTAINS_SPACE,
-                params = arrayOf("nickname")
+                params = arrayOf("nickname"),
             )
         }
         if (!value.matches(ALLOWED_PATTERN)) {
             throw DomainException(
                 errorCode = ErrorCode.NICKNAME_CONTAINS_SPECIAL_CHAR,
-                params = arrayOf("nickname")
+                params = arrayOf("nickname"),
             )
         }
     }

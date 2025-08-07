@@ -107,6 +107,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_EMAIL_FORMAT"))
             .andDo(
                 documentWithResource(
                     "user-signup-invalid-email",
@@ -138,6 +139,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_MISMATCH"))
             .andDo(
                 documentWithResource(
                     "user-signup-password-mismatch",
@@ -169,6 +171,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_TOO_SHORT"))
             .andDo(
                 documentWithResource(
                     "user-signup-short-nickname",
@@ -182,14 +185,15 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     }
 
     @Test
-    fun `POST signup - 비밀번호가 약한 경우 400 Bad Request를 반환해야 한다`() {
+    fun `POST signup - 비밀번호가 너무 짧은 경우 400 Bad Request를 반환해야 한다`() {
         // Given
         val request =
             UserSignUpController.Request(
                 email = "test@example.com",
                 nickname = "테스터",
-                password = "weak",
-                confirmPassword = "weak",
+                // 6자 - 최소 8자 필요
+                password = "Test1!",
+                confirmPassword = "Test1!",
             )
 
         // When & Then
@@ -200,13 +204,146 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_TOO_SHORT"))
             .andDo(
                 documentWithResource(
-                    "user-signup-weak-password",
+                    "user-signup-short-password",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
-                        .summary("사용자 회원가입 - 약한 비밀번호")
-                        .description("비밀번호가 보안 요구사항(8-20자, 대소문자, 특수문자 포함)을 충족하지 않는 경우 400 Bad Request를 반환합니다.")
+                        .summary("사용자 회원가입 - 짧은 비밀번호")
+                        .description("비밀번호가 8자 미만인 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 비밀번호에 대문자가 없는 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                // 대문자 없음
+                password = "test1234!",
+                confirmPassword = "test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_NO_UPPERCASE"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-password-no-uppercase",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 대문자 없는 비밀번호")
+                        .description("비밀번호에 대문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 비밀번호에 소문자가 없는 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                // 소문자 없음
+                password = "TEST1234!",
+                confirmPassword = "TEST1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_NO_LOWERCASE"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-password-no-lowercase",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 소문자 없는 비밀번호")
+                        .description("비밀번호에 소문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 비밀번호에 특수문자가 없는 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                // 특수문자 없음
+                password = "Test12345",
+                confirmPassword = "Test12345",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_NO_SPECIAL_CHAR"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-password-no-special",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 특수문자 없는 비밀번호")
+                        .description("비밀번호에 특수문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 비밀번호가 너무 긴 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                // 34자 - 최대 30자
+                password = "Test1234!" + "a".repeat(25),
+                confirmPassword = "Test1234!" + "a".repeat(25),
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_TOO_LONG"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-long-password",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 긴 비밀번호")
+                        .description("비밀번호가 30자를 초과하는 경우 400 Bad Request를 반환합니다.")
                         .build(),
                 ),
             )
@@ -241,6 +378,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isConflict)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("DUPLICATE_EMAIL"))
             .andDo(
                 documentWithResource(
                     "user-signup-duplicate-email",
@@ -290,6 +428,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(secondRequest)),
         )
             .andExpect(MockMvcResultMatchers.status().isConflict)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("DUPLICATE_NICKNAME"))
             .andDo(
                 documentWithResource(
                     "user-signup-duplicate-nickname",
@@ -322,6 +461,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(requestWithoutEmail),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("MISSING_REQUIRED_FIELD"))
             .andDo(
                 documentWithResource(
                     "user-signup-missing-field",
@@ -355,6 +495,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_CONTAINS_SPECIAL_CHAR"))
             .andDo(
                 documentWithResource(
                     "user-signup-invalid-nickname",
@@ -365,5 +506,379 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                         .build(),
                 ),
             )
+    }
+
+    @Test
+    fun `POST signup - 닉네임이 너무 긴 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                // 21자 - 최대 20자
+                nickname = "가".repeat(21),
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_TOO_LONG"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-long-nickname",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 긴 닉네임")
+                        .description("닉네임이 20자를 초과하는 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 닉네임에 공백이 포함된 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터 공백",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_CONTAINS_SPACE"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-nickname-with-space",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 공백 포함 닉네임")
+                        .description("닉네임에 공백이 포함된 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 빈 닉네임인 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                // 공백만
+                nickname = "   ",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("BLANK_NICKNAME"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-blank-nickname",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 빈 닉네임")
+                        .description("닉네임이 공백만으로 이루어진 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 빈 이메일인 경우 400 Bad Request를 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                // 공백만
+                email = "   ",
+                nickname = "테스터",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("BLANK_EMAIL"))
+            .andDo(
+                documentWithResource(
+                    "user-signup-blank-email",
+                    ResourceSnippetParameters.builder()
+                        .tag("User Management")
+                        .summary("사용자 회원가입 - 빈 이메일")
+                        .description("이메일이 공백만으로 이루어진 경우 400 Bad Request를 반환합니다.")
+                        .build(),
+                ),
+            )
+    }
+
+    @Test
+    fun `POST signup - 닉네임이 정확히 2자인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                // 정확히 2자 (최소값)
+                nickname = "ab",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 닉네임이 정확히 20자인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                // 정확히 20자 (최대값)
+                nickname = "a".repeat(20),
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 비밀번호가 정확히 8자인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                // 정확히 8자 (최소값)
+                password = "Test123!",
+                confirmPassword = "Test123!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 비밀번호가 정확히 30자인 경우 성공해야 한다`() {
+        // Given
+        val longPassword = "Test1!" + "a".repeat(24) // 정확히 30자 (최대값)
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                password = longPassword,
+                confirmPassword = longPassword,
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 한글 닉네임인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "한글닉네임",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 영문 닉네임인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "EnglishNick",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 숫자가 포함된 닉네임인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "user123",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 언더스코어가 포함된 닉네임인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "user_name",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - 하이픈이 포함된 닉네임인 경우 성공해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "user-name",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+    }
+
+    @Test
+    fun `POST signup - Content-Type이 없는 경우 415 Unsupported Media Type을 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isUnsupportedMediaType)
+    }
+
+    @Test
+    fun `POST signup - 잘못된 Content-Type인 경우 415 Unsupported Media Type을 반환해야 한다`() {
+        // Given
+        val request =
+            UserSignUpController.Request(
+                email = "test@example.com",
+                nickname = "테스터",
+                password = "Test1234!",
+                confirmPassword = "Test1234!",
+            )
+
+        // When & Then
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/users/signup")
+                .contentType(MediaType.TEXT_PLAIN)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(MockMvcResultMatchers.status().isUnsupportedMediaType)
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 class UserSignUpController(
     private val useCase: UserSignUpUseCase,
 ) {
-    @PostMapping("/api/v1/users/signup")
+    @PostMapping("/api/v1/users/signup", consumes = ["application/json"])
     fun signup(
         @RequestBody request: Request,
     ): ResponseEntity<Void> {

@@ -10,13 +10,13 @@ class UserId(value: String) {
         if (this.value.isBlank()) {
             throw DomainException(
                 errorCode = ErrorCode.BLANK_USER_ID,
-                params = arrayOf("userId")
+                params = arrayOf("userId"),
             )
         }
         if (this.value.length > 64) {
             throw DomainException(
                 errorCode = ErrorCode.USER_ID_TOO_LONG,
-                params = arrayOf<Any>("userId", 64)
+                params = arrayOf<Any>("userId", 64),
             )
         }
     }

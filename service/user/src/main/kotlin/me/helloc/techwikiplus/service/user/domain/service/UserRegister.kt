@@ -30,15 +30,15 @@ class UserRegister(
         passwordConfirm: RawPassword,
     ): User {
         if (password != passwordConfirm) {
-            throw DomainException(ErrorCode.PASSWORDS_MISMATCH)
+            throw DomainException(ErrorCode.PASSWORD_MISMATCH)
         }
 
         if (repository.exists(email)) {
-            throw DomainException(ErrorCode.USER_ALREADY_EXISTS, arrayOf(email.value))
+            throw DomainException(ErrorCode.DUPLICATE_EMAIL, arrayOf(email.value))
         }
 
         if (repository.exists(nickname)) {
-            throw DomainException(ErrorCode.USER_ALREADY_EXISTS, arrayOf(nickname.value))
+            throw DomainException(ErrorCode.DUPLICATE_NICKNAME, arrayOf(nickname.value))
         }
 
         val encodedPassword: EncodedPassword = passwordEncryptor.encode(rawPassword = password)
