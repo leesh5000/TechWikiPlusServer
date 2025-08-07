@@ -35,8 +35,10 @@ class UserLoginController(
         val accessToken: String,
         val refreshToken: String,
         val userId: String,
-        val accessTokenExpiresAt: Instant,
-        val refreshTokenExpiresAt: Instant,
+        // ISO-8601 표준
+        val accessTokenExpiresAt: String = Instant.now().toString(),
+        // ISO-8601 표준
+        val refreshTokenExpiresAt: String = Instant.now().toString(),
     ) {
         companion object {
             fun from(result: UserLoginUseCase.Result): Response {
@@ -44,8 +46,8 @@ class UserLoginController(
                     accessToken = result.accessToken.token,
                     refreshToken = result.refreshToken.token,
                     userId = result.userId.value,
-                    accessTokenExpiresAt = Instant.ofEpochMilli(result.accessToken.expiresAt),
-                    refreshTokenExpiresAt = Instant.ofEpochMilli(result.refreshToken.expiresAt),
+                    accessTokenExpiresAt = Instant.ofEpochMilli(result.accessToken.expiresAt).toString(),
+                    refreshTokenExpiresAt = Instant.ofEpochMilli(result.refreshToken.expiresAt).toString(),
                 )
             }
         }

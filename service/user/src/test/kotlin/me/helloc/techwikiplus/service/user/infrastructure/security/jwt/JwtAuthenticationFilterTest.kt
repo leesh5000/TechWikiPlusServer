@@ -23,8 +23,8 @@ class JwtAuthenticationFilterTest : DescribeSpec({
     beforeEach {
         jwtTokenManager = mockk()
         filter = JwtAuthenticationFilter(jwtTokenManager)
-        request = mockk()
-        response = mockk()
+        request = mockk(relaxed = true)
+        response = mockk(relaxed = true)
         filterChain = mockk(relaxed = true)
         SecurityContextHolder.clearContext()
     }

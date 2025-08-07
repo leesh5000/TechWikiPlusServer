@@ -24,7 +24,7 @@ enum class ErrorCode {
 
     // Verification
     INVALID_VERIFICATION_CODE,
-    REGISTRATION_NOT_FOUND,
+    REGISTRATION_EXPIRED,
     CODE_MISMATCH,
 
     // Notification

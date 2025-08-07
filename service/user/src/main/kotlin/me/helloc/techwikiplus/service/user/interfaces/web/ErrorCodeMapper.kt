@@ -38,7 +38,7 @@ class ErrorCodeMapper {
             ErrorCode.CODE_MISMATCH,
             -> HttpStatus.BAD_REQUEST
 
-            ErrorCode.REGISTRATION_NOT_FOUND -> HttpStatus.NOT_FOUND
+            ErrorCode.REGISTRATION_EXPIRED -> HttpStatus.NOT_FOUND
 
             // Notification
             ErrorCode.NOTIFICATION_FAILED -> HttpStatus.SERVICE_UNAVAILABLE
@@ -131,12 +131,8 @@ class ErrorCodeMapper {
                     } else {
                         "유효하지 않은 인증 코드입니다"
                     }
-                ErrorCode.REGISTRATION_NOT_FOUND ->
-                    if (params.isNotEmpty()) {
-                        "회원가입 정보를 찾을 수 없습니다: ${params[0]}"
-                    } else {
-                        "회원가입 정보를 찾을 수 없습니다"
-                    }
+                ErrorCode.REGISTRATION_EXPIRED ->
+                    "회원 가입 요청이 만료되었습니다. 인증 코드 다시 발송 후 재인증 해주세요."
                 ErrorCode.CODE_MISMATCH -> "인증 코드가 일치하지 않습니다"
                 ErrorCode.NOTIFICATION_FAILED -> "알림 전송에 실패했습니다"
                 ErrorCode.SIGNUP_FAILED -> "회원가입 처리 중 오류가 발생했습니다"

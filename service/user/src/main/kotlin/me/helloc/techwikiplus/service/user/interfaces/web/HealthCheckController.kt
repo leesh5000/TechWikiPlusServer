@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class HealthCheckController(
-    @Value("\${spring.application.version}")
+    @param:Value("\${spring.application.version}")
     private val version: String,
-    @Value("\${spring.application.name}")
+    @param:Value("\${spring.application.name}")
     private val serviceName: String,
 ) {
     @GetMapping("/health")

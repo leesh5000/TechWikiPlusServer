@@ -81,7 +81,7 @@ class UserDomainExceptionTest : DescribeSpec({
 
             it("Verification 에러 코드를 포함한다") {
                 ErrorCode.entries shouldContain ErrorCode.INVALID_VERIFICATION_CODE
-                ErrorCode.entries shouldContain ErrorCode.REGISTRATION_NOT_FOUND
+                ErrorCode.entries shouldContain ErrorCode.REGISTRATION_EXPIRED
                 ErrorCode.entries shouldContain ErrorCode.CODE_MISMATCH
             }
 

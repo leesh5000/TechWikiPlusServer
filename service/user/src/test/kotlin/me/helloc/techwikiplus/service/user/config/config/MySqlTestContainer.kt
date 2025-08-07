@@ -24,6 +24,18 @@ object MySqlTestContainer {
             .withLabel("testcontainers.reuse.enable", "true")
             .apply {
                 start()
+                // JVM 종료 시 컨테이너 정리를 위한 shutdown hook 추가
+                Runtime.getRuntime().addShutdownHook(
+                    Thread {
+                        try {
+                            if (isRunning) {
+                                stop()
+                            }
+                        } catch (e: Exception) {
+                            // 종료 중 발생한 예외는 무시
+                        }
+                    },
+                )
             }
     }
 

@@ -38,7 +38,7 @@ class EmailVerifyService(
         val registrationCodeKey = getRegistrationCodeKey(email)
         val code: String =
             cacheStore.get(registrationCodeKey)
-                ?: throw DomainException(ErrorCode.REGISTRATION_NOT_FOUND, arrayOf(email.value))
+                ?: throw DomainException(ErrorCode.REGISTRATION_EXPIRED, arrayOf(email.value))
         if (code != registrationCode.value) {
             throw DomainException(ErrorCode.CODE_MISMATCH)
         }

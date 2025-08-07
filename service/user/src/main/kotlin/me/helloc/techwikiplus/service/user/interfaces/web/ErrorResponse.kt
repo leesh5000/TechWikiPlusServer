@@ -5,7 +5,8 @@ import java.time.Instant
 data class ErrorResponse(
     val code: String,
     val message: String,
-    val timestamp: Instant = Instant.now(),
+    // ISO-8601 표준
+    val timestamp: String = Instant.now().toString(),
 ) {
     companion object {
         private const val MAX_MESSAGE_LENGTH = 500
@@ -18,6 +19,7 @@ data class ErrorResponse(
             return ErrorResponse(
                 code = sanitizeCode(code),
                 message = message.take(MAX_MESSAGE_LENGTH),
+                timestamp = Instant.now().toString(),
             )
         }
 
