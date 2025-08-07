@@ -1,14 +1,19 @@
 name: User Service CD
 
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
+  push:
+    branches: [ main ]
     paths:
       - 'common/**'
       - 'service/user/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'gradle/wrapper/**'
+      - 'gradle/libs.versions.toml'
+      - '.github/workflows/user-service-cd.yml'
   workflow_dispatch:
     inputs:
       deploy_message:
@@ -21,15 +26,16 @@ defaults:
   run:
     shell: bash -euo pipefail {0}
 
+env:
+  JAVA_VERSION: '21'
+
 jobs:
-  prepare-deployment:
+  build-and-push:
     runs-on: ubuntu-latest
-    name: Prepare Deployment
-    if: ${{ (github.event.pull_request.merged == true && github.event.action == 'closed') || github.event_name == 'workflow_dispatch' }}
+    name: Build and Push Docker Image
+    environment: AWS
     outputs:
-      image_tag: ${{ steps.version.outputs.image_tag }}
-      deployment_type: ${{ steps.deployment_type.outputs.type }}
-      deployment_info: ${{ steps.deployment_type.outputs.info }}
+      image_tag: ${{ steps.meta.outputs.short_sha }}
 
     steps:
       - name: Checkout repository
@@ -37,222 +43,106 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine deployment type
-        id: deployment_type
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "type=manual" >> $GITHUB_OUTPUT
-            echo "info=Manual deployment: ${{ github.event.inputs.deploy_message }}" >> $GITHUB_OUTPUT
-          else
-            echo "type=automated" >> $GITHUB_OUTPUT
-            echo "info=PR #${{ github.event.pull_request.number }} merged to main" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Generate deployment info
-        id: deploy_info
-        run: |
-          echo "## 🚀 Deployment Information" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Deployment trigger info
-          if [ "${{ steps.deployment_type.outputs.type }}" == "manual" ]; then
-            echo "**Trigger:** Manual deployment" >> $GITHUB_STEP_SUMMARY
-            echo "**Message:** ${{ github.event.inputs.deploy_message }}" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "**Trigger:** Automated deployment after PR merge" >> $GITHUB_STEP_SUMMARY
-            echo "**PR:** [#${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "**Branch:** main" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-      - name: Check PR CI status
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          echo "## 🔍 Checking PR CI Status" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Get the latest check runs for this PR
-          PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          echo "**PR Head SHA:** $PR_HEAD_SHA" >> $GITHUB_STEP_SUMMARY
-          
-          # Check if all CI checks passed
-          CHECKS_PASSED=$(gh api repos/${{ github.repository }}/commits/$PR_HEAD_SHA/check-runs \
-            --jq '.check_runs[] | select(.name == "CI Pipeline" or .name == "Code Style Check (ktlint)" or .name == "Run Tests" or .name == "Compile Check") | .conclusion' \
-            | grep -v "success" || true)
-          
-          if [ -z "$CHECKS_PASSED" ]; then
-            echo "✅ All CI checks passed for this PR" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Some CI checks did not pass. Deployment cancelled." >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-      - name: Load deployment version
-        id: version
-        run: |
-          echo "## 📦 Deployment Version Configuration" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Always use latest tag for deployments (built during PR)
-          echo "image_tag=latest" >> $GITHUB_OUTPUT
-
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "**Deployment Type:** Manual (workflow_dispatch)" >> $GITHUB_STEP_SUMMARY
-            echo "**Version:** \`latest\`" >> $GITHUB_STEP_SUMMARY
-            echo "**Note:** Using latest tag for manual deployment" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "**Deployment Type:** Automated (PR merge)" >> $GITHUB_STEP_SUMMARY
-            echo "**Version:** \`latest\`" >> $GITHUB_STEP_SUMMARY
-            echo "**Note:** Using latest tag built during PR #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Also output to workflow logs
-          echo "::notice title=Deployment Version::Using latest tag for deployment"
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-
-  validate-infrastructure:
-    runs-on: ubuntu-latest
-    name: Validate Infrastructure
-    needs: prepare-deployment
-    environment: AWS
-    outputs:
-      ssh_test_passed: ${{ steps.test_ssh.outputs.passed }}
-      docker_installed: ${{ steps.check_docker.outputs.installed }}
-      docker_version: ${{ steps.check_docker.outputs.version }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
-          fetch-depth: 0
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
 
-      - name: Setup SSH key
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+          cache-cleanup: on-success
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build application
         run: |
-          echo "## 🔐 Setting up SSH connection" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏗️ Building Application" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          ./gradlew :service:user:bootJar --no-daemon --stacktrace
+          echo "✅ Application built successfully" >> $GITHUB_STEP_SUMMARY
 
-          # Create SSH directory
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
 
-          # Write SSH private key
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
 
-          # Add EC2 host to known hosts to avoid SSH prompt
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || {
-            echo "⚠️ Warning: Failed to add host to known_hosts" >> $GITHUB_STEP_SUMMARY
-          }
-
-          echo "✅ SSH key configured" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-      - name: Test SSH connection
-        id: test_ssh
+      - name: Login to Amazon ECR
+        id: login-ecr
         run: |
-          echo "## 🔗 Testing SSH connection" >> $GITHUB_STEP_SUMMARY
+          echo "## 🐳 Docker Build and Push to ECR" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Debug information (sanitized)
-          echo "### Debug Information:" >> $GITHUB_STEP_SUMMARY
-          echo "- SSH key first line: $(echo "${{ secrets.EC2_SSH_KEY }}" | head -n 1)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          # Login to ECR
+          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
-          # Test network connectivity first
-          echo "### Network connectivity test:" >> $GITHUB_STEP_SUMMARY
-          if ping -c 1 -W 5 ${{ secrets.EC2_HOST }} > /dev/null 2>&1; then
-            echo "✅ Host is reachable via ping" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Host is not reachable via ping (this might be normal if ICMP is blocked)" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "✅ **ECR Login:** Successful" >> $GITHUB_STEP_SUMMARY
 
-          # Test SSH port specifically
-          if nc -zv -w 10 ${{ secrets.EC2_HOST }} 22 2>&1 | grep -q "succeeded"; then
-            echo "✅ Port 22 is open" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Port 22 appears to be closed or filtered" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Test SSH connection with verbose output
-          echo "### SSH connection test:" >> $GITHUB_STEP_SUMMARY
-          if ssh -vv -o ConnectTimeout=30 -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            -o LogLevel=ERROR \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "echo 'SSH connection successful' && uname -a" 2>&1; then
-            echo "✅ Successfully connected to EC2 instance" >> $GITHUB_STEP_SUMMARY
-          else
-            SSH_EXIT_CODE=$?
-            echo "❌ Failed to connect to EC2 instance (Exit code: $SSH_EXIT_CODE)" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Troubleshooting checklist:" >> $GITHUB_STEP_SUMMARY
-            echo "1. **EC2 Instance**:" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] Instance is in 'running' state" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] Instance has a public IP address" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] Instance is in a public subnet" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "2. **Security Group**:" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] Inbound rule for SSH (port 22) exists" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] Source is 0.0.0.0/0 or includes GitHub Actions IPs" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "3. **GitHub Secrets**:" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] EC2_HOST contains valid IP/hostname" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] EC2_USERNAME is correct (ubuntu/ec2-user/etc)" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] EC2_SSH_KEY contains full PEM key with headers" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "4. **Network**:" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] No Network ACL blocking port 22" >> $GITHUB_STEP_SUMMARY
-            echo "   - [ ] Route table has internet gateway route" >> $GITHUB_STEP_SUMMARY
-            echo "passed=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-          echo "passed=true" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-
-
-      - name: Check Docker installation on EC2
-        id: check_docker
+      - name: Prepare build metadata
+        id: meta
         run: |
-          echo "## 🐳 Checking Docker installation on EC2" >> $GITHUB_STEP_SUMMARY
+          # Generate short SHA for image tag
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+          # Set image tags
+          echo "image_tag_short=${{ secrets.ECR_REGISTRY }}:$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "image_tag_latest=${{ secrets.ECR_REGISTRY }}:latest" >> $GITHUB_OUTPUT
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Build Metadata" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit SHA:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Short SHA:** $SHORT_SHA" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry:** ${{ secrets.ECR_REGISTRY }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          DOCKER_CHECK=$(ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "command -v docker >/dev/null 2>&1 && echo 'installed' || echo 'not-installed'")
-
-          if [ "$DOCKER_CHECK" = "installed" ]; then
-            DOCKER_VERSION=$(ssh -o StrictHostKeyChecking=no \
-              ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-              "docker --version")
-            echo "✅ Docker is installed: $DOCKER_VERSION" >> $GITHUB_STEP_SUMMARY
-            echo "installed=true" >> $GITHUB_OUTPUT
-            echo "version=$DOCKER_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "⚠️ Docker is not installed on EC2" >> $GITHUB_STEP_SUMMARY
-            echo "The deployment script will check and provide installation instructions" >> $GITHUB_STEP_SUMMARY
-            echo "installed=false" >> $GITHUB_OUTPUT
-            echo "version=not-installed" >> $GITHUB_OUTPUT
-          fi
+      - name: Build and push Docker image
+        id: docker-build
+        run: |
+          echo "### 🔨 Building Docker Image" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-  deploy-application:
+          # Enable BuildKit
+          export DOCKER_BUILDKIT=1
+          export BUILDKIT_PROGRESS=plain
+
+          # Build and push the image
+          docker buildx build \
+            --platform linux/amd64 \
+            --file service/user/docker/Dockerfile \
+            --tag ${{ steps.meta.outputs.image_tag_short }} \
+            --tag ${{ steps.meta.outputs.image_tag_latest }} \
+            --cache-from type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache \
+            --cache-to type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --progress=plain \
+            --push \
+            .
+
+          echo "✅ **Docker Build:** Successful" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Docker Push:** Images pushed to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Image Tags" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ steps.meta.outputs.short_sha }}\` (commit SHA)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`latest\` (latest tag)" >> $GITHUB_STEP_SUMMARY
+
+  deploy:
     runs-on: ubuntu-latest
-    name: Deploy Application
-    needs: [prepare-deployment, validate-infrastructure]
-    # Only run if previous jobs succeeded
-    if: ${{ needs.prepare-deployment.result == 'success' && needs.validate-infrastructure.result == 'success' }}
+    name: Deploy to EC2
+    needs: build-and-push
     environment: AWS
-    outputs:
-      deploy_exit_code: ${{ steps.execute_deploy.outputs.exit_code }}
-      deploy_success: ${{ steps.execute_deploy.outputs.success }}
 
     steps:
       - name: Checkout repository
@@ -274,27 +164,21 @@ jobs:
 
       - name: Create .env.tag file
         run: |
-          echo "## 📝 Creating .env.tag file" >> $GITHUB_STEP_SUMMARY
+          echo "## 📝 Creating deployment configuration" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Create .env.tag file with IMAGE_TAG
-          echo "IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}" > .env.tag
+          # Create .env.tag file with the commit SHA as IMAGE_TAG
+          echo "IMAGE_TAG=${{ needs.build-and-push.outputs.image_tag }}" > .env.tag
 
-          echo "**Created .env.tag with content:**" >> $GITHUB_STEP_SUMMARY
+          echo "**Created .env.tag:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           cat .env.tag >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Also output to workflow logs
-          echo "::notice title=.env.tag Created::IMAGE_TAG=${{ needs.prepare-deployment.outputs.image_tag }}"
-
       - name: Create .env.github-actions file
         run: |
-          echo "## 🌐 Creating .env.github-actions file" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Create .env.github-actions file with AWS configuration and GitHub Actions metadata
+          # Create .env.github-actions file with AWS configuration
           cat > .env.github-actions << EOF
           # AWS Configuration for deployment
           AWS_REGION=${{ secrets.AWS_REGION }}
@@ -304,173 +188,52 @@ jobs:
           COMMIT_SHA=${{ github.sha }}
           GITHUB_RUN_NUMBER=${{ github.run_number }}
           GITHUB_ACTOR=${{ github.actor }}
+          DEPLOYMENT_TYPE=${{ github.event_name }}
           EOF
 
-          echo "**Created .env.github-actions with content:**" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          # Show content but mask sensitive values
-          echo "# AWS Configuration for deployment" >> $GITHUB_STEP_SUMMARY
-          echo "AWS_REGION=***" >> $GITHUB_STEP_SUMMARY
-          echo "ECR_REGISTRY=***" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "# GitHub Actions metadata" >> $GITHUB_STEP_SUMMARY
-          echo "COMMIT_SHA=${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "GITHUB_RUN_NUMBER=${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-          echo "GITHUB_ACTOR=${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Also output to workflow logs
-          echo "::notice title=.env.github-actions Created::AWS configuration and GitHub Actions metadata file created successfully"
+          echo "✅ Created .env.github-actions with AWS configuration" >> $GITHUB_STEP_SUMMARY
 
       - name: Create deployment directory on EC2
-        id: create_dir
         run: |
           set -euo pipefail
-          echo "## 📁 Preparing deployment directory" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if ! ssh -o StrictHostKeyChecking=no \
+          ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "mkdir -p ${{ secrets.EC2_DEPLOY_PATH }}"; then
-              echo "❌ Failed to create deployment directory" >> $GITHUB_STEP_SUMMARY
-              exit 1
-          fi
-
-          echo "✅ Deployment directory ready: ${{ secrets.EC2_DEPLOY_PATH }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+            "mkdir -p ${{ secrets.EC2_DEPLOY_PATH }}"
 
       - name: Transfer deployment files
-        id: transfer_files
         run: |
           set -euo pipefail
           echo "## 📤 Transferring deployment files" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Function to transfer file with proper error handling
-          transfer_file() {
-            local src="$1"
-            local filename=$(basename "$src")
-            echo "Transferring $filename..." >> $GITHUB_STEP_SUMMARY
-
-            if ! scp -o StrictHostKeyChecking=no \
-              "$src" \
-              "${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/"; then
-                echo "❌ Failed to transfer $filename" >> $GITHUB_STEP_SUMMARY
-                exit 1
-            fi
-            echo "✅ $filename transferred" >> $GITHUB_STEP_SUMMARY
-          }
-
           # Transfer all required files
-          transfer_file "service/user/deploy.sh"
-          transfer_file "service/user/docker/docker-compose.base.yml"
-          transfer_file "service/user/docker/docker-compose.user-service.yml"
-          transfer_file ".env.tag"
-          transfer_file ".env.github-actions"
+          scp -o StrictHostKeyChecking=no \
+            service/user/deploy.sh \
+            service/user/docker/docker-compose.base.yml \
+            service/user/docker/docker-compose.user-service.yml \
+            .env.tag \
+            .env.github-actions \
+            "${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/"
 
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📋 Files transferred successfully:" >> $GITHUB_STEP_SUMMARY
-          echo "- deploy.sh" >> $GITHUB_STEP_SUMMARY
-          echo "- docker-compose.base.yml" >> $GITHUB_STEP_SUMMARY
-          echo "- docker-compose.user-service.yml" >> $GITHUB_STEP_SUMMARY
-          echo "- .env.tag" >> $GITHUB_STEP_SUMMARY
-          echo "- .env.github-actions" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All deployment files transferred successfully" >> $GITHUB_STEP_SUMMARY
 
-      - name: Make deploy.sh executable
-        run: |
-          set -euo pipefail
-          if ! ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "cd ${{ secrets.EC2_DEPLOY_PATH }} && chmod +x deploy.sh"; then
-              echo "❌ Failed to make deploy.sh executable" >> $GITHUB_STEP_SUMMARY
-              exit 1
-          fi
-
-          echo "✅ deploy.sh is now executable" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-      - name: Execute deployment script
-        id: execute_deploy
+      - name: Execute deployment
         run: |
           set -euo pipefail
           echo "## 🚀 Executing deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Running deploy.sh on EC2..." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Display deployment configuration
-          echo "### Deployment Configuration:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Docker Registry:** \`${{ secrets.ECR_REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image Tag:** \`${{ needs.prepare-deployment.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Full Image:** \`${{ secrets.ECR_REGISTRY }}:${{ needs.prepare-deployment.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Create a deployment log file
-          DEPLOY_LOG="deploy_$(date +%Y%m%d_%H%M%S).log"
-
-          # Execute deployment script with proper error handling
-          set +e  # Temporarily disable errexit to capture exit code
+          # Make deploy.sh executable and run it
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
             "cd ${{ secrets.EC2_DEPLOY_PATH }} && \
-             echo \"Deployment started (IMAGE_TAG and AWS config will be loaded from .env files)\" && \
-             ./deploy.sh 2>&1 | tee $DEPLOY_LOG" | tee deployment_output.log
+             chmod +x deploy.sh && \
+             ./deploy.sh 2>&1" | tee deployment_output.log
 
-          DEPLOY_EXIT_CODE=$?
-          set -e  # Re-enable errexit
-
-          # Check deployment result
-          if [ $DEPLOY_EXIT_CODE -eq 0 ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### ✅ Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
-            echo "exit_code=0" >> $GITHUB_OUTPUT
-            echo "success=true" >> $GITHUB_OUTPUT
-          else
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### ❌ Deployment failed with exit code: $DEPLOY_EXIT_CODE" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Please check the deployment logs above for details." >> $GITHUB_STEP_SUMMARY
-            echo "exit_code=$DEPLOY_EXIT_CODE" >> $GITHUB_OUTPUT
-            echo "success=false" >> $GITHUB_OUTPUT
-            exit $DEPLOY_EXIT_CODE
-          fi
-
-      - name: Upload deployment logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-logs
-          path: |
-            deployment_output.log
-
-  post-deployment:
-    runs-on: ubuntu-latest
-    name: Post Deployment
-    needs: [prepare-deployment, validate-infrastructure, deploy-application]
-    # Always run this job for summary, but only if deploy-application ran or was skipped
-    if: always() && (needs.deploy-application.result == 'success' || needs.deploy-application.result == 'failure' || needs.deploy-application.result == 'skipped')
-    environment: AWS
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup SSH key
-        if: needs.deploy-application.outputs.deploy_success == 'true'
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || true
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
 
       - name: Verify deployment
-        if: needs.deploy-application.outputs.deploy_success == 'true'
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🔍 Post-deployment verification" >> $GITHUB_STEP_SUMMARY
@@ -481,57 +244,54 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "cd ${{ secrets.EC2_DEPLOY_PATH }} && docker-compose ps" >> $GITHUB_STEP_SUMMARY || true
+            "cd ${{ secrets.EC2_DEPLOY_PATH }} && docker-compose --env-file .env.tag --env-file .env.base --env-file .env.user-service -f docker-compose.base.yml -f docker-compose.user-service.yml ps" >> $GITHUB_STEP_SUMMARY || echo "Failed to check container status" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
 
-      - name: Download deployment logs
+      - name: Upload deployment logs
         if: always()
-        uses: actions/download-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: deployment-logs
-          path: ./logs
+          path: |
+            deployment_output.log
 
+  deployment-summary:
+    runs-on: ubuntu-latest
+    name: Deployment Summary
+    needs: [build-and-push, deploy]
+    if: always()
+
+    steps:
       - name: Final summary
-        if: always()
         run: |
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Deployment type and info
-          echo "### Deployment Details:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Type:** ${{ needs.prepare-deployment.outputs.deployment_type }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image Tag:** ${{ needs.prepare-deployment.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Info:** ${{ needs.prepare-deployment.outputs.deployment_info }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Infrastructure validation results
-          echo "### Infrastructure Validation:" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ needs.validate-infrastructure.outputs.ssh_test_passed }}" == "true" ]; then
-            echo "- ✅ SSH Connection: Passed" >> $GITHUB_STEP_SUMMARY
+          # Deployment trigger info
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "**Trigger:** Manual deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Message:** ${{ github.event.inputs.deploy_message }}" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- ❌ SSH Connection: Failed" >> $GITHUB_STEP_SUMMARY
+            echo "**Trigger:** Push to main branch (PR merge)" >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [ "${{ needs.validate-infrastructure.outputs.docker_installed }}" == "true" ]; then
-            echo "- ✅ Docker: ${{ needs.validate-infrastructure.outputs.docker_version }}" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ⚠️ Docker: Not installed" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "**Branch:** main" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed Image Tag:** ${{ needs.build-and-push.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Final deployment status
-          if [ "${{ needs.deploy-application.outputs.deploy_success }}" == "true" ]; then
+          # Build and deployment status
+          if [ "${{ needs.build-and-push.result }}" == "success" ] && [ "${{ needs.deploy.result }}" == "success" ]; then
             echo "### ✅ Deployment Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "The User Service has been successfully deployed to production!" >> $GITHUB_STEP_SUMMARY
+            echo "The User Service has been successfully deployed with commit SHA: **${{ needs.build-and-push.outputs.image_tag }}**" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ Deployment Status: FAILED" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "The deployment encountered issues. Please check the logs and try again." >> $GITHUB_STEP_SUMMARY
+            if [ "${{ needs.build-and-push.result }}" != "success" ]; then
+              echo "- Build and Push: Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ "${{ needs.deploy.result }}" != "success" ]; then
+              echo "- Deployment: Failed" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployment artifacts:** Check the uploaded deployment logs for detailed information." >> $GITHUB_STEP_SUMMARY

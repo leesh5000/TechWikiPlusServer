@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserAuthenticator(
-    private val crypter: PasswordEncryptor,
+    private val encryptor: PasswordEncryptor,
     private val tokenManager: TokenManager,
 ) {
     fun authenticate(
@@ -19,7 +19,7 @@ class UserAuthenticator(
         rawPassword: RawPassword,
     ) {
         user.validateUserStatus()
-        if (!crypter.matches(rawPassword, user.encodedPassword)) {
+        if (!encryptor.matches(rawPassword, user.encodedPassword)) {
             throw DomainException(ErrorCode.INVALID_CREDENTIALS)
         }
     }

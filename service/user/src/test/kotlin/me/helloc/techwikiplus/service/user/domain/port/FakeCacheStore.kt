@@ -3,13 +3,13 @@ package me.helloc.techwikiplus.service.user.domain.port
 import java.time.Duration
 import java.time.Instant
 
-class FakeCacheStore : CacheStore {
+open class FakeCacheStore : CacheStore {
     data class CacheEntry(
         val value: String,
         val expiresAt: Instant?,
     )
 
-    private val cache = mutableMapOf<String, CacheEntry>()
+    protected val cache = mutableMapOf<String, CacheEntry>()
     private var currentTime = Instant.now()
 
     override fun get(key: String): String? {

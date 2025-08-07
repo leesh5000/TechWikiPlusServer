@@ -1,13 +1,5 @@
 name: User Service CI
 
-# Updated 2025-07-30: Upgraded gradle/actions/setup-gradle from v3 to v4
-# to resolve GitHub Actions cache service migration issues.
-# Removed deprecated cache-encryption-key and gradle-home-cache-strict-match options.
-# Added enhanced debugging for build failures.
-# Updated 2025-07-30: Replaced deprecated gradle-home-cache-cleanup with cache-cleanup parameter.
-# Updated 2025-08-01: CD now triggers on PR merge, not workflow_run
-# CI only runs during PR phase to avoid duplicate runs after merge
-
 on:
   pull_request:
     types: [ opened, synchronize, reopened ]
@@ -16,67 +8,19 @@ on:
       - 'service/user/**'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'gradle/wrapper/**'
+      - 'gradle/libs.versions.toml'
       - '.github/workflows/user-service-ci.yml'
 
 env:
   JAVA_VERSION: '21'
-  GRADLE_VERSION: '8.14.2'  # Must match gradle-wrapper.properties version
-  # Using gradle/actions/setup-gradle@v4 for GitHub Actions cache service compatibility (2025)
+  GRADLE_VERSION: '8.14.2'
 
 jobs:
-  ci:
-    runs-on: ubuntu-latest
-    name: CI Pipeline
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          cache-cleanup: on-success
-        continue-on-error: true  # Continue if cache fails
-
-      - name: Fallback Gradle Cache Setup
-        if: failure()
-        run: |
-          echo "Primary Gradle cache setup failed, using fallback cache strategy"
-          echo "This is expected during GitHub Actions cache service migration (2025)"
-          mkdir -p ~/.gradle/caches
-          mkdir -p ~/.gradle/wrapper
-          # Clear any potentially corrupted cache files
-          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Verify Gradle Setup
-        run: |
-          echo "Gradle Version: $(./gradlew --version | grep "Gradle" | head -1)"
-          echo "Java Version: $(java --version | head -1)"
-          echo "Gradle Wrapper Properties:"
-          cat gradle/wrapper/gradle-wrapper.properties | grep "distributionUrl"
-
-      - name: Initialize Job Summary
-        run: |
-          echo "# User Service CI Results" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow Run:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
   linter:
-    needs: ci
     runs-on: ubuntu-latest
     name: Code Style Check (ktlint)
 
@@ -95,17 +39,6 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           cache-cleanup: on-success
-        continue-on-error: true  # Continue if cache fails
-
-      - name: Fallback Gradle Cache Setup
-        if: failure()
-        run: |
-          echo "Primary Gradle cache setup failed, using fallback cache strategy"
-          echo "This is expected during GitHub Actions cache service migration (2025)"
-          mkdir -p ~/.gradle/caches
-          mkdir -p ~/.gradle/wrapper
-          # Clear any potentially corrupted cache files
-          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -117,7 +50,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Run ktlint and capture output
-          ./gradlew ktlintCheck --no-daemon --stacktrace --info > ktlint-output.log 2>&1 || KTLINT_EXIT_CODE=$?
+          ./gradlew ktlintCheck --no-daemon --stacktrace > ktlint-output.log 2>&1 || KTLINT_EXIT_CODE=$?
 
           if [ -z "$KTLINT_EXIT_CODE" ]; then
             echo "✅ **Status:** Passed" >> $GITHUB_STEP_SUMMARY
@@ -151,7 +84,6 @@ jobs:
             ktlint-output.log
 
   test:
-    needs: ci
     runs-on: ubuntu-latest
     name: Run Tests
 
@@ -170,17 +102,6 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           cache-cleanup: on-success
-        continue-on-error: true  # Continue if cache fails
-
-      - name: Fallback Gradle Cache Setup
-        if: failure()
-        run: |
-          echo "Primary Gradle cache setup failed, using fallback cache strategy"
-          echo "This is expected during GitHub Actions cache service migration (2025)"
-          mkdir -p ~/.gradle/caches
-          mkdir -p ~/.gradle/wrapper
-          # Clear any potentially corrupted cache files
-          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -249,7 +170,6 @@ jobs:
             test-output.log
 
   compile-check:
-    needs: ci
     runs-on: ubuntu-latest
     name: Compile Check
 
@@ -268,17 +188,6 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           cache-cleanup: on-success
-        continue-on-error: true  # Continue if cache fails
-
-      - name: Fallback Gradle Cache Setup
-        if: failure()
-        run: |
-          echo "Primary Gradle cache setup failed, using fallback cache strategy"
-          echo "This is expected during GitHub Actions cache service migration (2025)"
-          mkdir -p ~/.gradle/caches
-          mkdir -p ~/.gradle/wrapper
-          # Clear any potentially corrupted cache files
-          find ~/.gradle/caches -name "*.lock" -type f -delete 2>/dev/null || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -290,7 +199,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Compile the application (both common and user service)
-          ./gradlew :common:snowflake:compileKotlin :service:user:compileKotlin --no-daemon --stacktrace --info > compile-output.log 2>&1 || COMPILE_EXIT_CODE=$?
+          ./gradlew :common:snowflake:compileKotlin :service:user:compileKotlin --no-daemon --stacktrace > compile-output.log 2>&1 || COMPILE_EXIT_CODE=$?
 
           if [ -z "$COMPILE_EXIT_CODE" ]; then
             echo "✅ **Status:** Compilation successful" >> $GITHUB_STEP_SUMMARY
@@ -321,244 +230,8 @@ jobs:
             compile-output.log
             **/build/tmp/
 
-  docker-build-push:
+  ci-summary:
     needs: [linter, test, compile-check]
-    runs-on: ubuntu-latest
-    name: Build and Push Docker Image
-    environment: AWS
-    if: github.event_name == 'pull_request'
-    outputs:
-      version: ${{ steps.meta.outputs.version }}
-      image_tag: ${{ steps.meta.outputs.image_tag_version }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: |
-            image=moby/buildkit:latest
-            network=host
-
-      - name: Debug - Check if secrets are available
-        run: |
-          echo "Checking if AWS secrets are configured..."
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
-            echo "ERROR: AWS_ACCESS_KEY_ID secret is not set"
-            exit 1
-          fi
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
-            echo "ERROR: AWS_SECRET_ACCESS_KEY secret is not set"
-            exit 1
-          fi
-          if [ -z "${{ secrets.ECR_REGISTRY }}" ]; then
-            echo "ERROR: ECR_REGISTRY secret is not set"
-            exit 1
-          fi
-          echo "All required secrets are configured"
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
-
-      - name: Verify AWS credentials
-        run: |
-          echo "Verifying AWS credentials configuration..."
-          aws sts get-caller-identity > aws-identity.log 2>&1 || AWS_VERIFY_EXIT_CODE=$?
-
-          if [ -z "$AWS_VERIFY_EXIT_CODE" ]; then
-            echo "✅ AWS credentials configured successfully"
-            echo "Account info:"
-            cat aws-identity.log
-          else
-            echo "❌ Failed to verify AWS credentials"
-            echo "Error details:"
-            cat aws-identity.log
-            exit $AWS_VERIFY_EXIT_CODE
-          fi
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        run: |
-          echo "## 🐳 Docker Build and Push to ECR" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Login to ECR
-          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }} > ecr-login.log 2>&1 || ECR_LOGIN_EXIT_CODE=$?
-
-          if [ -z "$ECR_LOGIN_EXIT_CODE" ]; then
-            echo "✅ **ECR Login:** Successful" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **ECR Login:** Failed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Login Error:" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat ecr-login.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $ECR_LOGIN_EXIT_CODE
-          fi
-
-      - name: Prepare build metadata
-        id: meta
-        run: |
-          # Extract repository name from ECR registry URL
-          REPO_NAME=$(echo "${{ secrets.ECR_REGISTRY }}" | cut -d'/' -f2)
-          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-
-          # Generate tags
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
-
-          # Generate version with date/time (YYYYMMDDHHMM format)
-          VERSION=$(date +%Y%m%d%H%M)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-          # Set image tags
-          echo "image_tag_latest=${{ secrets.ECR_REGISTRY }}:latest" >> $GITHUB_OUTPUT
-          echo "image_tag_sha=${{ secrets.ECR_REGISTRY }}:$SHORT_SHA" >> $GITHUB_OUTPUT
-          echo "image_tag_version=${{ secrets.ECR_REGISTRY }}:$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Build Docker image
-        id: docker-build
-        run: |
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔨 Docker Build" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Enable BuildKit
-          export DOCKER_BUILDKIT=1
-          export BUILDKIT_PROGRESS=plain
-
-          # Build the image with BuildKit cache
-          docker buildx build \
-            --platform linux/amd64 \
-            --file service/user/docker/Dockerfile \
-            --tag ${{ steps.meta.outputs.image_tag_latest }} \
-            --tag ${{ steps.meta.outputs.image_tag_sha }} \
-            --tag ${{ steps.meta.outputs.image_tag_version }} \
-            --cache-from type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache \
-            --cache-to type=registry,ref=${{ secrets.ECR_REGISTRY }}:buildcache,mode=max \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --build-arg VERSION=${{ steps.meta.outputs.version }} \
-            --progress=plain \
-            --load \
-            . > docker-build.log 2>&1 || DOCKER_BUILD_EXIT_CODE=$?
-
-          if [ -z "$DOCKER_BUILD_EXIT_CODE" ]; then
-            echo "✅ **Build Status:** Successful" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-
-            # Get image size
-            IMAGE_SIZE=$(docker image inspect ${{ steps.meta.outputs.image_tag_latest }} --format='{{.Size}}' | numfmt --to=iec-i --suffix=B)
-            echo "**Image Size:** $IMAGE_SIZE" >> $GITHUB_STEP_SUMMARY
-            echo "**Build Cache:** Enabled (BuildKit)" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Build Status:** Failed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Build Errors:" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 50 docker-build.log | grep -E "(ERROR|error:|FAILED|Step)" >> $GITHUB_STEP_SUMMARY || tail -n 30 docker-build.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $DOCKER_BUILD_EXIT_CODE
-          fi
-
-      - name: Push Docker images to ECR
-        id: docker-push
-        run: |
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📤 Push to ECR" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Push latest tag
-          echo "Pushing latest tag..." >> $GITHUB_STEP_SUMMARY
-          docker push ${{ steps.meta.outputs.image_tag_latest }} > push-latest.log 2>&1 || PUSH_LATEST_EXIT_CODE=$?
-
-          if [ -z "$PUSH_LATEST_EXIT_CODE" ]; then
-            echo "✅ **Latest tag:** Pushed successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Latest tag:** Push failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 20 push-latest.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $PUSH_LATEST_EXIT_CODE
-          fi
-
-          # Push SHA tag
-          echo "Pushing SHA tag..." >> $GITHUB_STEP_SUMMARY
-          docker push ${{ steps.meta.outputs.image_tag_sha }} > push-sha.log 2>&1 || PUSH_SHA_EXIT_CODE=$?
-
-          if [ -z "$PUSH_SHA_EXIT_CODE" ]; then
-            echo "✅ **SHA tag (${{ steps.meta.outputs.short_sha }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **SHA tag:** Push failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 20 push-sha.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $PUSH_SHA_EXIT_CODE
-          fi
-
-          # Push Version tag
-          echo "Pushing Version tag..." >> $GITHUB_STEP_SUMMARY
-          docker push ${{ steps.meta.outputs.image_tag_version }} > push-version.log 2>&1 || PUSH_VERSION_EXIT_CODE=$?
-
-          if [ -z "$PUSH_VERSION_EXIT_CODE" ]; then
-            echo "✅ **Version tag (${{ steps.meta.outputs.version }}):** Pushed successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Version tag:** Push failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 20 push-version.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit $PUSH_VERSION_EXIT_CODE
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Image Details" >> $GITHUB_STEP_SUMMARY
-          echo "- **Registry:** \`${{ secrets.ECR_REGISTRY }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Latest Tag:** \`latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **SHA Tag:** \`${{ steps.meta.outputs.short_sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version Tag:** \`${{ steps.meta.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Full SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload Docker build logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-build-logs
-          path: |
-            docker-build.log
-            push-latest.log
-            push-sha.log
-            ecr-login.log
-
-      - name: Save version info
-        if: success()
-        run: |
-          echo "${{ steps.meta.outputs.version }}" > version.txt
-          echo "VERSION=${{ steps.meta.outputs.version }}" > deployment-info.env
-          echo "IMAGE_TAG=${{ steps.meta.outputs.image_tag_version }}" >> deployment-info.env
-          echo "COMMIT_SHA=${{ github.sha }}" >> deployment-info.env
-          echo "TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> deployment-info.env
-
-      - name: Upload deployment info
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-info
-          path: |
-            version.txt
-            deployment-info.env
-          retention-days: 7
-
-  summary:
-    needs: [linter, test, compile-check, docker-build-push]
     if: always()
     runs-on: ubuntu-latest
     name: CI Summary
@@ -567,74 +240,28 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Generate final summary
-        run: |
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "## 📊 Overall CI Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Check job statuses
-          ALL_SUCCESS=true
-          if [ "${{ needs.linter.result }}" == "success" ] &&
-             [ "${{ needs.test.result }}" == "success" ] &&
-             [ "${{ needs.compile-check.result }}" == "success" ]; then
-            # Check Docker job result
-            if [ "${{ needs.docker-build-push.result }}" == "success" ] || [ "${{ needs.docker-build-push.result }}" == "skipped" ]; then
-              echo "### ✅ All CI checks passed successfully!" >> $GITHUB_STEP_SUMMARY
-            else
-              ALL_SUCCESS=false
-            fi
-          else
-            ALL_SUCCESS=false
-          fi
-
-          if [ "$ALL_SUCCESS" == "false" ]; then
-            echo "### ❌ Some CI checks failed:" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            [ "${{ needs.linter.result }}" != "success" ] && echo "- ❌ Code Style Check: ${{ needs.linter.result }}" >> $GITHUB_STEP_SUMMARY
-            [ "${{ needs.test.result }}" != "success" ] && echo "- ❌ Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
-            [ "${{ needs.compile-check.result }}" != "success" ] && echo "- ❌ Compile Check: ${{ needs.compile-check.result }}" >> $GITHUB_STEP_SUMMARY
-
-            # Show Docker status
-            [ "${{ needs.docker-build-push.result }}" != "success" ] && [ "${{ needs.docker-build-push.result }}" != "skipped" ] && echo "- ❌ Docker Build & Push: ${{ needs.docker-build-push.result }}" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total Duration:** ~${{ github.run_number }} minutes" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-
       - name: Comment PR with results
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const linterResult = '${{ needs.linter.result }}';
             const testResult = '${{ needs.test.result }}';
             const compileResult = '${{ needs.compile-check.result }}';
-            const dockerResult = '${{ needs.docker-build-push.result }}';
 
             const statusEmoji = (result) => result === 'success' ? '✅' : '❌';
 
-            let tableRows = `| Code Style (ktlint) | ${statusEmoji(linterResult)} ${linterResult} |
-            | Tests | ${statusEmoji(testResult)} ${testResult} |
-            | Compile Check | ${statusEmoji(compileResult)} ${compileResult} |`;
-
-            // Add Docker build status to the table
-            if (dockerResult !== 'skipped') {
-              tableRows += `\n            | Docker Build & Push | ${statusEmoji(dockerResult)} ${dockerResult} |`;
-            }
-            
-            const dockerNote = `
-
-            > **Note:** Docker images are built and pushed to ECR during PR checks. The images are tagged with commit SHA and timestamp.`;
+            const allSuccess = linterResult === 'success' && testResult === 'success' && compileResult === 'success';
+            const overallStatus = allSuccess ? '✅ All CI checks passed!' : '❌ Some CI checks failed';
 
             const comment = `## CI Results for User Service
 
+            ${overallStatus}
+
             | Check | Status |
             |-------|--------|
-            ${tableRows}
-            ${dockerNote}
+            | Code Style (ktlint) | ${statusEmoji(linterResult)} ${linterResult} |
+            | Tests | ${statusEmoji(testResult)} ${testResult} |
+            | Compile Check | ${statusEmoji(compileResult)} ${compileResult} |
 
             **Commit:** \`${context.sha.substring(0, 7)}\`
             **Workflow Run:** [#${context.runNumber}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})

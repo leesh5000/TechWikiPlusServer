@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.e2e
+package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
@@ -12,7 +12,6 @@ import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.port.UserRepository
 import me.helloc.techwikiplus.service.user.infrastructure.id.SnowflakeIdGenerator
-import me.helloc.techwikiplus.service.user.interfaces.web.UserLoginController
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -79,7 +78,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andDo(
                 documentWithResource(
                     "user-login-success",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인")
                         .description(
@@ -118,10 +117,10 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                                 .description("리프레시 토큰 만료 시간 (ISO-8601 형식)"),
                         )
                         .requestSchema(
-                            Schema.schema(UserLoginController.Request::class.java.simpleName),
+                            Schema.Companion.schema(UserLoginController.Request::class.java.simpleName),
                         )
                         .responseSchema(
-                            Schema.schema(UserLoginController.Response::class.java.simpleName),
+                            Schema.Companion.schema(UserLoginController.Response::class.java.simpleName),
                         )
                         .build(),
                 ),
@@ -153,7 +152,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andDo(
                 documentWithResource(
                     "user-login-wrong-password",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 잘못된 비밀번호")
                         .description("비밀번호가 일치하지 않는 경우 401 Unauthorized를 반환합니다.")
@@ -195,7 +194,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andDo(
                 documentWithResource(
                     "user-login-user-not-found",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 존재하지 않는 사용자")
                         .description("등록되지 않은 이메일로 로그인 시도하는 경우 401 Unauthorized를 반환합니다.")
@@ -231,7 +230,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andDo(
                 documentWithResource(
                     "user-login-banned-user",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 차단된 사용자")
                         .description("BANNED 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
@@ -265,7 +264,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andDo(
                 documentWithResource(
                     "user-login-deleted-user",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 삭제된 사용자")
                         .description("DELETED 상태의 사용자가 로그인 시도하는 경우 401 Unauthorized를 반환합니다.")
@@ -302,7 +301,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andDo(
                 documentWithResource(
                     "user-login-dormant-user",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 휴면 사용자")
                         .description("DORMANT 상태의 사용자가 로그인 시도하는 경우 423 Locked를 반환합니다.")
@@ -340,7 +339,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andDo(
                 documentWithResource(
                     "user-login-pending-user",
-                    ResourceSnippetParameters.builder()
+                    ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 미인증 사용자")
                         .description("PENDING 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
@@ -362,7 +361,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
         status: UserStatus,
     ): User {
         val user =
-            User.create(
+            User.Companion.create(
                 id = snowflakeIdGenerator.next(),
                 email = Email(email),
                 nickname = Nickname(nickname),

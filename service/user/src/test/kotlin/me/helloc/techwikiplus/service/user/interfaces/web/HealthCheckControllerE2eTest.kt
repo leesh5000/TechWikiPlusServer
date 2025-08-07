@@ -1,10 +1,9 @@
-package me.helloc.techwikiplus.service.user.e2e
+package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
-import me.helloc.techwikiplus.service.user.interfaces.web.HealthCheckController
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.restdocs.payload.JsonFieldType

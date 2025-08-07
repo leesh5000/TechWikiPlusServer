@@ -3,6 +3,11 @@ package me.helloc.techwikiplus.service.user.domain.model.value
 import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 
+/**
+ * Nickname 정책
+ * - 저장할 때는 대소문자를 구분하여 저장하고, 비교/조회할 때는 소문자로 변환하여 비교/조회한다.
+ * - 사용자에게 보여줄 때는 그대로 보여준다.
+ */
 class Nickname(val value: String) {
     init {
         if (value.isBlank()) {

@@ -18,7 +18,7 @@ class EmailVerifyService(
     private val cacheStore: CacheStore,
 ) {
     companion object {
-        private fun getRegistrationCodeKey(email: Email): String = "registration_code::$email"
+        private fun getRegistrationCodeKey(email: String): String = "registration_code:$email"
 
         private val REGISTRATION_CODE_TTL_DURATION = Duration.ofMinutes(5)
     }
@@ -35,7 +35,7 @@ class EmailVerifyService(
         email: Email,
         registrationCode: RegistrationCode,
     ) {
-        val registrationCodeKey = getRegistrationCodeKey(email)
+        val registrationCodeKey = getRegistrationCodeKey(email.value)
         val code: String =
             cacheStore.get(registrationCodeKey)
                 ?: throw DomainException(ErrorCode.REGISTRATION_EXPIRED, arrayOf(email.value))
@@ -49,7 +49,7 @@ class EmailVerifyService(
         registrationCode: RegistrationCode,
         email: Email,
     ) {
-        val registrationCodeKey = getRegistrationCodeKey(email)
+        val registrationCodeKey = getRegistrationCodeKey(email.value)
         cacheStore.put(registrationCodeKey, registrationCode.value, REGISTRATION_CODE_TTL_DURATION)
     }
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
 interface UserJpaRepository : JpaRepository<UserEntity, String> {
     fun existsByEmail(email: String): Boolean
 
-    @Query("SELECT COUNT(u) > 0 FROM UserEntity u WHERE LOWER(u.nickname) = LOWER(:nickname)")
+    // Spring Data JPA가 자동으로 쿼리 생성 (collation 설정도 자동 적용됨)
     fun existsByNickname(nickname: String): Boolean
 
     @Query(

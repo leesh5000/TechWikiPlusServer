@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Transactional
 @Component
-class UserVerifyService(
+class UserVerifyFacade(
     private val userReader: UserReader,
     private val emailVerifyService: EmailVerifyService,
     private val userModifier: UserModifier,

@@ -43,7 +43,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.ACTIVE,
                         role = UserRole.USER,
@@ -64,7 +64,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.PENDING,
                         role = UserRole.USER,
@@ -87,7 +87,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.BANNED,
                         role = UserRole.USER,
@@ -110,7 +110,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.DELETED,
                         role = UserRole.USER,
@@ -133,7 +133,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.DORMANT,
                         role = UserRole.USER,
@@ -156,7 +156,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.ACTIVE,
                         role = UserRole.USER,
@@ -178,7 +178,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(correctPassword),
+                        encodedPassword = passwordEncryptor.encode(correctPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.ACTIVE,
                         role = UserRole.USER,
@@ -202,7 +202,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(correctPassword),
+                        encodedPassword = passwordEncryptor.encode(correctPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.ACTIVE,
                         role = UserRole.USER,
@@ -226,7 +226,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(correctPassword),
+                        encodedPassword = passwordEncryptor.encode(correctPassword),
                         nickname = Nickname("testuser"),
                         status = UserStatus.ACTIVE,
                         role = UserRole.USER,
@@ -251,7 +251,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("admin-1"),
                         email = Email("admin@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("admin"),
                         status = UserStatus.ACTIVE,
                         role = UserRole.ADMIN,
@@ -272,7 +272,7 @@ class UserAuthenticatorTest : FunSpec({
                     User.create(
                         id = UserId("user-1"),
                         email = Email("user@example.com"),
-                        encodedPassword = passwordEncryptor.encrypt(rawPassword),
+                        encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("user"),
                         status = UserStatus.ACTIVE,
                         role = UserRole.USER,
@@ -527,7 +527,7 @@ class UserAuthenticatorTest : FunSpec({
                 User.create(
                     id = UserId("user-1"),
                     email = Email("user1@example.com"),
-                    encodedPassword = passwordEncryptor.encrypt(RawPassword("Password1!")),
+                    encodedPassword = passwordEncryptor.encode(RawPassword("Password1!")),
                     nickname = Nickname("user1"),
                     status = UserStatus.ACTIVE,
                     role = UserRole.USER,
@@ -539,7 +539,7 @@ class UserAuthenticatorTest : FunSpec({
                 User.create(
                     id = UserId("user-2"),
                     email = Email("user2@example.com"),
-                    encodedPassword = passwordEncryptor.encrypt(RawPassword("Password2!")),
+                    encodedPassword = passwordEncryptor.encode(RawPassword("Password2!")),
                     nickname = Nickname("user2"),
                     status = UserStatus.ACTIVE,
                     role = UserRole.USER,
@@ -572,7 +572,7 @@ class UserAuthenticatorTest : FunSpec({
                 User.create(
                     id = userId,
                     email = Email("test@example.com"),
-                    encodedPassword = passwordEncryptor.encrypt(RawPassword("Password123!")),
+                    encodedPassword = passwordEncryptor.encode(RawPassword("Password123!")),
                     nickname = Nickname("testuser"),
                     status = UserStatus.ACTIVE,
                     role = UserRole.USER,

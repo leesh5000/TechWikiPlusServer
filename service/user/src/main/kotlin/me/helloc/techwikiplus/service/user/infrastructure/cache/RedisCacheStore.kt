@@ -10,7 +10,7 @@ class RedisCacheStore(
     private val template: StringRedisTemplate,
 ) : CacheStore {
     companion object {
-        private const val KEY_PREFIX_FORMAT = "service::user::cache::%s"
+        private const val KEY_PREFIX_FORMAT = "service:user:%s"
     }
 
     override fun get(key: String): String? {
@@ -28,6 +28,7 @@ class RedisCacheStore(
     }
 
     override fun delete(key: String) {
-        TODO("Not yet implemented")
+        val formattedKey = KEY_PREFIX_FORMAT.format(key)
+        template.delete(formattedKey)
     }
 }

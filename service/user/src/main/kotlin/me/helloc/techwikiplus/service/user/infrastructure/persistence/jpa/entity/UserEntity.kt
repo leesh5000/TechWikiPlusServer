@@ -12,6 +12,7 @@ import java.time.Instant
     name = "users",
     indexes = [
         Index(name = "idx_email_status", columnList = "email,status"),
+        // nickname은 UNIQUE 제약조건으로 자동 인덱스 생성됨
     ],
 )
 class UserEntity(
@@ -20,7 +21,14 @@ class UserEntity(
     val id: String,
     @Column(name = "email", nullable = false, unique = true, length = 255)
     val email: String,
-    @Column(name = "nickname", nullable = false, unique = true, length = 50)
+    // 저장은 그대로, 조회 시에는 대소문자 구분 X (utf8mb4_0900_ai_ci: case insensitive)
+    @Column(
+        name = "nickname",
+        nullable = false,
+        unique = true,
+        length = 50,
+        columnDefinition = "VARCHAR(50) COLLATE utf8mb4_0900_ai_ci",
+    )
     val nickname: String,
     @Column(name = "password", nullable = false, length = 255)
     val password: String,

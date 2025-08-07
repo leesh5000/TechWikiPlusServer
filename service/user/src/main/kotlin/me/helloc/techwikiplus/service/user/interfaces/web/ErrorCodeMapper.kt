@@ -93,25 +93,25 @@ class ErrorCodeMapper {
                 ErrorCode.USER_DELETED -> "삭제된 계정입니다"
                 ErrorCode.DUPLICATE_EMAIL ->
                     if (params.isNotEmpty()) {
-                        "이미 사용중인 이메일입니다: ${params[0]}"
+                        "이미 사용중인 이메일(${params[0]})입니다"
                     } else {
                         "이미 사용중인 이메일입니다"
                     }
                 ErrorCode.DUPLICATE_NICKNAME ->
                     if (params.isNotEmpty()) {
-                        "이미 사용중인 닉네임입니다: ${params[0]}"
+                        "이미 사용중인 닉네임(${params[0]})입니다"
                     } else {
                         "이미 사용중인 닉네임입니다"
                     }
                 ErrorCode.USER_NOT_FOUND ->
                     if (params.isNotEmpty()) {
-                        "사용자를 찾을 수 없습니다: ${params[0]}"
+                        "사용자(${params[0]})를 찾을 수 없습니다"
                     } else {
                         "사용자를 찾을 수 없습니다"
                     }
                 ErrorCode.PENDING_USER_NOT_FOUND ->
                     if (params.isNotEmpty()) {
-                        "대기중인 사용자를 찾을 수 없습니다: ${params[0]}"
+                        "대기중인 사용자(${params[0]})를 찾을 수 없습니다"
                     } else {
                         "대기중인 사용자를 찾을 수 없습니다"
                     }
@@ -121,13 +121,13 @@ class ErrorCodeMapper {
                 ErrorCode.TOKEN_EXPIRED -> "만료된 토큰입니다"
                 ErrorCode.INVALID_TOKEN_TYPE ->
                     if (params.isNotEmpty()) {
-                        "잘못된 토큰 타입입니다: ${params[0]}"
+                        "잘못된 토큰 타입(${params[0]})입니다"
                     } else {
                         "잘못된 토큰 타입입니다"
                     }
                 ErrorCode.INVALID_VERIFICATION_CODE ->
                     if (params.isNotEmpty()) {
-                        "유효하지 않은 인증 코드입니다: ${params[0]}"
+                        "유효하지 않은 인증 코드(${params[0]})입니다"
                     } else {
                         "유효하지 않은 인증 코드입니다"
                     }

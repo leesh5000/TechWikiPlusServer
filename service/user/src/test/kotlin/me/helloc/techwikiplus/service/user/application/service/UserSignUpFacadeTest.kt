@@ -25,9 +25,9 @@ import me.helloc.techwikiplus.service.user.domain.service.UserModifier
 import me.helloc.techwikiplus.service.user.domain.service.UserRegister
 import java.time.Instant
 
-class UserSignUpServiceTest : FunSpec({
+class UserSignUpFacadeTest : FunSpec({
 
-    lateinit var userSignUpService: UserSignUpService
+    lateinit var userSignUpFacade: UserSignUpFacade
     lateinit var userRegister: UserRegister
     lateinit var emailVerifyService: EmailVerifyService
     lateinit var userModifier: UserModifier
@@ -67,8 +67,8 @@ class UserSignUpServiceTest : FunSpec({
                 repository = fakeUserRepository,
             )
 
-        userSignUpService =
-            UserSignUpService(
+        userSignUpFacade =
+            UserSignUpFacade(
                 userRegister = userRegister,
                 emailVerifyService = emailVerifyService,
                 userModifier = userModifier,
@@ -83,7 +83,7 @@ class UserSignUpServiceTest : FunSpec({
         val confirmPassword = RawPassword("Password123!")
 
         // when
-        userSignUpService.execute(
+        userSignUpFacade.execute(
             email = email,
             nickname = nickname,
             password = password,
@@ -113,7 +113,7 @@ class UserSignUpServiceTest : FunSpec({
         val confirmPassword = RawPassword("Password123!")
 
         // when
-        userSignUpService.execute(
+        userSignUpFacade.execute(
             email = email,
             nickname = nickname,
             password = password,
@@ -139,7 +139,7 @@ class UserSignUpServiceTest : FunSpec({
         val confirmPassword = RawPassword("Password123!")
 
         // when
-        userSignUpService.execute(
+        userSignUpFacade.execute(
             email = email,
             nickname = nickname,
             password = password,
@@ -164,7 +164,7 @@ class UserSignUpServiceTest : FunSpec({
         val confirmPassword = RawPassword("Password123!")
 
         // when
-        userSignUpService.execute(
+        userSignUpFacade.execute(
             email = email,
             nickname = nickname,
             password = password,
@@ -188,7 +188,7 @@ class UserSignUpServiceTest : FunSpec({
         // when & then
         val exception =
             shouldThrow<DomainException> {
-                userSignUpService.execute(
+                userSignUpFacade.execute(
                     email = email,
                     nickname = nickname,
                     password = password,
@@ -224,7 +224,7 @@ class UserSignUpServiceTest : FunSpec({
         // when & then
         val exception =
             shouldThrow<DomainException> {
-                userSignUpService.execute(
+                userSignUpFacade.execute(
                     email = existingEmail,
                     nickname = nickname,
                     password = password,
@@ -261,7 +261,7 @@ class UserSignUpServiceTest : FunSpec({
         // when & then
         val exception =
             shouldThrow<DomainException> {
-                userSignUpService.execute(
+                userSignUpFacade.execute(
                     email = email,
                     nickname = existingNickname,
                     password = password,
@@ -334,15 +334,15 @@ class UserSignUpServiceTest : FunSpec({
                 repository = fakeUserRepository,
             )
 
-        userSignUpService =
-            UserSignUpService(
+        userSignUpFacade =
+            UserSignUpFacade(
                 userRegister = userRegister,
                 emailVerifyService = emailVerifyService,
                 userModifier = userModifier,
             )
 
         // when
-        userSignUpService.execute(
+        userSignUpFacade.execute(
             email = email,
             nickname = nickname,
             password = password,
@@ -367,7 +367,7 @@ class UserSignUpServiceTest : FunSpec({
         val confirmPassword = RawPassword("Password123!")
 
         // when
-        userSignUpService.execute(
+        userSignUpFacade.execute(
             email = email,
             nickname = nickname,
             password = password,
@@ -392,7 +392,7 @@ class UserSignUpServiceTest : FunSpec({
 
         // when
         users.forEach { (email, nickname, password) ->
-            userSignUpService.execute(
+            userSignUpFacade.execute(
                 email = email,
                 nickname = nickname,
                 password = password,
