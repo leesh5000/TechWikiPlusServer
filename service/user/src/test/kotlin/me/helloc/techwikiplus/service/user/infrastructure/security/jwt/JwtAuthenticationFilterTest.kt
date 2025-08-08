@@ -7,25 +7,25 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.FilterChain
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.port.TokenManager
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
 
 class JwtAuthenticationFilterTest : DescribeSpec({
 
     lateinit var jwtTokenManager: TokenManager
     lateinit var filter: JwtAuthenticationFilter
-    lateinit var request: HttpServletRequest
-    lateinit var response: HttpServletResponse
+    lateinit var request: MockHttpServletRequest
+    lateinit var response: MockHttpServletResponse
     lateinit var filterChain: FilterChain
 
     beforeEach {
         jwtTokenManager = mockk()
         filter = JwtAuthenticationFilter(jwtTokenManager)
-        request = mockk(relaxed = true)
-        response = mockk(relaxed = true)
+        request = MockHttpServletRequest()
+        response = MockHttpServletResponse()
         filterChain = mockk(relaxed = true)
         SecurityContextHolder.clearContext()
     }
@@ -41,7 +41,7 @@ class JwtAuthenticationFilterTest : DescribeSpec({
                 val token = "valid.jwt.token"
                 val userId = UserId("user123")
 
-                every { request.getHeader("Authorization") } returns "Bearer $token"
+                request.addHeader("Authorization", "Bearer $token")
                 every { jwtTokenManager.validateAccessToken(token) } returns userId
 
                 // when
@@ -60,7 +60,7 @@ class JwtAuthenticationFilterTest : DescribeSpec({
         context("Authorization 헤더가 없을 때") {
             it("SecurityContext를 설정하지 않고 다음 필터로 진행해야 함") {
                 // given
-                every { request.getHeader("Authorization") } returns null
+                // 헤더를 추가하지 않음
 
                 // when
                 filter.doFilter(request, response, filterChain)
@@ -76,7 +76,7 @@ class JwtAuthenticationFilterTest : DescribeSpec({
         context("Bearer 접두사가 없을 때") {
             it("SecurityContext를 설정하지 않고 다음 필터로 진행해야 함") {
                 // given
-                every { request.getHeader("Authorization") } returns "InvalidFormat token"
+                request.addHeader("Authorization", "InvalidFormat token")
 
                 // when
                 filter.doFilter(request, response, filterChain)
@@ -94,7 +94,7 @@ class JwtAuthenticationFilterTest : DescribeSpec({
                 // given
                 val invalidToken = "invalid.jwt.token"
 
-                every { request.getHeader("Authorization") } returns "Bearer $invalidToken"
+                request.addHeader("Authorization", "Bearer $invalidToken")
                 every { jwtTokenManager.validateAccessToken(invalidToken) } throws Exception("Invalid token")
 
                 // when
