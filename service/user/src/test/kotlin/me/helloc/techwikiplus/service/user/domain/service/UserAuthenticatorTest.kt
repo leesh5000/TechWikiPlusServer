@@ -197,7 +197,7 @@ class UserAuthenticatorTest : FunSpec({
             test("대소문자가 다른 비밀번호는 INVALID_CREDENTIALS 예외를 발생시킨다") {
                 // given
                 val correctPassword = RawPassword("Password123!")
-                val wrongPassword = RawPassword("password123!")
+                val wrongPassword = RawPassword("pAssword123!")
                 val user =
                     User.create(
                         id = UserId("user-1"),
@@ -218,28 +218,14 @@ class UserAuthenticatorTest : FunSpec({
                 exception.errorCode shouldBe ErrorCode.INVALID_CREDENTIALS
             }
 
-            test("빈 비밀번호로 인증 시 INVALID_CREDENTIALS 예외를 발생시킨다") {
-                // given
-                val correctPassword = RawPassword("Password123!")
-                val emptyPassword = RawPassword("")
-                val user =
-                    User.create(
-                        id = UserId("user-1"),
-                        email = Email("test@example.com"),
-                        encodedPassword = passwordEncryptor.encode(correctPassword),
-                        nickname = Nickname("testuser"),
-                        status = UserStatus.ACTIVE,
-                        role = UserRole.USER,
-                        createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-                        modifiedAt = Instant.parse("2025-01-01T00:00:00Z"),
-                    )
-
+            test("빈 비밀번호로 인증 시 BLANK_PASSWORD 예외를 발생시킨다") {
                 // when & then
                 val exception =
                     shouldThrow<DomainException> {
-                        userAuthenticator.authenticate(user, emptyPassword)
+                        RawPassword("Password123!")
+                        RawPassword("")
                     }
-                exception.errorCode shouldBe ErrorCode.INVALID_CREDENTIALS
+                exception.errorCode shouldBe ErrorCode.BLANK_PASSWORD
             }
         }
 

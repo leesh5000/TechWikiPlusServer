@@ -10,11 +10,12 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.port.TokenManager
 import org.springframework.security.core.context.SecurityContextHolder
 
 class JwtAuthenticationFilterTest : DescribeSpec({
 
-    lateinit var jwtTokenManager: JwtTokenManager
+    lateinit var jwtTokenManager: TokenManager
     lateinit var filter: JwtAuthenticationFilter
     lateinit var request: HttpServletRequest
     lateinit var response: HttpServletResponse

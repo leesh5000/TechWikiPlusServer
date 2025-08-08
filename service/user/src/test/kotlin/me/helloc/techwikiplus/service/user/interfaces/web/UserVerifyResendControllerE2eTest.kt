@@ -453,10 +453,11 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
         val newCode = cacheStore.get(cacheKey)
 
         // When - 새 코드로 인증 시도
-        val verifyRequest = UserVerifyController.Request(
-            email = email,
-            registrationCode = newCode!!,
-        )
+        val verifyRequest =
+            UserVerifyController.Request(
+                email = email,
+                registrationCode = newCode!!,
+            )
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/v1/users/verify")

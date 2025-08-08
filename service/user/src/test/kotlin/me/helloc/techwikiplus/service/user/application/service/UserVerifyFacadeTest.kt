@@ -79,7 +79,7 @@ class UserVerifyFacadeTest : FunSpec({
         fakeUserRepository.save(pendingUser)
 
         val validCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, validCode.value)
 
         // when
@@ -110,7 +110,7 @@ class UserVerifyFacadeTest : FunSpec({
 
         val validCode = RegistrationCode("123456")
         val invalidCode = RegistrationCode("999999")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, validCode.value)
 
         // when & then
@@ -200,7 +200,7 @@ class UserVerifyFacadeTest : FunSpec({
         fakeUserRepository.save(pendingUser)
 
         val validCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, validCode.value)
 
         // when
@@ -227,7 +227,7 @@ class UserVerifyFacadeTest : FunSpec({
         fakeUserRepository.save(pendingUser)
 
         val validCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, validCode.value)
 
         var userReaderCalled = false
@@ -328,7 +328,7 @@ class UserVerifyFacadeTest : FunSpec({
         fakeUserRepository.save(pendingUser)
 
         val validCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, validCode.value)
 
         // when
@@ -357,7 +357,7 @@ class UserVerifyFacadeTest : FunSpec({
         fakeUserRepository.save(pendingUser)
 
         val validCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, validCode.value)
 
         // when

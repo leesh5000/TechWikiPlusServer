@@ -73,7 +73,7 @@ class SecurityConfigurationE2eTest : BaseE2eTest() {
 
     @Test
     fun `인증 없이 접근시 401 Unauthorized를 반환해야 함`() {
-        mockMvc.perform(get("/api/v1/users/profile"))
+        mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -85,7 +85,7 @@ class SecurityConfigurationE2eTest : BaseE2eTest() {
         every { jwtTokenManager.validateAccessToken(token) } returns userId
 
         mockMvc.perform(
-            get("/api/v1/users/profile")
+            get("/api/v1/users/me")
                 .header("Authorization", "Bearer $token"),
         ).andExpect(status().is2xxSuccessful) // 200 OK 또는 204 No Content 예상
     }

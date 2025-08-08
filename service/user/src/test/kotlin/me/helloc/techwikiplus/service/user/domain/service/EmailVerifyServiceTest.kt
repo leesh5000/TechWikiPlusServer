@@ -82,7 +82,7 @@ class EmailVerifyServiceTest : FunSpec({
         emailVerifyService.startVerification(user)
 
         // then
-        val cacheKey = "registration_code::${user.email}"
+        val cacheKey = "registration_code:${user.email.value}"
         fakeCacheStore.contains(cacheKey) shouldBe true
 
         val storedCode = fakeCacheStore.get(cacheKey)
@@ -109,7 +109,7 @@ class EmailVerifyServiceTest : FunSpec({
         emailVerifyService.startVerification(user)
 
         // then
-        val cacheKey = "registration_code::${user.email}"
+        val cacheKey = "registration_code:${user.email.value}"
         fakeCacheStore.contains(cacheKey) shouldBe true
 
         // 5분 후
@@ -121,7 +121,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val email = Email("test@example.com")
         val registrationCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, registrationCode.value, Duration.ofMinutes(5))
 
         // when
@@ -136,7 +136,7 @@ class EmailVerifyServiceTest : FunSpec({
         val email = Email("test@example.com")
         val correctCode = RegistrationCode("123456")
         val wrongCode = RegistrationCode("654321")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, correctCode.value, Duration.ofMinutes(5))
 
         // when & then
@@ -168,7 +168,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val email = Email("test@example.com")
         val registrationCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, registrationCode.value, Duration.ofMinutes(5))
 
         // 5분 이상 시간 경과
@@ -215,8 +215,8 @@ class EmailVerifyServiceTest : FunSpec({
         emailVerifyService.startVerification(user2)
 
         // then
-        val cacheKey1 = "registration_code::${user1.email}"
-        val cacheKey2 = "registration_code::${user2.email}"
+        val cacheKey1 = "registration_code:${user1.email.value}"
+        val cacheKey2 = "registration_code:${user2.email.value}"
 
         fakeCacheStore.contains(cacheKey1) shouldBe true
         fakeCacheStore.contains(cacheKey2) shouldBe true
@@ -249,10 +249,10 @@ class EmailVerifyServiceTest : FunSpec({
 
         // when
         emailVerifyService.startVerification(user)
-        val firstCode = fakeCacheStore.get("registration_code::${user.email}")
+        val firstCode = fakeCacheStore.get("registration_code:${user.email.value}")
 
         emailVerifyService.startVerification(user)
-        val secondCode = fakeCacheStore.get("registration_code::${user.email}")
+        val secondCode = fakeCacheStore.get("registration_code:${user.email.value}")
 
         // then
         firstCode shouldNotBe null
@@ -267,7 +267,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val email = Email("test@example.com")
         val registrationCode = RegistrationCode("123456")
-        val cacheKey = "registration_code::$email"
+        val cacheKey = "registration_code:${email.value}"
         fakeCacheStore.put(cacheKey, registrationCode.value, Duration.ofMinutes(5))
 
         // when

@@ -18,7 +18,7 @@ class UserProfileController(
     private val userRepository: UserRepository,
     private val securityContextService: SecurityContextService,
 ) {
-    @GetMapping("/profile")
+    @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     fun getMyProfile(): ResponseEntity<ProfileResponse> {
         val userId =
@@ -32,7 +32,7 @@ class UserProfileController(
         return ResponseEntity.ok(ProfileResponse.from(user))
     }
 
-    @GetMapping("/profile/{userId}")
+    @GetMapping("/{userId}/profile")
     @PreAuthorize("isAuthenticated() and (#userId == authentication.principal.value or hasRole('ADMIN'))")
     fun getUserProfile(
         @PathVariable userId: String,

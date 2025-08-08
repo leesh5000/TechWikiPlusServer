@@ -16,6 +16,8 @@ enum class ErrorCode {
     // Authentication
     INVALID_CREDENTIALS,
     PASSWORD_MISMATCH,
+    UNAUTHORIZED,
+    FORBIDDEN,
 
     // Token
     INVALID_TOKEN,

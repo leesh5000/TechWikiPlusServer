@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.kotest.core.spec.style.DescribeSpec
 import io.mockk.every
 import io.mockk.mockk
@@ -62,7 +63,10 @@ class JwtAuthenticationEntryPointTest : DescribeSpec({
                 verify {
                     writer.write(
                         match<String> { jsonString ->
-                            val mapper = ObjectMapper().registerModule(JavaTimeModule())
+                            val mapper =
+                                ObjectMapper()
+                                    .registerModule(JavaTimeModule())
+                                    .registerModule(KotlinModule.Builder().build())
                             val errorResponse = mapper.readValue(jsonString, ErrorResponse::class.java)
                             errorResponse.code == "UNAUTHORIZED" &&
                                 errorResponse.message == "인증이 필요합니다"
@@ -86,7 +90,10 @@ class JwtAuthenticationEntryPointTest : DescribeSpec({
                 verify {
                     writer.write(
                         match<String> { jsonString ->
-                            val mapper = ObjectMapper().registerModule(JavaTimeModule())
+                            val mapper =
+                                ObjectMapper()
+                                    .registerModule(JavaTimeModule())
+                                    .registerModule(KotlinModule.Builder().build())
                             val errorResponse = mapper.readValue(jsonString, ErrorResponse::class.java)
                             errorResponse.message == "인증이 필요합니다"
                         },

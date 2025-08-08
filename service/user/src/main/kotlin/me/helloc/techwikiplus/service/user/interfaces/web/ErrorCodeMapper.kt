@@ -29,7 +29,10 @@ class ErrorCodeMapper {
             ErrorCode.INVALID_TOKEN,
             ErrorCode.TOKEN_EXPIRED,
             ErrorCode.INVALID_TOKEN_TYPE,
+            ErrorCode.UNAUTHORIZED,
             -> HttpStatus.UNAUTHORIZED
+
+            ErrorCode.FORBIDDEN -> HttpStatus.FORBIDDEN
 
             ErrorCode.PASSWORD_MISMATCH -> HttpStatus.BAD_REQUEST
 
@@ -117,6 +120,8 @@ class ErrorCodeMapper {
                     }
                 ErrorCode.INVALID_CREDENTIALS -> "인증 정보가 올바르지 않습니다"
                 ErrorCode.PASSWORD_MISMATCH -> "비밀번호가 일치하지 않습니다"
+                ErrorCode.UNAUTHORIZED -> "인증이 필요합니다"
+                ErrorCode.FORBIDDEN -> "접근 권한이 없습니다"
                 ErrorCode.INVALID_TOKEN -> "유효하지 않은 토큰입니다"
                 ErrorCode.TOKEN_EXPIRED -> "만료된 토큰입니다"
                 ErrorCode.INVALID_TOKEN_TYPE ->

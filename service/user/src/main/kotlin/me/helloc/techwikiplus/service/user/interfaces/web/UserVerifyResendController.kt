@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class UserVerifyResendController(
-    private val userCase: UserVerifyResendUseCase
+    private val userCase: UserVerifyResendUseCase,
 ) {
     @PostMapping("/api/v1/users/verify/resend")
     fun resend(
