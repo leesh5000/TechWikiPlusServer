@@ -12,15 +12,16 @@ import java.time.Instant
 @RestController
 @Validated
 class UserProfileController(
-    private val useCase: UserProfileUseCase
+    private val useCase: UserProfileUseCase,
 ) {
     @GetMapping("/api/v1/users/{userId}", produces = ["application/json"])
     fun getUserProfile(
         @PathVariable("userId") userId: String,
-    ): ResponseEntity<Response> = UserId(userId)
-        .let(useCase::execute)
-        .let(Response::from)
-        .let { ResponseEntity.ok(it) }
+    ): ResponseEntity<Response> =
+        UserId(userId)
+            .let(useCase::execute)
+            .let(Response::from)
+            .let { ResponseEntity.ok(it) }
 
     data class Response(
         val userId: String,
@@ -32,15 +33,16 @@ class UserProfileController(
         val modifiedAt: Instant,
     ) {
         companion object {
-            fun from(result: UserProfileUseCase.Result): Response = Response(
-                userId = result.userId.value,
-                email = result.email,
-                nickname = result.nickname,
-                role = result.role.name,
-                status = result.status.name,
-                createdAt = result.createdAt,
-                modifiedAt = result.modifiedAt,
-            )
+            fun from(result: UserProfileUseCase.Result): Response =
+                Response(
+                    userId = result.userId.value,
+                    email = result.email,
+                    nickname = result.nickname,
+                    role = result.role.name,
+                    status = result.status.name,
+                    createdAt = result.createdAt,
+                    modifiedAt = result.modifiedAt,
+                )
         }
     }
 }

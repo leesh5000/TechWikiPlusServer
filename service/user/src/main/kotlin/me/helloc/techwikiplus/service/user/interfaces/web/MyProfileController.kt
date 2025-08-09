@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class MyProfileController(
-    private val userCase: MyProfileUseCase
+    private val userCase: MyProfileUseCase,
 ) {
     @GetMapping("/api/v1/users/me")
     fun getMyProfile(): ResponseEntity<Response> {
@@ -22,7 +22,7 @@ class MyProfileController(
         val role: String,
         val status: String,
         val createdAt: String,
-        val modifiedAt: String
+        val modifiedAt: String,
     ) {
         companion object {
             fun from(result: MyProfileUseCase.Result): Response {

@@ -6,7 +6,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import java.time.Instant
 
 interface UserProfileUseCase {
-    fun execute(targetUserId: UserId): Result
+    fun execute(userId: UserId): Result
 
     data class Result(
         val userId: UserId,
