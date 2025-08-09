@@ -51,16 +51,17 @@ class JwtAuthenticationFilterTest : DescribeSpec({
                 // given
                 val token = "valid.jwt.token"
                 val userId = UserId("user123")
-                val user = User(
-                    id = userId,
-                    email = Email("user@example.com"),
-                    encodedPassword = EncodedPassword("encoded"),
-                    nickname = Nickname("user"),
-                    role = UserRole.USER,
-                    status = UserStatus.ACTIVE,
-                    createdAt = Instant.now(),
-                    modifiedAt = Instant.now()
-                )
+                val user =
+                    User(
+                        id = userId,
+                        email = Email("user@example.com"),
+                        encodedPassword = EncodedPassword("encoded"),
+                        nickname = Nickname("user"),
+                        role = UserRole.USER,
+                        status = UserStatus.ACTIVE,
+                        createdAt = Instant.now(),
+                        modifiedAt = Instant.now(),
+                    )
 
                 request.addHeader("Authorization", "Bearer $token")
                 every { jwtTokenManager.validateAccessToken(token) } returns userId

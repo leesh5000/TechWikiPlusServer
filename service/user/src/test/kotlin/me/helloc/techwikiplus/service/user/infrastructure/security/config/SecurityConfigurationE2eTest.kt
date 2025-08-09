@@ -4,7 +4,14 @@ import io.mockk.every
 import io.mockk.mockk
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.domain.model.User
+import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.port.UserRepository
 import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtTokenManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,6 +23,7 @@ import org.springframework.context.annotation.Primary
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.Instant
 
 @E2eTest
 @Import(SecurityConfigurationE2eTest.TestConfig::class)
@@ -29,6 +37,9 @@ class SecurityConfigurationE2eTest : BaseE2eTest() {
 
     @Autowired
     private lateinit var jwtTokenManager: JwtTokenManager
+
+    @Autowired
+    private lateinit var userRepository: UserRepository
 
     @BeforeEach
     fun setupMocks() {
@@ -79,15 +90,34 @@ class SecurityConfigurationE2eTest : BaseE2eTest() {
 
     @Test
     fun `유효한 JWT 토큰으로 접근시 접근 가능해야 함`() {
+        // Given: 테스트용 사용자를 데이터베이스에 생성
+        val userId = "user123"
+        val testUser = createTestUser(userId)
+        userRepository.save(testUser)
+
+        // Given: JWT 토큰 검증 Mock 설정
         val token = "valid.jwt.token"
-        val userId = UserId("user123")
+        every { jwtTokenManager.validateAccessToken(token) } returns UserId(userId)
 
-        every { jwtTokenManager.validateAccessToken(token) } returns userId
-
+        // When & Then: 인증된 요청으로 프로필 조회
         mockMvc.perform(
             get("/api/v1/users/me")
                 .header("Authorization", "Bearer $token"),
         ).andExpect(status().is2xxSuccessful) // 200 OK 또는 204 No Content 예상
+    }
+
+    private fun createTestUser(userId: String): User {
+        // 테스트용 사용자 객체 생성
+        return User.create(
+            id = UserId(userId),
+            email = Email("test@example.com"),
+            encodedPassword = EncodedPassword("hashedPassword"),
+            nickname = Nickname("testUser"),
+            role = UserRole.USER,
+            status = UserStatus.ACTIVE,
+            createdAt = Instant.now(),
+            modifiedAt = Instant.now(),
+        )
     }
 
     @Test
