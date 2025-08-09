@@ -1,7 +1,6 @@
 package me.helloc.techwikiplus.service.user.infrastructure.persistence
 
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
@@ -19,23 +18,17 @@ class UserRepositoryImpl(
     private val mapper: UserEntityMapper,
 ) : UserRepository {
     override fun findBy(userId: UserId): User? {
-        return jpaRepository.findById(userId.value).orElse(null)?.let {
-            mapper.toDomain(it)
-        }
+        return jpaRepository.findById(userId.value)
+            .orElse(null)
+            ?.let {
+                mapper.toDomain(it)
+            }
     }
 
     override fun findBy(email: Email): User? {
-        return jpaRepository.findByEmail(email.value)?.let {
-            mapper.toDomain(it)
-        }
-    }
-
-    override fun findBy(
-        email: Email,
-        status: UserStatus,
-    ): User? {
-        return jpaRepository.findByEmailAndStatus(email.value, status.name)?.let {
-            mapper.toDomain(it)
+        return jpaRepository.findByEmail(email.value)
+            ?.let {
+                mapper.toDomain(it)
         }
     }
 

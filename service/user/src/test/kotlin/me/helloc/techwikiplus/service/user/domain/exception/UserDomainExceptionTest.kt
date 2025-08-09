@@ -65,7 +65,7 @@ class UserDomainExceptionTest : DescribeSpec({
                 ErrorCode.entries shouldContain ErrorCode.DUPLICATE_EMAIL
                 ErrorCode.entries shouldContain ErrorCode.DUPLICATE_NICKNAME
                 ErrorCode.entries shouldContain ErrorCode.USER_NOT_FOUND
-                ErrorCode.entries shouldContain ErrorCode.PENDING_USER_NOT_FOUND
+                ErrorCode.entries shouldContain ErrorCode.NO_STATUS_USER
             }
 
             it("Authentication 에러 코드를 포함한다") {

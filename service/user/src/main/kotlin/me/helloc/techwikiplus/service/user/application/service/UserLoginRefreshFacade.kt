@@ -19,7 +19,7 @@ class UserLoginRefreshFacade(
         userId: UserId,
         refreshToken: String,
     ): UserLoginRefreshUseCase.Result {
-        val activeUser = reader.getActiveUserBy(userId)
+        val activeUser = reader.get(userId)
         authenticator.authenticate(
             user = activeUser,
             refreshToken = refreshToken,

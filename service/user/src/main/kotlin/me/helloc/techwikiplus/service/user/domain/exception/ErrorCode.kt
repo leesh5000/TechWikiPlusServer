@@ -11,7 +11,7 @@ enum class ErrorCode {
     DUPLICATE_EMAIL,
     DUPLICATE_NICKNAME,
     USER_NOT_FOUND,
-    PENDING_USER_NOT_FOUND,
+    NO_STATUS_USER,
 
     // Authentication
     INVALID_CREDENTIALS,

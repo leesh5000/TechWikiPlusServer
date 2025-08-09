@@ -58,7 +58,6 @@ class UserVerifyResendFacadeTest : FunSpec({
             UserVerifyResendFacade(
                 userReader = userReader,
                 emailVerifyService = emailVerifyService,
-                userModifier = userModifier,
             )
     }
 
@@ -190,7 +189,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             updatedUser.modifiedAt shouldBe createdTime
         }
 
-        test("ACTIVE 상태의 사용자로 재전송 시도 시 PENDING_USER_NOT_FOUND 예외가 발생한다") {
+        test("ACTIVE 상태의 사용자로 재전송 시도 시 NO_STATUS_USER 예외가 발생한다") {
             // given
             val email = Email("test@example.com")
             val activeUser =
@@ -212,14 +211,14 @@ class UserVerifyResendFacadeTest : FunSpec({
                     userVerifyResendFacade.execute(email)
                 }
 
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
-            exception.params shouldBe arrayOf(email.value)
+            exception.errorCode shouldBe ErrorCode.NO_STATUS_USER
+            exception.params shouldBe arrayOf(UserStatus.PENDING)
 
             // 메일이 전송되지 않아야 함
             fakeMailSender.getSentMailCount() shouldBe 0
         }
 
-        test("존재하지 않는 이메일로 재전송 시도 시 PENDING_USER_NOT_FOUND 예외가 발생한다") {
+        test("존재하지 않는 이메일로 재전송 시도 시 USER_NOT_FOUND 예외가 발생한다") {
             // given
             val email = Email("nonexistent@example.com")
 
@@ -229,7 +228,7 @@ class UserVerifyResendFacadeTest : FunSpec({
                     userVerifyResendFacade.execute(email)
                 }
 
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
+            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
             exception.params shouldBe arrayOf(email.value)
 
             // 메일이 전송되지 않아야 함
@@ -271,7 +270,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             fakeMailSender.getSentMailCount() shouldBe 5
         }
 
-        test("BANNED 상태의 사용자로 재전송 시도 시 PENDING_USER_NOT_FOUND 예외가 발생한다") {
+        test("BANNED 상태의 사용자로 재전송 시도 시 NO_STATUS_USER 예외가 발생한다") {
             // given
             val email = Email("test@example.com")
             val bannedUser =
@@ -293,11 +292,11 @@ class UserVerifyResendFacadeTest : FunSpec({
                     userVerifyResendFacade.execute(email)
                 }
 
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
-            exception.params shouldBe arrayOf(email.value)
+            exception.errorCode shouldBe ErrorCode.NO_STATUS_USER
+            exception.params shouldBe arrayOf(UserStatus.PENDING)
         }
 
-        test("DORMANT 상태의 사용자로 재전송 시도 시 PENDING_USER_NOT_FOUND 예외가 발생한다") {
+        test("DORMANT 상태의 사용자로 재전송 시도 시 NO_STATUS_USER 예외가 발생한다") {
             // given
             val email = Email("test@example.com")
             val dormantUser =
@@ -319,8 +318,8 @@ class UserVerifyResendFacadeTest : FunSpec({
                     userVerifyResendFacade.execute(email)
                 }
 
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
-            exception.params shouldBe arrayOf(email.value)
+            exception.errorCode shouldBe ErrorCode.NO_STATUS_USER
+            exception.params shouldBe arrayOf(UserStatus.PENDING)
         }
 
         test("재전송 프로세스가 올바른 순서로 실행되어야 한다") {
@@ -348,17 +347,6 @@ class UserVerifyResendFacadeTest : FunSpec({
                 object : FakeUserRepository() {
                     init {
                         save(pendingUser)
-                    }
-
-                    override fun findBy(
-                        email: Email,
-                        status: UserStatus,
-                    ): User? {
-                        if (status == UserStatus.PENDING && !userReaderCalled) {
-                            userReaderCalled = true
-                            callOrder.add("userReader")
-                        }
-                        return super.findBy(email, status)
                     }
 
                     override fun save(user: User): User {
@@ -390,17 +378,10 @@ class UserVerifyResendFacadeTest : FunSpec({
                     cacheStore = fakeCacheStore,
                 )
 
-            userModifier =
-                UserModifier(
-                    clockHolder = fakeClockHolder,
-                    repository = fakeUserRepository,
-                )
-
             userVerifyResendFacade =
                 UserVerifyResendFacade(
                     userReader = userReader,
                     emailVerifyService = emailVerifyService,
-                    userModifier = userModifier,
                 )
 
             // when

@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.service.user.application.service
 
 import me.helloc.techwikiplus.service.user.domain.model.User
+import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
 import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
@@ -22,7 +23,7 @@ class UserVerifyFacade(
         code: RegistrationCode,
     ) {
         // 1. 회원 가입 대기중인 사용자 조회
-        val pendingUser: User = userReader.getPendingUserBy(email)
+        val pendingUser: User = userReader.get(email, UserStatus.PENDING)
 
         // 2. 인증 코드가 유효한지 확인
         emailVerifyService.verify(pendingUser.email, code)

@@ -21,7 +21,7 @@ class UserLoginFacade(
         password: RawPassword,
     ): UserLoginUseCase.Result {
         // Retrieve user by email
-        val user = reader.getActiveUserBy(email)
+        val user = reader.get(email)
 
         // Authenticate user
         authenticator.authenticate(user, password)

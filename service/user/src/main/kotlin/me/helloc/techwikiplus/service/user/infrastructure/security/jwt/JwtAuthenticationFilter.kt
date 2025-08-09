@@ -4,13 +4,16 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import me.helloc.techwikiplus.service.user.domain.port.TokenManager
+import me.helloc.techwikiplus.service.user.domain.port.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.OncePerRequestFilter
 
 class JwtAuthenticationFilter(
     private val jwtTokenManager: TokenManager,
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
     companion object {
         private val log = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
@@ -28,16 +31,24 @@ class JwtAuthenticationFilter(
 
             if (token != null) {
                 val userId = jwtTokenManager.validateAccessToken(token)
+                
+                // Fetch user to get role information
+                val user = userRepository.findBy(userId)
+                val authorities = if (user != null) {
+                    listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
+                } else {
+                    emptyList()
+                }
 
                 val authentication =
                     UsernamePasswordAuthenticationToken(
                         userId,
                         null,
-                        emptyList(),
+                        authorities,
                     )
 
                 SecurityContextHolder.getContext().authentication = authentication
-                log.debug("JWT authentication successful for user: ${userId.value}")
+                log.debug("JWT authentication successful for user: ${userId.value} with role: ${user?.role?.name}")
             }
         } catch (e: Exception) {
             log.debug("JWT authentication failed: ${e.message}")

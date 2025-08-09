@@ -149,7 +149,7 @@ class UserVerifyFacadeTest : FunSpec({
                 userVerifyFacade.execute(email, code)
             }
 
-        exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
+        exception.errorCode shouldBe ErrorCode.NO_STATUS_USER
         exception.params shouldBe arrayOf(email.value)
     }
 
@@ -239,17 +239,6 @@ class UserVerifyFacadeTest : FunSpec({
             object : FakeUserRepository() {
                 init {
                     save(pendingUser)
-                }
-
-                override fun findBy(
-                    email: Email,
-                    status: UserStatus,
-                ): User? {
-                    if (status == UserStatus.PENDING && !userReaderCalled) {
-                        userReaderCalled = true
-                        callOrder.add("userReader")
-                    }
-                    return super.findBy(email, status)
                 }
 
                 override fun save(user: User): User {
@@ -369,7 +358,7 @@ class UserVerifyFacadeTest : FunSpec({
                 userVerifyFacade.execute(email, validCode)
             }
 
-        exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
+        exception.errorCode shouldBe ErrorCode.NO_STATUS_USER
     }
 
     test("BANNED 상태의 사용자는 인증할 수 없어야 한다") {
@@ -396,7 +385,7 @@ class UserVerifyFacadeTest : FunSpec({
                 userVerifyFacade.execute(email, code)
             }
 
-        exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
+        exception.errorCode shouldBe ErrorCode.NO_STATUS_USER
         exception.params shouldBe arrayOf(email.value)
     }
 })

@@ -21,7 +21,7 @@ class ErrorCodeMapper {
             ErrorCode.DUPLICATE_NICKNAME,
             -> HttpStatus.CONFLICT
             ErrorCode.USER_NOT_FOUND,
-            ErrorCode.PENDING_USER_NOT_FOUND,
+            ErrorCode.NO_STATUS_USER,
             -> HttpStatus.NOT_FOUND
 
             // Authentication
@@ -90,10 +90,10 @@ class ErrorCodeMapper {
     ): String {
         val baseMessage =
             when (errorCode) {
-                ErrorCode.USER_DORMANT -> "휴면 계정입니다"
-                ErrorCode.USER_BANNED -> "차단된 계정입니다"
-                ErrorCode.USER_PENDING -> "인증 대기중인 계정입니다"
-                ErrorCode.USER_DELETED -> "삭제된 계정입니다"
+                ErrorCode.USER_DORMANT -> "휴면 계정입니다. 관리자에게 문의해주세요"
+                ErrorCode.USER_BANNED -> "차단된 계정입니다. 관리자에게 문의해주세요"
+                ErrorCode.USER_PENDING -> "인증 대기중인 계정입니다. 이메일 인증을 완료 후 다시 시도해주세요."
+                ErrorCode.USER_DELETED -> "이미 삭제된 계정입니다."
                 ErrorCode.DUPLICATE_EMAIL ->
                     if (params.isNotEmpty()) {
                         "이미 사용중인 이메일(${params[0]})입니다"
@@ -112,11 +112,11 @@ class ErrorCodeMapper {
                     } else {
                         "사용자를 찾을 수 없습니다"
                     }
-                ErrorCode.PENDING_USER_NOT_FOUND ->
+                ErrorCode.NO_STATUS_USER ->
                     if (params.isNotEmpty()) {
-                        "대기중인 사용자(${params[0]})를 찾을 수 없습니다"
+                        "${params[0]} 상태의 사용자를 찾을 수 없습니다"
                     } else {
-                        "대기중인 사용자를 찾을 수 없습니다"
+                        "사용자를 찾을 수 없습니다"
                     }
                 ErrorCode.INVALID_CREDENTIALS -> "인증 정보가 올바르지 않습니다"
                 ErrorCode.PASSWORD_MISMATCH -> "비밀번호가 일치하지 않습니다"

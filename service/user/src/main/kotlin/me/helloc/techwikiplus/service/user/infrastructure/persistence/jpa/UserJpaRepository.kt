@@ -21,17 +21,4 @@ interface UserJpaRepository : JpaRepository<UserEntity, String> {
         nativeQuery = true,
     )
     fun findByEmail(email: String): UserEntity?
-
-    @Query(
-        value = """
-            SELECT id, email, nickname, password, status, role, created_at, modified_at
-            FROM users u
-            WHERE u.email = :email AND u.status = :status
-            """,
-        nativeQuery = true,
-    )
-    fun findByEmailAndStatus(
-        email: String,
-        status: String,
-    ): UserEntity?
 }

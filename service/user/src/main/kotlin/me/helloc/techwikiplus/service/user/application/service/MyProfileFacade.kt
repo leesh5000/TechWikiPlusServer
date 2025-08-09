@@ -2,22 +2,22 @@ package me.helloc.techwikiplus.service.user.application.service
 
 import me.helloc.techwikiplus.service.user.domain.service.UserAuthorizationService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
-import me.helloc.techwikiplus.service.user.interfaces.web.port.GetMyProfileUseCase
+import me.helloc.techwikiplus.service.user.interfaces.web.port.MyProfileUseCase
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
 @Transactional(readOnly = true)
-class GetMyProfileFacade(
+class MyProfileFacade(
     private val userReader: UserReader,
     private val authorizationService: UserAuthorizationService,
-) : GetMyProfileUseCase {
-    override fun execute(): GetMyProfileUseCase.Result {
+) : MyProfileUseCase {
+    override fun execute(): MyProfileUseCase.Result {
         val currentUserId = authorizationService.getCurrentUserOrThrow()
 
-        val user = userReader.getActiveUserBy(currentUserId)
+        val user = userReader.get(currentUserId)
 
-        return GetMyProfileUseCase.Result(
+        return MyProfileUseCase.Result(
             userId = user.id,
             email = user.email.value,
             nickname = user.nickname.value,

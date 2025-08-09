@@ -13,20 +13,36 @@ import org.springframework.stereotype.Service
 class UserReader(
     private val repository: UserRepository,
 ) {
-    fun getActiveUserBy(userId: UserId): User {
-        return repository.findBy(userId)
+    fun get(userId: UserId): User {
+        val user: User = repository.findBy(userId)
             ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(userId.value))
+        return validateUserStatus(user)
     }
 
-    @Throws(DomainException::class)
-    fun getPendingUserBy(email: Email): User {
-        return repository.findBy(email, UserStatus.PENDING)
-            ?: throw DomainException(ErrorCode.PENDING_USER_NOT_FOUND, arrayOf(email.value))
-    }
-
-    @Throws(DomainException::class)
-    fun getActiveUserBy(email: Email): User {
-        return repository.findBy(email, UserStatus.ACTIVE)
+    fun get(email: Email, status: UserStatus): User {
+        val user: User = repository.findBy(email)
             ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(email.value))
+        if (user.status != status) {
+            throw DomainException(ErrorCode.NO_STATUS_USER, arrayOf(status))
+        }
+        return validateUserStatus(user)
+    }
+
+    fun get(email: Email): User {
+        val user: User = repository.findBy(email)
+            ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(email))
+        return validateUserStatus(user)
+    }
+
+    private fun validateUserStatus(
+        user: User,
+    ): User {
+        return when (user.status) {
+            UserStatus.ACTIVE -> user
+            UserStatus.DORMANT -> throw DomainException(ErrorCode.USER_DORMANT, arrayOf(user.email.value))
+            UserStatus.DELETED -> throw DomainException(ErrorCode.USER_DELETED, arrayOf(user.email.value))
+            UserStatus.BANNED -> throw DomainException(ErrorCode.USER_BANNED, arrayOf(user.email.value))
+            UserStatus.PENDING -> throw DomainException(ErrorCode.USER_PENDING, arrayOf(user.email.value))
+        }
     }
 }

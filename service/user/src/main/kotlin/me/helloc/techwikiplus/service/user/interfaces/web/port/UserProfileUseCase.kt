@@ -5,7 +5,7 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import java.time.Instant
 
-interface GetUserProfileUseCase {
+interface UserProfileUseCase {
     fun execute(targetUserId: UserId): Result
 
     data class Result(

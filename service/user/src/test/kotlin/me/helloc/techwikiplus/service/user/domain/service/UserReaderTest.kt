@@ -30,7 +30,7 @@ class UserReaderTest : FunSpec({
         repository.clear()
     }
 
-    context("getActiveUserBy(UserId) 메서드는") {
+    context("get(UserId) 메서드는") {
         test("존재하는 사용자 ID로 조회하면 사용자를 반환한다") {
             // given
             val userId = UserId("user-1")
@@ -48,7 +48,7 @@ class UserReaderTest : FunSpec({
             repository.save(user)
 
             // when
-            val result = userReader.getActiveUserBy(userId)
+            val result = userReader.get(userId)
 
             // then
             result shouldNotBe null
@@ -66,13 +66,13 @@ class UserReaderTest : FunSpec({
             // when & then
             val exception =
                 shouldThrow<DomainException> {
-                    userReader.getActiveUserBy(nonExistentUserId)
+                    userReader.get(nonExistentUserId)
                 }
             exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
             exception.params shouldBe arrayOf("non-existent-user")
         }
 
-        test("PENDING 상태의 사용자도 조회할 수 있다") {
+        test("PENDING 상태의 사용자를 조회하면 USER_PENDING 예외를 발생시킨다") {
             // given
             val userId = UserId("pending-user")
             val pendingUser =
@@ -87,15 +87,16 @@ class UserReaderTest : FunSpec({
                 )
             repository.save(pendingUser)
 
-            // when
-            val result = userReader.getActiveUserBy(userId)
-
-            // then
-            result shouldBe pendingUser
-            result.status shouldBe UserStatus.PENDING
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(userId)
+                }
+            exception.errorCode shouldBe ErrorCode.USER_PENDING
+            exception.params shouldBe arrayOf("pending@example.com")
         }
 
-        test("DORMANT 상태의 사용자도 조회할 수 있다") {
+        test("DORMANT 상태의 사용자를 조회하면 USER_DORMANT 예외를 발생시킨다") {
             // given
             val userId = UserId("dormant-user")
             val dormantUser =
@@ -110,12 +111,61 @@ class UserReaderTest : FunSpec({
                 )
             repository.save(dormantUser)
 
-            // when
-            val result = userReader.getActiveUserBy(userId)
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(userId)
+                }
+            exception.errorCode shouldBe ErrorCode.USER_DORMANT
+            exception.params shouldBe arrayOf("dormant@example.com")
+        }
 
-            // then
-            result shouldBe dormantUser
-            result.status shouldBe UserStatus.DORMANT
+        test("BANNED 상태의 사용자를 조회하면 USER_BANNED 예외를 발생시킨다") {
+            // given
+            val userId = UserId("banned-user")
+            val bannedUser =
+                User.create(
+                    id = userId,
+                    email = Email("banned@example.com"),
+                    encodedPassword = EncodedPassword("encoded_password"),
+                    nickname = Nickname("banneduser"),
+                    status = UserStatus.BANNED,
+                    role = UserRole.USER,
+                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+                )
+            repository.save(bannedUser)
+
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(userId)
+                }
+            exception.errorCode shouldBe ErrorCode.USER_BANNED
+            exception.params shouldBe arrayOf("banned@example.com")
+        }
+
+        test("DELETED 상태의 사용자를 조회하면 USER_DELETED 예외를 발생시킨다") {
+            // given
+            val userId = UserId("deleted-user")
+            val deletedUser =
+                User.create(
+                    id = userId,
+                    email = Email("deleted@example.com"),
+                    encodedPassword = EncodedPassword("encoded_password"),
+                    nickname = Nickname("deleteduser"),
+                    status = UserStatus.DELETED,
+                    role = UserRole.USER,
+                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+                )
+            repository.save(deletedUser)
+
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(userId)
+                }
+            exception.errorCode shouldBe ErrorCode.USER_DELETED
+            exception.params shouldBe arrayOf("deleted@example.com")
         }
 
         test("여러 사용자 중에서 정확한 ID로 사용자를 찾는다") {
@@ -155,7 +205,7 @@ class UserReaderTest : FunSpec({
             repository.save(user3)
 
             // when
-            val result = userReader.getActiveUserBy(UserId("user-2"))
+            val result = userReader.get(UserId("user-2"))
 
             // then
             result shouldBe user2
@@ -164,157 +214,7 @@ class UserReaderTest : FunSpec({
         }
     }
 
-    context("getPendingUserBy(Email) 메서드는") {
-        test("PENDING 상태의 사용자를 이메일로 조회하면 성공한다") {
-            // given
-            val email = Email("pending@example.com")
-            val pendingUser =
-                User.create(
-                    id = UserId("pending-user"),
-                    email = email,
-                    encodedPassword = EncodedPassword("encoded_password"),
-                    nickname = Nickname("pendinguser"),
-                    status = UserStatus.PENDING,
-                    role = UserRole.USER,
-                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-                )
-            repository.save(pendingUser)
-
-            // when
-            val result = userReader.getPendingUserBy(email)
-
-            // then
-            result shouldNotBe null
-            result shouldBe pendingUser
-            result.email shouldBe email
-            result.status shouldBe UserStatus.PENDING
-        }
-
-        test("존재하지 않는 이메일로 조회하면 PENDING_USER_NOT_FOUND 예외를 발생시킨다") {
-            // given
-            val nonExistentEmail = Email("nonexistent@example.com")
-
-            // when & then
-            val exception =
-                shouldThrow<DomainException> {
-                    userReader.getPendingUserBy(nonExistentEmail)
-                }
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
-            exception.params shouldBe arrayOf("nonexistent@example.com")
-        }
-
-        test("ACTIVE 상태의 사용자만 있으면 PENDING_USER_NOT_FOUND 예외를 발생시킨다") {
-            // given
-            val email = Email("active@example.com")
-            val activeUser =
-                User.create(
-                    id = UserId("active-user"),
-                    email = email,
-                    encodedPassword = EncodedPassword("encoded_password"),
-                    nickname = Nickname("activeuser"),
-                    status = UserStatus.ACTIVE,
-                    role = UserRole.USER,
-                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-                )
-            repository.save(activeUser)
-
-            // when & then
-            val exception =
-                shouldThrow<DomainException> {
-                    userReader.getPendingUserBy(email)
-                }
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
-            exception.params shouldBe arrayOf("active@example.com")
-        }
-
-        test("DORMANT 상태의 사용자만 있으면 PENDING_USER_NOT_FOUND 예외를 발생시킨다") {
-            // given
-            val email = Email("dormant@example.com")
-            val dormantUser =
-                User.create(
-                    id = UserId("dormant-user"),
-                    email = email,
-                    encodedPassword = EncodedPassword("encoded_password"),
-                    nickname = Nickname("dormantuser"),
-                    status = UserStatus.DORMANT,
-                    role = UserRole.USER,
-                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-                )
-            repository.save(dormantUser)
-
-            // when & then
-            val exception =
-                shouldThrow<DomainException> {
-                    userReader.getPendingUserBy(email)
-                }
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
-            exception.params shouldBe arrayOf("dormant@example.com")
-        }
-
-        test("BANNED 상태의 사용자만 있으면 PENDING_USER_NOT_FOUND 예외를 발생시킨다") {
-            // given
-            val email = Email("banned@example.com")
-            val bannedUser =
-                User.create(
-                    id = UserId("banned-user"),
-                    email = email,
-                    encodedPassword = EncodedPassword("encoded_password"),
-                    nickname = Nickname("banneduser"),
-                    status = UserStatus.BANNED,
-                    role = UserRole.USER,
-                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-                )
-            repository.save(bannedUser)
-
-            // when & then
-            val exception =
-                shouldThrow<DomainException> {
-                    userReader.getPendingUserBy(email)
-                }
-            exception.errorCode shouldBe ErrorCode.PENDING_USER_NOT_FOUND
-            exception.params shouldBe arrayOf("banned@example.com")
-        }
-
-        test("여러 사용자 중 PENDING 상태의 사용자만 조회한다") {
-            // given
-            val email = Email("test@example.com")
-
-            // 먼저 ACTIVE 사용자 저장
-            val activeUser =
-                User.create(
-                    id = UserId("active-user"),
-                    email = Email("active@example.com"),
-                    encodedPassword = EncodedPassword("encoded_password"),
-                    nickname = Nickname("activeuser"),
-                    status = UserStatus.ACTIVE,
-                    role = UserRole.USER,
-                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-                )
-            repository.save(activeUser)
-
-            // PENDING 사용자 저장
-            val pendingUser =
-                User.create(
-                    id = UserId("pending-user"),
-                    email = email,
-                    encodedPassword = EncodedPassword("encoded_password"),
-                    nickname = Nickname("pendinguser"),
-                    status = UserStatus.PENDING,
-                    role = UserRole.USER,
-                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
-                )
-            repository.save(pendingUser)
-
-            // when
-            val result = userReader.getPendingUserBy(email)
-
-            // then
-            result shouldBe pendingUser
-            result.status shouldBe UserStatus.PENDING
-        }
-    }
-
-    context("getActiveUserBy(Email) 메서드는") {
+    context("get(Email) 메서드는") {
         test("ACTIVE 상태의 사용자를 이메일로 조회하면 성공한다") {
             // given
             val email = Email("active@example.com")
@@ -331,7 +231,7 @@ class UserReaderTest : FunSpec({
             repository.save(activeUser)
 
             // when
-            val result = userReader.getActiveUserBy(email)
+            val result = userReader.get(email)
 
             // then
             result shouldNotBe null
@@ -347,13 +247,13 @@ class UserReaderTest : FunSpec({
             // when & then
             val exception =
                 shouldThrow<DomainException> {
-                    userReader.getActiveUserBy(nonExistentEmail)
+                    userReader.get(nonExistentEmail)
                 }
             exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
-            exception.params shouldBe arrayOf("nonexistent@example.com")
+            exception.params shouldBe arrayOf(Email("nonexistent@example.com"))
         }
 
-        test("PENDING 상태의 사용자만 있으면 USER_NOT_FOUND 예외를 발생시킨다") {
+        test("PENDING 상태의 사용자만 있으면 USER_PENDING 예외를 발생시킨다") {
             // given
             val email = Email("pending@example.com")
             val pendingUser =
@@ -371,13 +271,13 @@ class UserReaderTest : FunSpec({
             // when & then
             val exception =
                 shouldThrow<DomainException> {
-                    userReader.getActiveUserBy(email)
+                    userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.errorCode shouldBe ErrorCode.USER_PENDING
             exception.params shouldBe arrayOf("pending@example.com")
         }
 
-        test("DORMANT 상태의 사용자만 있으면 USER_NOT_FOUND 예외를 발생시킨다") {
+        test("DORMANT 상태의 사용자만 있으면 USER_DORMANT 예외를 발생시킨다") {
             // given
             val email = Email("dormant@example.com")
             val dormantUser =
@@ -395,13 +295,13 @@ class UserReaderTest : FunSpec({
             // when & then
             val exception =
                 shouldThrow<DomainException> {
-                    userReader.getActiveUserBy(email)
+                    userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.errorCode shouldBe ErrorCode.USER_DORMANT
             exception.params shouldBe arrayOf("dormant@example.com")
         }
 
-        test("BANNED 상태의 사용자만 있으면 USER_NOT_FOUND 예외를 발생시킨다") {
+        test("BANNED 상태의 사용자만 있으면 USER_BANNED 예외를 발생시킨다") {
             // given
             val email = Email("banned@example.com")
             val bannedUser =
@@ -419,13 +319,13 @@ class UserReaderTest : FunSpec({
             // when & then
             val exception =
                 shouldThrow<DomainException> {
-                    userReader.getActiveUserBy(email)
+                    userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.errorCode shouldBe ErrorCode.USER_BANNED
             exception.params shouldBe arrayOf("banned@example.com")
         }
 
-        test("DELETED 상태의 사용자만 있으면 USER_NOT_FOUND 예외를 발생시킨다") {
+        test("DELETED 상태의 사용자만 있으면 USER_DELETED 예외를 발생시킨다") {
             // given
             val email = Email("deleted@example.com")
             val deletedUser =
@@ -443,9 +343,9 @@ class UserReaderTest : FunSpec({
             // when & then
             val exception =
                 shouldThrow<DomainException> {
-                    userReader.getActiveUserBy(email)
+                    userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.errorCode shouldBe ErrorCode.USER_DELETED
             exception.params shouldBe arrayOf("deleted@example.com")
         }
 
@@ -480,7 +380,7 @@ class UserReaderTest : FunSpec({
             repository.save(activeUser)
 
             // when
-            val result = userReader.getActiveUserBy(email)
+            val result = userReader.get(email)
 
             // then
             result shouldBe activeUser
@@ -503,12 +403,123 @@ class UserReaderTest : FunSpec({
             repository.save(adminUser)
 
             // when
-            val result = userReader.getActiveUserBy(email)
+            val result = userReader.get(email)
 
             // then
             result shouldBe adminUser
             result.status shouldBe UserStatus.ACTIVE
             result.role shouldBe UserRole.ADMIN
+        }
+    }
+
+    context("get(Email, UserStatus) 메서드는") {
+        test("이메일과 상태가 일치하는 사용자를 조회하면 성공한다") {
+            // given
+            val email = Email("pending@example.com")
+            val pendingUser =
+                User.create(
+                    id = UserId("pending-user"),
+                    email = email,
+                    encodedPassword = EncodedPassword("encoded_password"),
+                    nickname = Nickname("pendinguser"),
+                    status = UserStatus.PENDING,
+                    role = UserRole.USER,
+                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+                )
+            repository.save(pendingUser)
+
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(email, UserStatus.PENDING)
+                }
+            // PENDING 상태여도 validateUserStatus에서 예외 발생
+            exception.errorCode shouldBe ErrorCode.USER_PENDING
+            exception.params shouldBe arrayOf("pending@example.com")
+        }
+
+        test("이메일은 존재하지만 상태가 일치하지 않으면 NO_STATUS_USER 예외를 발생시킨다") {
+            // given
+            val email = Email("active@example.com")
+            val activeUser =
+                User.create(
+                    id = UserId("active-user"),
+                    email = email,
+                    encodedPassword = EncodedPassword("encoded_password"),
+                    nickname = Nickname("activeuser"),
+                    status = UserStatus.ACTIVE,
+                    role = UserRole.USER,
+                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+                )
+            repository.save(activeUser)
+
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(email, UserStatus.PENDING)
+                }
+            exception.errorCode shouldBe ErrorCode.NO_STATUS_USER
+            exception.params shouldBe arrayOf(UserStatus.PENDING)
+        }
+
+        test("이메일이 존재하지 않으면 USER_NOT_FOUND 예외를 발생시킨다") {
+            // given
+            val nonExistentEmail = Email("nonexistent@example.com")
+
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(nonExistentEmail, UserStatus.ACTIVE)
+                }
+            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.params shouldBe arrayOf("nonexistent@example.com")
+        }
+
+        test("ACTIVE 상태로 조회했을 때 일치하면 사용자를 반환한다") {
+            // given
+            val email = Email("active@example.com")
+            val activeUser =
+                User.create(
+                    id = UserId("active-user"),
+                    email = email,
+                    encodedPassword = EncodedPassword("encoded_password"),
+                    nickname = Nickname("activeuser"),
+                    status = UserStatus.ACTIVE,
+                    role = UserRole.USER,
+                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+                )
+            repository.save(activeUser)
+
+            // when
+            val result = userReader.get(email, UserStatus.ACTIVE)
+
+            // then
+            result shouldBe activeUser
+            result.status shouldBe UserStatus.ACTIVE
+        }
+
+        test("DORMANT 상태로 조회했을 때 일치해도 USER_DORMANT 예외를 발생시킨다") {
+            // given
+            val email = Email("dormant@example.com")
+            val dormantUser =
+                User.create(
+                    id = UserId("dormant-user"),
+                    email = email,
+                    encodedPassword = EncodedPassword("encoded_password"),
+                    nickname = Nickname("dormantuser"),
+                    status = UserStatus.DORMANT,
+                    role = UserRole.USER,
+                    createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+                )
+            repository.save(dormantUser)
+
+            // when & then
+            val exception =
+                shouldThrow<DomainException> {
+                    userReader.get(email, UserStatus.DORMANT)
+                }
+            exception.errorCode shouldBe ErrorCode.USER_DORMANT
+            exception.params shouldBe arrayOf("dormant@example.com")
         }
     }
 })

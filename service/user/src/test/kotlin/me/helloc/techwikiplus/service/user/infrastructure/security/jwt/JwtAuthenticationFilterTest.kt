@@ -7,15 +7,25 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.FilterChain
+import me.helloc.techwikiplus.service.user.domain.model.User
+import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
+import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.port.TokenManager
+import me.helloc.techwikiplus.service.user.domain.port.UserRepository
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import java.time.Instant
 
 class JwtAuthenticationFilterTest : DescribeSpec({
 
     lateinit var jwtTokenManager: TokenManager
+    lateinit var userRepository: UserRepository
     lateinit var filter: JwtAuthenticationFilter
     lateinit var request: MockHttpServletRequest
     lateinit var response: MockHttpServletResponse
@@ -23,7 +33,8 @@ class JwtAuthenticationFilterTest : DescribeSpec({
 
     beforeEach {
         jwtTokenManager = mockk()
-        filter = JwtAuthenticationFilter(jwtTokenManager)
+        userRepository = mockk()
+        filter = JwtAuthenticationFilter(jwtTokenManager, userRepository)
         request = MockHttpServletRequest()
         response = MockHttpServletResponse()
         filterChain = mockk(relaxed = true)
@@ -40,9 +51,20 @@ class JwtAuthenticationFilterTest : DescribeSpec({
                 // given
                 val token = "valid.jwt.token"
                 val userId = UserId("user123")
+                val user = User(
+                    id = userId,
+                    email = Email("user@example.com"),
+                    encodedPassword = EncodedPassword("encoded"),
+                    nickname = Nickname("user"),
+                    role = UserRole.USER,
+                    status = UserStatus.ACTIVE,
+                    createdAt = Instant.now(),
+                    modifiedAt = Instant.now()
+                )
 
                 request.addHeader("Authorization", "Bearer $token")
                 every { jwtTokenManager.validateAccessToken(token) } returns userId
+                every { userRepository.findBy(userId) } returns user
 
                 // when
                 filter.doFilter(request, response, filterChain)
@@ -52,6 +74,7 @@ class JwtAuthenticationFilterTest : DescribeSpec({
                 authentication shouldNotBe null
                 authentication?.principal shouldBe userId
                 authentication?.isAuthenticated shouldBe true
+                authentication?.authorities?.contains(SimpleGrantedAuthority("ROLE_USER")) shouldBe true
 
                 verify { filterChain.doFilter(request, response) }
             }

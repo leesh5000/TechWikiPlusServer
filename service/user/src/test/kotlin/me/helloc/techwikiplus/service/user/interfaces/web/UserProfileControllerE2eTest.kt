@@ -115,7 +115,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile - 인증된 사용자가 자신의 프로필을 조회할 때 200 OK와 프로필 정보를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile")
+            MockMvcRequestBuilders.get("/api/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $testUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -180,7 +180,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile - 인증되지 않은 사용자가 프로필을 조회할 때 401 Unauthorized를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile")
+            MockMvcRequestBuilders.get("/api/v1/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
         )
@@ -201,7 +201,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile - 잘못된 토큰으로 프로필을 조회할 때 401 Unauthorized를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile")
+            MockMvcRequestBuilders.get("/api/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer invalid-token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -226,7 +226,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
 
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile")
+            MockMvcRequestBuilders.get("/api/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $expiredToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -248,7 +248,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 사용자가 자신의 프로필을 조회할 때 200 OK와 프로필 정보를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/${testUser.id.value}")
+            MockMvcRequestBuilders.get("/api/v1/users/${testUser.id.value}")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $testUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -306,7 +306,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 관리자가 다른 사용자의 프로필을 조회할 때 200 OK와 프로필 정보를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/${otherUser.id.value}")
+            MockMvcRequestBuilders.get("/api/v1/users/${otherUser.id.value}")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -336,7 +336,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 일반 사용자가 다른 사용자의 프로필을 조회할 때 403 Forbidden을 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/${otherUser.id.value}")
+            MockMvcRequestBuilders.get("/api/v1/users/${otherUser.id.value}")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $testUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -364,7 +364,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 인증되지 않은 사용자가 프로필을 조회할 때 401 Unauthorized를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/${testUser.id.value}")
+            MockMvcRequestBuilders.get("/api/v1/users/${testUser.id.value}/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
         )
@@ -385,7 +385,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 존재하지 않는 사용자의 프로필을 조회할 때 404 Not Found를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/non-existent-user")
+            MockMvcRequestBuilders.get("/api/v1/users/non-existent-user")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -408,7 +408,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile - Bearer 키워드 없이 토큰을 전달할 때 401 Unauthorized를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile")
+            MockMvcRequestBuilders.get("/api/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -430,7 +430,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile - 잘못된 형식의 Authorization 헤더로 요청할 때 401 Unauthorized를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile")
+            MockMvcRequestBuilders.get("/api/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Basic dXNlcjpwYXNzd29yZA==")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -452,7 +452,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 빈 userId로 조회할 때 404 Not Found를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/ ")
+            MockMvcRequestBuilders.get("/api/v1/users/")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -467,7 +467,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
 
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/$longUserId")
+            MockMvcRequestBuilders.get("/api/v1/users/$longUserId")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -489,7 +489,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile - 관리자가 자신의 프로필을 조회할 때 ADMIN 권한 정보가 포함되어야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile")
+            MockMvcRequestBuilders.get("/api/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -527,7 +527,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
 
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/${suspendedUser.id.value}")
+            MockMvcRequestBuilders.get("/api/v1/users/${suspendedUser.id.value}")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -565,7 +565,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
 
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/${deletedUser.id.value}")
+            MockMvcRequestBuilders.get("/api/v1/users/${deletedUser.id.value}")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -588,7 +588,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 사용자가 자기 자신을 userId로 조회할 때도 성공해야 한다`() {
         // When & Then
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/users/profile/${testUser.id.value}")
+            MockMvcRequestBuilders.get("/api/v1/users/${testUser.id.value}")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $testUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),

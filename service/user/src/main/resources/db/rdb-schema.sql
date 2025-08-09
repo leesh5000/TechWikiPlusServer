@@ -22,7 +22,6 @@ CREATE TABLE users (
     -- Step 2: 활성 계정인 경우에만 전체 정보 조회
     SELECT * FROM users WHERE email = 'user@example.com';
  */
-CREATE INDEX idx_email_status ON users (email, status);
 
 -- 닉네임 인덱스는 UNIQUE 제약조건으로 자동 생성됨
 -- nickname 컬럼이 utf8mb4_0900_ai_ci collation 사용으로 대소문자 구분 없이 인덱스 활용

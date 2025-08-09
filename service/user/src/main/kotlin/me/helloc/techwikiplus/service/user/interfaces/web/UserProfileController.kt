@@ -1,50 +1,28 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.UserRepository
-import me.helloc.techwikiplus.service.user.infrastructure.security.context.SecurityContextService
-import org.springframework.http.HttpStatus
+import me.helloc.techwikiplus.service.user.interfaces.web.port.UserProfileUseCase
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 
 @RestController
-@RequestMapping("/api/v1/users")
+@Validated
 class UserProfileController(
-    private val userRepository: UserRepository,
-    private val securityContextService: SecurityContextService,
+    private val useCase: UserProfileUseCase
 ) {
-    @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    fun getMyProfile(): ResponseEntity<ProfileResponse> {
-        val userId =
-            securityContextService.getCurrentUserId()
-                ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-
-        val user =
-            userRepository.findBy(userId)
-                ?: return ResponseEntity.notFound().build()
-
-        return ResponseEntity.ok(ProfileResponse.from(user))
-    }
-
-    @GetMapping("/{userId}/profile")
-    @PreAuthorize("isAuthenticated() and (#userId == authentication.principal.value or hasRole('ADMIN'))")
+    @GetMapping("/api/v1/users/{userId}", produces = ["application/json"])
     fun getUserProfile(
-        @PathVariable userId: String,
-    ): ResponseEntity<ProfileResponse> {
-        val user =
-            userRepository.findBy(UserId(userId))
-                ?: return ResponseEntity.notFound().build()
+        @PathVariable("userId") userId: String,
+    ): ResponseEntity<Response> = UserId(userId)
+        .let(useCase::execute)
+        .let(Response::from)
+        .let { ResponseEntity.ok(it) }
 
-        return ResponseEntity.ok(ProfileResponse.from(user))
-    }
-
-    data class ProfileResponse(
+    data class Response(
         val userId: String,
         val email: String,
         val nickname: String,
@@ -54,17 +32,15 @@ class UserProfileController(
         val modifiedAt: Instant,
     ) {
         companion object {
-            fun from(user: me.helloc.techwikiplus.service.user.domain.model.User): ProfileResponse {
-                return ProfileResponse(
-                    userId = user.id.value,
-                    email = user.email.value,
-                    nickname = user.nickname.value,
-                    role = user.role.name,
-                    status = user.status.name,
-                    createdAt = user.createdAt,
-                    modifiedAt = user.modifiedAt,
-                )
-            }
+            fun from(result: UserProfileUseCase.Result): Response = Response(
+                userId = result.userId.value,
+                email = result.email,
+                nickname = result.nickname,
+                role = result.role.name,
+                status = result.status.name,
+                createdAt = result.createdAt,
+                modifiedAt = result.modifiedAt,
+            )
         }
     }
 }

@@ -1,7 +1,6 @@
 package me.helloc.techwikiplus.service.user.domain.port
 
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
@@ -15,13 +14,6 @@ open class FakeUserRepository : UserRepository {
 
     override fun findBy(email: Email): User? {
         return users.values.find { it.email == email }
-    }
-
-    override fun findBy(
-        email: Email,
-        status: UserStatus,
-    ): User? {
-        return users.values.find { it.email == email && it.status == status }
     }
 
     override fun exists(email: Email): Boolean {

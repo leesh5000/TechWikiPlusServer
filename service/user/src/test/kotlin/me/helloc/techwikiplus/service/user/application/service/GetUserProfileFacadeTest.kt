@@ -19,7 +19,7 @@ import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import java.time.Instant
 
 class GetUserProfileFacadeTest : DescribeSpec({
-    lateinit var facade: GetUserProfileFacade
+    lateinit var facade: UserProfileFacade
     lateinit var userRepository: FakeUserRepository
     lateinit var authorizationPort: FakeAuthorizationPort
     lateinit var userReader: UserReader
@@ -30,7 +30,7 @@ class GetUserProfileFacadeTest : DescribeSpec({
         authorizationPort = FakeAuthorizationPort()
         userReader = UserReader(userRepository)
         authorizationService = UserAuthorizationService(authorizationPort)
-        facade = GetUserProfileFacade(userReader, authorizationService)
+        facade = UserProfileFacade(userReader, authorizationService)
     }
 
     describe("execute") {
