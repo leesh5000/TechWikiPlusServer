@@ -1,7 +1,6 @@
 package me.helloc.techwikiplus.service.user.application.service
 
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
@@ -17,7 +16,7 @@ class UserVerifyResendFacade(
 ) : UserVerifyResendUseCase {
     override fun execute(email: Email) {
         // 사용자 조회
-        val pendingUser: User = userReader.get(email, UserStatus.PENDING)
+        val pendingUser: User = userReader.getPendingUser(email)
         // 인증 메일 재전송
         emailVerifyService.startVerification(pendingUser)
     }
