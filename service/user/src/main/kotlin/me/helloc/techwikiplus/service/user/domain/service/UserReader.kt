@@ -14,35 +14,36 @@ class UserReader(
     private val repository: UserRepository,
 ) {
     fun get(userId: UserId): User {
-        val user: User = repository.findBy(userId)
-            ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(userId.value))
+        val user: User =
+            repository.findBy(userId)
+                ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(userId.value))
         return validateUserStatus(user)
     }
 
-    fun get(email: Email, status: UserStatus): User {
-        val user: User = repository.findBy(email)
-            ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(email.value))
-        if (user.status != status) {
-            throw DomainException(ErrorCode.NO_STATUS_USER, arrayOf(status))
+    fun getPendingUser(email: Email): User {
+        val user: User =
+            repository.findBy(email)
+                ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(email.value))
+        if (user.status != UserStatus.PENDING) {
+            throw DomainException(ErrorCode.NOT_FOUND_PENDING_USER, arrayOf(email.value))
         }
-        return validateUserStatus(user)
+        return user
     }
 
     fun get(email: Email): User {
-        val user: User = repository.findBy(email)
-            ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(email))
+        val user: User =
+            repository.findBy(email)
+                ?: throw DomainException(ErrorCode.USER_NOT_FOUND, arrayOf(email.value))
         return validateUserStatus(user)
     }
 
-    private fun validateUserStatus(
-        user: User,
-    ): User {
+    private fun validateUserStatus(user: User): User {
         return when (user.status) {
             UserStatus.ACTIVE -> user
-            UserStatus.DORMANT -> throw DomainException(ErrorCode.USER_DORMANT, arrayOf(user.email.value))
-            UserStatus.DELETED -> throw DomainException(ErrorCode.USER_DELETED, arrayOf(user.email.value))
-            UserStatus.BANNED -> throw DomainException(ErrorCode.USER_BANNED, arrayOf(user.email.value))
-            UserStatus.PENDING -> throw DomainException(ErrorCode.USER_PENDING, arrayOf(user.email.value))
+            UserStatus.DORMANT -> throw DomainException(ErrorCode.USER_DORMANT)
+            UserStatus.DELETED -> throw DomainException(ErrorCode.USER_DELETED)
+            UserStatus.BANNED -> throw DomainException(ErrorCode.USER_BANNED)
+            UserStatus.PENDING -> throw DomainException(ErrorCode.USER_PENDING)
         }
     }
 }
