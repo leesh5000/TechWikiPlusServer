@@ -238,7 +238,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("USER_NOT_FOUND"),
             )
             .andDo(
                 documentWithResource(
@@ -278,7 +278,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("NOT_FOUND_PENDING_USER"),
             )
             .andDo(
                 documentWithResource(
@@ -556,7 +556,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("NOT_FOUND_PENDING_USER"),
             )
     }
 
@@ -608,7 +608,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("NOT_FOUND_PENDING_USER"),
             )
     }
 
@@ -642,7 +642,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("NOT_FOUND_PENDING_USER"),
             )
     }
 

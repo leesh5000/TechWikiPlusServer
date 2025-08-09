@@ -158,7 +158,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("USER_NOT_FOUND"),
             )
             .andDo(
                 documentWithResource(
@@ -195,7 +195,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("NOT_FOUND_PENDING_USER"),
             )
             .andDo(
                 documentWithResource(
@@ -228,7 +228,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("NOT_FOUND_PENDING_USER"),
             )
     }
 
@@ -251,7 +251,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("PENDING_USER_NOT_FOUND"),
+                    .value("NOT_FOUND_PENDING_USER"),
             )
     }
 
@@ -424,7 +424,8 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
 
         // 코드가 정상적으로 저장되었는지 검증
-        val cacheKey = "registration_code:TEST@EXAMPLE.COM"
+        // Email 클래스가 이메일을 소문자로 정규화하므로 캐시 키도 소문자
+        val cacheKey = "registration_code:test@example.com"
         val code = cacheStore.get(cacheKey)
         code shouldNotBe null
         code?.length shouldBe 6

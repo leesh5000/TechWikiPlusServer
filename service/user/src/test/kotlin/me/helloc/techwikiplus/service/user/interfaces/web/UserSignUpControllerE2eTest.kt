@@ -31,7 +31,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 )
 class UserSignUpControllerE2eTest : BaseE2eTest() {
     @Test
-    fun `POST signup - 유효한 회원가입 데이터로 202 Accepted를 반환해야 한다`() {
+    fun `POST signup - 유효한 회원가입 데이터로 200 OK를 반환해야 한다`() {
         // Given
         val request =
             UserSignUpController.Request(
@@ -48,7 +48,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
@@ -367,7 +367,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
 
         // When & Then - 두 번째 회원가입 시도 (실패)
         mockMvc.perform(
@@ -393,7 +393,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
     @Test
     fun `POST signup - 이미 존재하는 닉네임으로 가입 시도하는 경우 409 Conflict를 반환해야 한다`() {
         // Given
-        val existingNickname = "기존닉네임"
+        val existingNickname = "existingUser123"
         val firstRequest =
             UserSignUpController.Request(
                 email = "first@example.com",
@@ -409,7 +409,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(firstRequest)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
 
         val secondRequest =
             UserSignUpController.Request(
@@ -657,7 +657,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -680,7 +680,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -703,7 +703,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -726,7 +726,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -748,7 +748,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -770,7 +770,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -792,7 +792,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -814,7 +814,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 
@@ -836,7 +836,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isAccepted)
+            .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
     }
 

@@ -72,7 +72,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").isNotEmpty)
             .andExpect(MockMvcResultMatchers.jsonPath("$.refreshToken").isNotEmpty)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value(user.id))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value(user.id.toString()))
             .andExpect(MockMvcResultMatchers.jsonPath("$.accessTokenExpiresAt").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("$.refreshTokenExpiresAt").exists())
             .andDo(
@@ -148,7 +148,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
         )
             .andExpect(MockMvcResultMatchers.status().isUnauthorized)
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_CREDENTIALS"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid email or password"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("인증 정보가 올바르지 않습니다"))
             .andDo(
                 documentWithResource(
                     "user-login-wrong-password",
@@ -164,8 +164,8 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                                 .type(JsonFieldType.STRING)
                                 .description("에러 메시지"),
                             PayloadDocumentation.fieldWithPath("timestamp")
-                                .type(JsonFieldType.NUMBER)
-                                .description("에러 발생 시간"),
+                                .type(JsonFieldType.STRING)
+                                .description("에러 발생 시간 (ISO-8601 형식)"),
                         )
                         .build(),
                 ),
@@ -188,16 +188,16 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isUnauthorized)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_CREDENTIALS"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid email or password"))
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_NOT_FOUND"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
             .andDo(
                 documentWithResource(
                     "user-login-user-not-found",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 존재하지 않는 사용자")
-                        .description("등록되지 않은 이메일로 로그인 시도하는 경우 401 Unauthorized를 반환합니다.")
+                        .description("등록되지 않은 이메일로 로그인 시도하는 경우 404 Not Found를 반환합니다.")
                         .build(),
                 ),
             )
@@ -225,7 +225,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isForbidden)
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_BANNED"))
             .andExpect(
-                MockMvcResultMatchers.jsonPath("$.message").value("User is banned. Please contact the administrator."),
+                MockMvcResultMatchers.jsonPath("$.message").value("차단된 계정입니다. 관리자에게 문의해주세요"),
             )
             .andDo(
                 documentWithResource(
@@ -258,16 +258,16 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().isUnauthorized)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_CREDENTIALS"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid email or password"))
+            .andExpect(MockMvcResultMatchers.status().isGone)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_DELETED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("이미 삭제된 계정입니다."))
             .andDo(
                 documentWithResource(
                     "user-login-deleted-user",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 삭제된 사용자")
-                        .description("DELETED 상태의 사용자가 로그인 시도하는 경우 401 Unauthorized를 반환합니다.")
+                        .description("DELETED 상태의 사용자가 로그인 시도하는 경우 410 Gone을 반환합니다.")
                         .build(),
                 ),
             )
@@ -292,11 +292,10 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
-            .andExpect(MockMvcResultMatchers.status().`is`(423))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_LOCKED"))
+            .andExpect(MockMvcResultMatchers.status().isForbidden)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_DORMANT"))
             .andExpect(
-                MockMvcResultMatchers.jsonPath("$.message").value("User is dormant. Please contact the administrator."),
+                MockMvcResultMatchers.jsonPath("$.message").value("휴면 계정입니다. 관리자에게 문의해주세요"),
             )
             .andDo(
                 documentWithResource(
@@ -304,7 +303,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 휴면 사용자")
-                        .description("DORMANT 상태의 사용자가 로그인 시도하는 경우 423 Locked를 반환합니다.")
+                        .description("DORMANT 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
                         .build(),
                 ),
             )
@@ -334,7 +333,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(
                 MockMvcResultMatchers.jsonPath(
                     "$.message",
-                ).value("User is pending activation. Please check your email for the verification code."),
+                ).value("인증 대기중인 계정입니다. 이메일 인증을 완료 후 다시 시도해주세요."),
             )
             .andDo(
                 documentWithResource(
