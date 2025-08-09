@@ -31,14 +31,15 @@ class JwtAuthenticationFilter(
 
             if (token != null) {
                 val userId = jwtTokenManager.validateAccessToken(token)
-                
+
                 // Fetch user to get role information
                 val user = userRepository.findBy(userId)
-                val authorities = if (user != null) {
-                    listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
-                } else {
-                    emptyList()
-                }
+                val authorities =
+                    if (user != null) {
+                        listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
+                    } else {
+                        emptyList()
+                    }
 
                 val authentication =
                     UsernamePasswordAuthenticationToken(

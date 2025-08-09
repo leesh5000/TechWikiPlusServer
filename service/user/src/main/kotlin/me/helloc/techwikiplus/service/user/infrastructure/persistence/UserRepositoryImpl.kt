@@ -29,7 +29,7 @@ class UserRepositoryImpl(
         return jpaRepository.findByEmail(email.value)
             ?.let {
                 mapper.toDomain(it)
-        }
+            }
     }
 
     override fun exists(email: Email): Boolean {

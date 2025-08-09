@@ -48,8 +48,7 @@ class SecurityConfiguration(
                     ).permitAll()
                     // Actuator 엔드포인트
                     .requestMatchers(
-                        "/actuator/health",
-                        "/actuator/health/**",
+                        "/health",
                     ).permitAll()
                     // Swagger/OpenAPI 문서
                     .requestMatchers(
