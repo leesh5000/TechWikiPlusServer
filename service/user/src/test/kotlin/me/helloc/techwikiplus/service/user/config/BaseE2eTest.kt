@@ -19,6 +19,7 @@ import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentati
 import org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest
 import org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse
 import org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -76,8 +77,10 @@ abstract class BaseE2eTest : ApiDocumentationSupport {
 
         if (documentationEnabled && restDocumentation != null) {
             // 문서화가 활성화된 경우 REST Docs 설정
+            // Spring Security 필터를 포함하여 MockMvc 재구성
             this.mockMvc =
                 MockMvcBuilders.webAppContextSetup(context)
+                    .apply<DefaultMockMvcBuilder>(springSecurity()) // Spring Security 필터 적용
                     .apply<DefaultMockMvcBuilder>(
                         documentationConfiguration(restDocumentation)
                             .operationPreprocessors()

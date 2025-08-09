@@ -14,7 +14,6 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.port.FakeAuthorizationPort
 import me.helloc.techwikiplus.service.user.domain.port.FakeUserRepository
-import me.helloc.techwikiplus.service.user.domain.service.UserAuthorizationService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import java.time.Instant
 
@@ -23,14 +22,12 @@ class GetUserProfileFacadeTest : DescribeSpec({
     lateinit var userRepository: FakeUserRepository
     lateinit var authorizationPort: FakeAuthorizationPort
     lateinit var userReader: UserReader
-    lateinit var authorizationService: UserAuthorizationService
 
     beforeEach {
         userRepository = FakeUserRepository()
         authorizationPort = FakeAuthorizationPort()
         userReader = UserReader(userRepository)
-        authorizationService = UserAuthorizationService(authorizationPort)
-        facade = UserProfileFacade(userReader, authorizationService)
+        facade = UserProfileFacade(userReader)
     }
 
     describe("execute") {
