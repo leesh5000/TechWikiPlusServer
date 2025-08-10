@@ -81,7 +81,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.refreshTokenExpiresAt").exists())
             .andDo(
                 documentWithResource(
-                    "사용자 로그인",
+                    "사용자 로그인 성공",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인")
@@ -161,11 +161,17 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("인증 정보가 올바르지 않습니다"))
             .andDo(
                 documentWithResource(
-                    "사용자 로그인 - 잘못된 비밀번호",
+                    "잘못된 비밀번호로 로그인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 잘못된 비밀번호")
                         .description("비밀번호가 일치하지 않는 경우 401 Unauthorized를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -193,11 +199,17 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
             .andDo(
                 documentWithResource(
-                    "사용자 로그인 - 존재하지 않는 사용자",
+                    "존재하지 않는 사용자 로그인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 존재하지 않는 사용자")
                         .description("등록되지 않은 이메일로 로그인 시도하는 경우 404 Not Found를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -230,11 +242,17 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "사용자 로그인 - 차단된 사용자",
+                    "차단된 사용자 로그인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 차단된 사용자")
                         .description("BANNED 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -265,11 +283,17 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("이미 삭제된 계정입니다."))
             .andDo(
                 documentWithResource(
-                    "사용자 로그인 - 삭제된 사용자",
+                    "삭제된 사용자 로그인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 삭제된 사용자")
                         .description("DELETED 상태의 사용자가 로그인 시도하는 경우 410 Gone을 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -302,11 +326,17 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "사용자 로그인 - 휴면 사용자",
+                    "휴면 사용자 로그인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 휴면 사용자")
-                        .description("DORMANT 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
+                        .description("DORMANT 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반혆합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -341,11 +371,17 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "사용자 로그인 - 미인증 사용자",
+                    "인증 대기중 사용자 로그인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 미인증 사용자")
                         .description("PENDING 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),

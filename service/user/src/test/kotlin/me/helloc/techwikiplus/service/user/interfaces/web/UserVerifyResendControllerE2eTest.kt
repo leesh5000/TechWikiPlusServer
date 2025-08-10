@@ -80,7 +80,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "유효한 입력 값으로 인증 코드 재발송",
+                    "인증 코드 재발송 성공",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송")
@@ -166,11 +166,17 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "존재하지 않는 이메일로 인증 코드 재발송",
+                    "존재하지 않는 사용자 재발송",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 사용자 없음")
-                        .description("등록되지 않은 이메일로 재발송을 요청하는 경우 404 Not Found를 반환합니다.")
+                        .description("등록되지 않은 이메일로 재발송을 요청하는 경우 404 Not Found를 반혆합니다.")
+                        .requestSchema(
+                            Schema.schema(
+                                "${UserVerifyResendController::class.simpleName}" +
+                                    ".${UserVerifyResendController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -204,11 +210,17 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "이메일 인증 코드 재발송 - 이미 인증됨",
+                    "이미 인증된 사용자 재발송",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 이미 인증됨")
                         .description("이미 인증된 사용자가 재발송을 요청하는 경우 404 Not Found를 반환합니다.")
+                        .requestSchema(
+                            Schema.schema(
+                                "${UserVerifyResendController::class.simpleName}" +
+                                    ".${UserVerifyResendController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -280,11 +292,17 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "이메일 인증 코드 재발송 - 잘못된 이메일 형식",
+                    "잘못된 이메일로 재발송",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 잘못된 이메일 형식")
                         .description("이메일 형식이 올바르지 않은 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            Schema.schema(
+                                "${UserVerifyResendController::class.simpleName}" +
+                                    ".${UserVerifyResendController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -348,11 +366,17 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "이메일 인증 코드 재발송 - 필수 필드 누락",
+                    "필수 필드 누락으로 재발송 실패",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 필수 필드 누락")
                         .description("필수 필드(email)가 누락된 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            Schema.schema(
+                                "${UserVerifyResendController::class.simpleName}" +
+                                    ".${UserVerifyResendController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),

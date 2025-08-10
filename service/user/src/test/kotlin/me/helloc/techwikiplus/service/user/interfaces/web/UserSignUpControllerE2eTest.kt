@@ -54,7 +54,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "올바른 입력값",
+                    "회원가입 성공",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입")
@@ -113,11 +113,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_EMAIL_FORMAT"))
             .andDo(
                 documentWithResource(
-                    "빈 이메일로 회원가입",
+                    "잘못된 이메일 형식으로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 잘못된 이메일 형식")
                         .description("이메일 형식이 올바르지 않은 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -145,11 +152,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_MISMATCH"))
             .andDo(
                 documentWithResource(
-                    "비밀번호가 일치하지 않는 경우",
+                    "비밀번호 불일치로 회원가입 실패",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 비밀번호 불일치")
                         .description("비밀번호와 비밀번호 확인이 일치하지 않는 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -178,11 +191,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_TOO_SHORT"))
             .andDo(
                 documentWithResource(
-                    "닉네임이 짧은 경우",
+                    "짧은 닉네임으로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 짧은 닉네임")
                         .description("닉네임이 2자 미만인 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -212,11 +231,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_TOO_SHORT"))
             .andDo(
                 documentWithResource(
-                    "비밀번호가 짧은 경우",
+                    "짧은 비밀번호로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 짧은 비밀번호")
                         .description("비밀번호가 8자 미만인 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -246,11 +271,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_NO_UPPERCASE"))
             .andDo(
                 documentWithResource(
-                    "대문자가 없는 비밀번호",
+                    "대문자 없는 비밀번호로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 대문자 없는 비밀번호")
                         .description("비밀번호에 대문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -283,11 +314,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "소문자가 없는 비밀번호",
+                    "소문자 없는 비밀번호로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 소문자 없는 비밀번호")
                         .description("비밀번호에 소문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -320,11 +357,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "특수문자 없는 비밀번호",
+                    "특수문자 없는 비밀번호로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 특수문자 없는 비밀번호")
                         .description("비밀번호에 특수문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -357,11 +400,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "긴 비밀번호",
+                    "긴 비밀번호로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 긴 비밀번호")
                         .description("비밀번호가 30자를 초과하는 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -408,6 +457,12 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                         .tag("User Management")
                         .summary("사용자 회원가입 - 중복 이메일")
                         .description("이미 등록된 이메일로 회원가입을 시도하는 경우 409 Conflict를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -462,6 +517,12 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                         .tag("User Management")
                         .summary("사용자 회원가입 - 중복 닉네임")
                         .description("이미 사용 중인 닉네임으로 회원가입을 시도하는 경우 409 Conflict를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -494,12 +555,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "필수 입력 필드 누락",
+                    "필수 필드 누락으로 회원가입 실패",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 필수 필드 누락")
                         .description(
                             "필수 필드(email, nickname, password, confirmPassword)가 누락된 경우 400 Bad Request를 반환합니다.",
+                        )
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
                         )
                         .withStandardErrorResponse()
                         .build(),
@@ -532,11 +599,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "잘못된 닉네임 형식",
+                    "잘못된 닉네임 형식으로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 잘못된 닉네임 형식")
                         .description("닉네임에 허용되지 않는 특수문자가 포함된 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -569,11 +642,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "너무 긴 닉네임",
+                    "긴 닉네임으로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 긴 닉네임")
                         .description("닉네임이 20자를 초과하는 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -605,11 +684,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "공백이 포함된 닉네임",
+                    "공백 포함 닉네임으로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 공백 포함 닉네임")
                         .description("닉네임에 공백이 포함된 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -642,11 +727,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "빈 닉네임",
+                    "빈 닉네임으로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 빈 닉네임")
                         .description("닉네임이 공백만으로 이루어진 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),
@@ -679,11 +770,17 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "빈 이메일",
+                    "빈 이메일로 회원가입",
                     builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 빈 이메일")
                         .description("이메일이 공백만으로 이루어진 경우 400 Bad Request를 반환합니다.")
+                        .requestSchema(
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
+                        )
                         .withStandardErrorResponse()
                         .build(),
                 ),

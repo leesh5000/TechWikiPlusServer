@@ -136,7 +136,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.modifiedAt").exists())
             .andDo(
                 documentWithResource(
-                    "사용자 프로필 조회",
+                    "사용자 프로필 조회 성공",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("사용자 프로필 조회")
@@ -220,7 +220,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("otheruser"))
             .andDo(
                 documentWithResource(
-                    "특정 사용자 프로필 조회 - 관리자 권한",
+                    "관리자 프로필 조회",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 관리자 권한")
@@ -237,6 +237,12 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
                         .requestHeaders(
                             HeaderDocumentation.headerWithName(HttpHeaders.AUTHORIZATION)
                                 .description("Bearer {JWT 토큰} (ADMIN 권한 필요)"),
+                        )
+                        .responseSchema(
+                            Schema.schema(
+                                "${UserProfileController::class.simpleName}." +
+                                    "${UserProfileController.Response::class.simpleName}",
+                            ),
                         )
                         .build(),
                 ),
@@ -259,7 +265,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("otheruser"))
             .andDo(
                 documentWithResource(
-                    "특정 사용자 프로필 조회 - 다른 사용자",
+                    "타인 프로필 조회",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 다른 사용자")
@@ -277,6 +283,12 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
                             HeaderDocumentation.headerWithName(HttpHeaders.AUTHORIZATION)
                                 .description("Bearer {JWT 토큰}"),
                         )
+                        .responseSchema(
+                            Schema.schema(
+                                "${UserProfileController::class.simpleName}." +
+                                    "${UserProfileController.Response::class.simpleName}",
+                            ),
+                        )
                         .build(),
                 ),
             )
@@ -293,7 +305,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isUnauthorized)
             .andDo(
                 documentWithResource(
-                    "특정 사용자 프로필 조회 - 인증 실패",
+                    "인증 없이 프로필 조회",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 인증 실패")
@@ -321,7 +333,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_NOT_FOUND"))
             .andDo(
                 documentWithResource(
-                    "특정 사용자 프로필 조회 - 사용자 없음",
+                    "존재하지 않는 사용자 프로필 조회",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 사용자 없음")
@@ -371,7 +383,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "특정 사용자 프로필 조회 - 잘못된 userId",
+                    "잘못된 사용자ID로 프로필 조회",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 잘못된 userId")
@@ -441,7 +453,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "특정 사용자 프로필 조회 - 휴면 계정",
+                    "휴면 사용자 프로필 조회",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 휴면 계정")
@@ -487,7 +499,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("USER_DELETED"))
             .andDo(
                 documentWithResource(
-                    "특정 사용자 프로필 조회 - 삭제된 계정",
+                    "삭제된 사용자 프로필 조회",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 삭제된 계정")
