@@ -37,7 +37,7 @@ class UserRepositoryImpl(
     }
 
     override fun exists(nickname: Nickname): Boolean {
-        return jpaRepository.existsByNickname(nickname.value)
+        return jpaRepository.existsByNicknameIgnoreCase(nickname.value)
     }
 
     @Transactional

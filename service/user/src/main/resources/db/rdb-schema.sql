@@ -1,6 +1,6 @@
 -- MySQL RDB Schema for User Service
 CREATE TABLE users (
-                    id CHAR(36) PRIMARY KEY NOT NULL COMMENT 'ID(PK): Snowflake ID)',
+                    id BIGINT PRIMARY KEY NOT NULL COMMENT 'ID(PK): Snowflake ID)',
                     email VARCHAR(255) UNIQUE NOT NULL COMMENT '이메일 (이메일을 만족하는 형식의 문자열)',
                     nickname VARCHAR(50) COLLATE utf8mb4_0900_ai_ci UNIQUE NOT NULL COMMENT '닉네임 (영문, 숫자, 특수문자 포함 20자 이내, 대소문자 구분 없음)',
                     password VARCHAR(255) NOT NULL COMMENT '암호화 된 비밀번호 (최대 255자)',
