@@ -3,22 +3,16 @@ package me.helloc.techwikiplus.service.user.domain.model.value
 import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 
-class UserId(value: String) {
-    val value: String = value.trim()
-
+class UserId(val value: Long) {
     init {
-        if (this.value.isBlank()) {
+        if (value <= 0) {
             throw DomainException(
                 errorCode = ErrorCode.BLANK_USER_ID,
                 params = arrayOf("userId"),
             )
         }
-        if (this.value.length > 64) {
-            throw DomainException(
-                errorCode = ErrorCode.USER_ID_TOO_LONG,
-                params = arrayOf<Any>("userId", 64),
-            )
-        }
+        // Snowflake ID는 64비트 정수이므로 Long 타입의 최대값을 넘지 않음
+        // 추가 검증이 필요하면 여기에 추가
     }
 
     override fun equals(other: Any?): Boolean {
@@ -29,13 +23,19 @@ class UserId(value: String) {
 
     override fun hashCode(): Int = value.hashCode()
 
-    override fun toString(): String = value
+    override fun toString(): String = value.toString()
 
     companion object {
-        fun from(value: String): UserId = UserId(value)
-    }
-
-    fun isNotBlank(): Boolean {
-        return value.isNotBlank()
+        fun from(value: String): UserId {
+            try {
+                return UserId(value.toLong())
+            } catch (e: NumberFormatException) {
+                throw DomainException(
+                    errorCode = ErrorCode.INVALID_USER_ID_FORMAT,
+                    params = arrayOf(value),
+                    cause = e,
+                )
+            }
+        }
     }
 }

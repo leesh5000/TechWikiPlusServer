@@ -21,7 +21,7 @@ class User(
     val modifiedAt: Instant,
 ) {
     init {
-        require(id.isNotBlank()) { "User ID cannot be blank" }
+        // UserId validation is already done in UserId value object
     }
 
     fun copy(

@@ -11,7 +11,7 @@ class SecurityContextService {
 
         return when (val principal = authentication?.principal) {
             is UserId -> principal
-            is String -> UserId(principal)
+            is String -> UserId.from(principal)
             else -> null
         }
     }

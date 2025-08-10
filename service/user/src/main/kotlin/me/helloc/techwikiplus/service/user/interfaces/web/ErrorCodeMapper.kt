@@ -75,6 +75,7 @@ class ErrorCodeMapper {
             // UserId Validation
             ErrorCode.BLANK_USER_ID,
             ErrorCode.USER_ID_TOO_LONG,
+            ErrorCode.INVALID_USER_ID_FORMAT,
 
             // Generic
             ErrorCode.VALIDATION_ERROR,
@@ -198,6 +199,12 @@ class ErrorCodeMapper {
                         "사용자 ID는 최대 ${params[1]}자 이하여야 합니다"
                     } else {
                         "사용자 ID가 너무 깁니다"
+                    }
+                ErrorCode.INVALID_USER_ID_FORMAT ->
+                    if (params.isNotEmpty()) {
+                        "유효하지 않은 사용자 ID 형식입니다: ${params[0]}"
+                    } else {
+                        "유효하지 않은 사용자 ID 형식입니다"
                     }
 
                 ErrorCode.VALIDATION_ERROR ->

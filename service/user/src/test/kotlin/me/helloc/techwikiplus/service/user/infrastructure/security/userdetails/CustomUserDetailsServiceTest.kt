@@ -31,7 +31,8 @@ class CustomUserDetailsServiceTest : DescribeSpec({
         context("사용자 ID로 조회할 때") {
             it("존재하는 사용자의 UserDetails를 반환해야 함") {
                 // given
-                val userId = "user123"
+                val userId = 123L
+                val userIdString = userId.toString()
                 val user =
                     User(
                         id = UserId(userId),
@@ -44,14 +45,14 @@ class CustomUserDetailsServiceTest : DescribeSpec({
                         modifiedAt = Instant.now(),
                     )
 
-                every { userRepository.findBy(UserId(userId)) } returns user
+                every { userRepository.findBy(any<UserId>()) } returns user
 
                 // when
-                val userDetails = userDetailsService.loadUserByUsername(userId)
+                val userDetails = userDetailsService.loadUserByUsername(userIdString)
 
                 // then
                 userDetails shouldNotBe null
-                userDetails.username shouldBe userId
+                userDetails.username shouldBe userIdString
                 userDetails.password shouldBe "encoded_password"
                 userDetails.isEnabled shouldBe true
                 userDetails.isAccountNonExpired shouldBe true
@@ -63,7 +64,8 @@ class CustomUserDetailsServiceTest : DescribeSpec({
 
             it("ADMIN 권한을 가진 사용자의 경우 ROLE_ADMIN을 반환해야 함") {
                 // given
-                val userId = "admin123"
+                val userId = 456L
+                val userIdString = userId.toString()
                 val admin =
                     User(
                         id = UserId(userId),
@@ -76,10 +78,10 @@ class CustomUserDetailsServiceTest : DescribeSpec({
                         modifiedAt = Instant.now(),
                     )
 
-                every { userRepository.findBy(UserId(userId)) } returns admin
+                every { userRepository.findBy(any<UserId>()) } returns admin
 
                 // when
-                val userDetails = userDetailsService.loadUserByUsername(userId)
+                val userDetails = userDetailsService.loadUserByUsername(userIdString)
 
                 // then
                 userDetails.authorities.first().authority shouldBe "ROLE_ADMIN"
@@ -87,7 +89,8 @@ class CustomUserDetailsServiceTest : DescribeSpec({
 
             it("DELETED 상태의 사용자는 비활성화되어야 함") {
                 // given
-                val userId = "deleted123"
+                val userId = 789L
+                val userIdString = userId.toString()
                 val deletedUser =
                     User(
                         id = UserId(userId),
@@ -100,10 +103,10 @@ class CustomUserDetailsServiceTest : DescribeSpec({
                         modifiedAt = Instant.now(),
                     )
 
-                every { userRepository.findBy(UserId(userId)) } returns deletedUser
+                every { userRepository.findBy(any<UserId>()) } returns deletedUser
 
                 // when
-                val userDetails = userDetailsService.loadUserByUsername(userId)
+                val userDetails = userDetailsService.loadUserByUsername(userIdString)
 
                 // then
                 userDetails.isEnabled shouldBe false
@@ -111,7 +114,8 @@ class CustomUserDetailsServiceTest : DescribeSpec({
 
             it("BANNED 상태의 사용자는 계정이 잠겨있어야 함") {
                 // given
-                val userId = "banned123"
+                val userId = 999L
+                val userIdString = userId.toString()
                 val bannedUser =
                     User(
                         id = UserId(userId),
@@ -124,10 +128,10 @@ class CustomUserDetailsServiceTest : DescribeSpec({
                         modifiedAt = Instant.now(),
                     )
 
-                every { userRepository.findBy(UserId(userId)) } returns bannedUser
+                every { userRepository.findBy(any<UserId>()) } returns bannedUser
 
                 // when
-                val userDetails = userDetailsService.loadUserByUsername(userId)
+                val userDetails = userDetailsService.loadUserByUsername(userIdString)
 
                 // then
                 userDetails.isAccountNonLocked shouldBe false
@@ -135,13 +139,13 @@ class CustomUserDetailsServiceTest : DescribeSpec({
 
             it("존재하지 않는 사용자의 경우 UsernameNotFoundException을 던져야 함") {
                 // given
-                val userId = "nonexistent"
+                val userIdString = "99999"
 
-                every { userRepository.findBy(UserId(userId)) } returns null
+                every { userRepository.findBy(any<UserId>()) } returns null
 
                 // when & then
                 shouldThrow<UsernameNotFoundException> {
-                    userDetailsService.loadUserByUsername(userId)
+                    userDetailsService.loadUserByUsername(userIdString)
                 }
             }
         }

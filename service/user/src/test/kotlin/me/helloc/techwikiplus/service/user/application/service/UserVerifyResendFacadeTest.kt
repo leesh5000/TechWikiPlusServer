@@ -65,7 +65,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val pendingUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -94,7 +94,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val pendingUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -128,7 +128,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val pendingUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -155,7 +155,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val createdTime = Instant.parse("2024-12-01T00:00:00Z")
             val pendingUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -186,7 +186,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val activeUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -232,7 +232,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val pendingUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -267,7 +267,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val bannedUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -293,7 +293,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val dormantUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),
@@ -319,7 +319,7 @@ class UserVerifyResendFacadeTest : FunSpec({
             val email = Email("test@example.com")
             val pendingUser =
                 User.create(
-                    id = UserId("test-user-1"),
+                    id = UserId(1000001L),
                     email = email,
                     nickname = Nickname("testuser"),
                     encodedPassword = EncodedPassword("encoded_password"),

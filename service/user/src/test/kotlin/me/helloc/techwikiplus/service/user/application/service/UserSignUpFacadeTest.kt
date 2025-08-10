@@ -99,7 +99,7 @@ class UserSignUpFacadeTest : FunSpec({
         savedUser.nickname shouldBe nickname
         savedUser.status shouldBe UserStatus.PENDING
         savedUser.role shouldBe UserRole.USER
-        savedUser.id.value shouldBe "test-user-1"
+        savedUser.id.value shouldBe 1000000L
 
         val expectedEncodedPassword = fakePasswordEncryptor.encode(password)
         savedUser.encodedPassword shouldBe expectedEncodedPassword
@@ -206,7 +206,7 @@ class UserSignUpFacadeTest : FunSpec({
         val existingEmail = Email("existing@example.com")
         val existingUser =
             User.create(
-                id = UserId("existing-user"),
+                id = UserId(2000001L),
                 email = existingEmail,
                 nickname = Nickname("existinguser"),
                 encodedPassword = EncodedPassword("encoded_password"),
@@ -243,7 +243,7 @@ class UserSignUpFacadeTest : FunSpec({
         val existingNickname = Nickname("existinguser")
         val existingUser =
             User.create(
-                id = UserId("existing-user"),
+                id = UserId(2000001L),
                 email = Email("existing@example.com"),
                 nickname = existingNickname,
                 encodedPassword = EncodedPassword("encoded_password"),
@@ -405,7 +405,7 @@ class UserSignUpFacadeTest : FunSpec({
         savedUsers.size shouldBe 3
 
         val userIds = savedUsers.map { it.id.value }
-        userIds shouldBe listOf("test-user-1", "test-user-2", "test-user-3")
+        userIds shouldBe listOf(1000000L, 1000001L, 1000002L)
 
         userIds.distinct().size shouldBe userIds.size
     }

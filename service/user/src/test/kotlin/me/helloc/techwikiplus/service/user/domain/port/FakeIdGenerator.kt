@@ -4,20 +4,20 @@ import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import java.util.concurrent.atomic.AtomicLong
 
 class FakeIdGenerator(
-    private val prefix: String = "test-user-",
-    private val startFrom: Long = 1L,
+    // Snowflake ID처럼 큰 숫자로 시작
+    startFrom: Long = 1000000L,
 ) : IdGenerator {
     private val counter = AtomicLong(startFrom)
 
     override fun next(): UserId {
-        return UserId("$prefix${counter.getAndIncrement()}")
+        return UserId(counter.getAndIncrement())
     }
 
-    fun reset(value: Long = 1L) {
+    fun reset(value: Long = 1000000L) {
         counter.set(value)
     }
 
-    fun setNext(value: String): UserId {
+    fun setNext(value: Long): UserId {
         return UserId(value)
     }
 }

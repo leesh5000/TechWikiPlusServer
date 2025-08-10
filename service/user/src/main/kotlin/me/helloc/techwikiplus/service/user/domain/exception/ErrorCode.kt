@@ -60,6 +60,7 @@ enum class ErrorCode {
     // UserId Validation
     BLANK_USER_ID,
     USER_ID_TOO_LONG,
+    INVALID_USER_ID_FORMAT,
 
     // Generic
     VALIDATION_ERROR,

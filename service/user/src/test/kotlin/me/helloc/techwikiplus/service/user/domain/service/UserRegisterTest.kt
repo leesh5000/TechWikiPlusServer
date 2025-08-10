@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import me.helloc.techwikiplus.service.user.TestFixtures
 import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.User
@@ -53,7 +54,7 @@ class UserRegisterTest : FunSpec({
 
             // then
             result shouldNotBe null
-            result.id shouldBe UserId("test-user-1")
+            result.id shouldBe UserId(1000000L)
             result.email shouldBe email
             result.nickname shouldBe nickname
             result.encodedPassword shouldBe EncodedPassword("encoded_Password123!")
@@ -90,7 +91,7 @@ class UserRegisterTest : FunSpec({
             val existingEmail = Email("existing@example.com")
             val existingUser =
                 User.create(
-                    id = UserId("existing-user"),
+                    id = TestFixtures.EXISTING_USER_ID,
                     email = existingEmail,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("existinguser"),
@@ -121,7 +122,7 @@ class UserRegisterTest : FunSpec({
             val existingNickname = Nickname("existinguser")
             val existingUser =
                 User.create(
-                    id = UserId("existing-user"),
+                    id = TestFixtures.EXISTING_USER_ID,
                     email = Email("existing@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = existingNickname,
@@ -166,8 +167,8 @@ class UserRegisterTest : FunSpec({
             val user2 = userRegister.insert(user2Email, user2Nickname, user2Password, user2Password)
 
             // then
-            user1.id shouldBe UserId("test-user-1")
-            user2.id shouldBe UserId("test-user-2")
+            user1.id shouldBe UserId(1000000L)
+            user2.id shouldBe UserId(1000001L)
 
             repository.getAll().size shouldBe 2
             repository.findBy(user1Email) shouldBe user1
@@ -180,7 +181,7 @@ class UserRegisterTest : FunSpec({
             // given
             val originalUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("originalname"),
@@ -202,7 +203,7 @@ class UserRegisterTest : FunSpec({
 
             // then
             result shouldBe updatedUser
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser shouldNotBe null
             savedUser?.nickname shouldBe Nickname("updatedname")
             savedUser?.modifiedAt shouldBe Instant.parse("2025-01-07T10:00:00Z")
@@ -212,7 +213,7 @@ class UserRegisterTest : FunSpec({
             // given
             val newUser =
                 User.create(
-                    id = UserId("new-user"),
+                    id = UserId(3000001L),
                     email = Email("new@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("newuser"),
@@ -226,7 +227,7 @@ class UserRegisterTest : FunSpec({
 
             // then
             result shouldBe newUser
-            repository.findBy(UserId("new-user")) shouldBe newUser
+            repository.findBy(UserId(3000001L)) shouldBe newUser
             repository.getAll().size shouldBe 1
         }
 
@@ -234,7 +235,7 @@ class UserRegisterTest : FunSpec({
             // given
             val activeUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -255,7 +256,7 @@ class UserRegisterTest : FunSpec({
 
             // then
             result.status shouldBe UserStatus.DORMANT
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser?.status shouldBe UserStatus.DORMANT
         }
     }

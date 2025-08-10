@@ -45,7 +45,7 @@ class UserLoginController(
                 return Response(
                     accessToken = result.accessToken.token,
                     refreshToken = result.refreshToken.token,
-                    userId = result.userId.value,
+                    userId = result.userId.value.toString(),
                     accessTokenExpiresAt = Instant.ofEpochMilli(result.accessToken.expiresAt).toString(),
                     refreshTokenExpiresAt = Instant.ofEpochMilli(result.refreshToken.expiresAt).toString(),
                 )

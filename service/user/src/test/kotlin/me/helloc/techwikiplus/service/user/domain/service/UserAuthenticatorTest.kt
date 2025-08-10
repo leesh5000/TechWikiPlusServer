@@ -41,7 +41,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("Password123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
@@ -62,7 +62,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("Password123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
@@ -85,7 +85,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("Password123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
@@ -108,7 +108,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("Password123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
@@ -131,7 +131,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("Password123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
@@ -154,7 +154,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("CorrectPassword123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("testuser"),
@@ -176,7 +176,7 @@ class UserAuthenticatorTest : FunSpec({
                 val wrongPassword = RawPassword("WrongPassword123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(correctPassword),
                         nickname = Nickname("testuser"),
@@ -200,7 +200,7 @@ class UserAuthenticatorTest : FunSpec({
                 val wrongPassword = RawPassword("pAssword123!")
                 val user =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("test@example.com"),
                         encodedPassword = passwordEncryptor.encode(correctPassword),
                         nickname = Nickname("testuser"),
@@ -235,7 +235,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("AdminPassword123!")
                 val adminUser =
                     User.create(
-                        id = UserId("admin-1"),
+                        id = UserId(6000001L),
                         email = Email("admin@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("admin"),
@@ -256,7 +256,7 @@ class UserAuthenticatorTest : FunSpec({
                 val rawPassword = RawPassword("UserPassword123!")
                 val normalUser =
                     User.create(
-                        id = UserId("user-1"),
+                        id = UserId(1000001L),
                         email = Email("user@example.com"),
                         encodedPassword = passwordEncryptor.encode(rawPassword),
                         nickname = Nickname("user"),
@@ -278,7 +278,7 @@ class UserAuthenticatorTest : FunSpec({
         context("사용자 상태 검증") {
             test("ACTIVE 상태의 사용자는 리프레시 토큰으로 인증할 수 있다") {
                 // given
-                val userId = UserId("user-1")
+                val userId = UserId(1000001L)
                 val refreshToken = "valid-refresh-token"
                 val user =
                     User.create(
@@ -302,7 +302,7 @@ class UserAuthenticatorTest : FunSpec({
 
             test("PENDING 상태의 사용자는 USER_PENDING 예외를 발생시킨다") {
                 // given
-                val userId = UserId("user-1")
+                val userId = UserId(1000001L)
                 val refreshToken = "valid-refresh-token"
                 val user =
                     User.create(
@@ -327,7 +327,7 @@ class UserAuthenticatorTest : FunSpec({
 
             test("BANNED 상태의 사용자는 USER_BANNED 예외를 발생시킨다") {
                 // given
-                val userId = UserId("user-1")
+                val userId = UserId(1000001L)
                 val refreshToken = "valid-refresh-token"
                 val user =
                     User.create(
@@ -352,7 +352,7 @@ class UserAuthenticatorTest : FunSpec({
 
             test("DELETED 상태의 사용자는 USER_DELETED 예외를 발생시킨다") {
                 // given
-                val userId = UserId("user-1")
+                val userId = UserId(1000001L)
                 val refreshToken = "valid-refresh-token"
                 val user =
                     User.create(
@@ -379,7 +379,7 @@ class UserAuthenticatorTest : FunSpec({
         context("리프레시 토큰 검증") {
             test("유효한 리프레시 토큰으로 인증 시 사용자 ID를 반환한다") {
                 // given
-                val userId = UserId("user-1")
+                val userId = UserId(1000001L)
                 val refreshToken = "valid-refresh-token"
                 val user =
                     User.create(
@@ -403,7 +403,7 @@ class UserAuthenticatorTest : FunSpec({
 
             test("존재하지 않는 리프레시 토큰으로 인증 시 INVALID_TOKEN 예외를 발생시킨다") {
                 // given
-                val userId = UserId("user-1")
+                val userId = UserId(1000001L)
                 val invalidToken = "invalid-refresh-token"
                 val user =
                     User.create(
@@ -427,8 +427,8 @@ class UserAuthenticatorTest : FunSpec({
 
             test("다른 사용자의 리프레시 토큰으로 인증 시 INVALID_TOKEN 예외를 발생시킨다") {
                 // given
-                val user1Id = UserId("user-1")
-                val user2Id = UserId("user-2")
+                val user1Id = UserId(1000001L)
+                val user2Id = UserId(1000002L)
                 val refreshToken = "refresh-token-for-user2"
 
                 val user1 =
@@ -456,7 +456,7 @@ class UserAuthenticatorTest : FunSpec({
 
             test("빈 리프레시 토큰으로 인증 시 INVALID_TOKEN 예외를 발생시킨다") {
                 // given
-                val userId = UserId("user-1")
+                val userId = UserId(1000001L)
                 val emptyToken = ""
                 val user =
                     User.create(
@@ -482,7 +482,7 @@ class UserAuthenticatorTest : FunSpec({
         context("다양한 권한의 사용자 리프레시 토큰 인증") {
             test("ADMIN 권한 사용자도 리프레시 토큰으로 인증할 수 있다") {
                 // given
-                val adminId = UserId("admin-1")
+                val adminId = UserId(6000001L)
                 val refreshToken = "admin-refresh-token"
                 val adminUser =
                     User.create(
@@ -511,7 +511,7 @@ class UserAuthenticatorTest : FunSpec({
             // given
             val user1 =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("user1@example.com"),
                     encodedPassword = passwordEncryptor.encode(RawPassword("Password1!")),
                     nickname = Nickname("user1"),
@@ -523,7 +523,7 @@ class UserAuthenticatorTest : FunSpec({
 
             val user2 =
                 User.create(
-                    id = UserId("user-2"),
+                    id = UserId(1000002L),
                     email = Email("user2@example.com"),
                     encodedPassword = passwordEncryptor.encode(RawPassword("Password2!")),
                     nickname = Nickname("user2"),
@@ -552,7 +552,7 @@ class UserAuthenticatorTest : FunSpec({
 
         test("비밀번호 인증과 토큰 인증은 서로 독립적이다") {
             // given
-            val userId = UserId("user-1")
+            val userId = UserId(1000001L)
             val refreshToken = "refresh-token"
             val user =
                 User.create(

@@ -34,7 +34,7 @@ class UserReaderTest : FunSpec({
     context("get(UserId) 메서드는") {
         test("존재하는 사용자 ID로 조회하면 사용자를 반환한다") {
             // given
-            val userId = UserId("user-1")
+            val userId = UserId(1000001L)
             val user =
                 User.create(
                     id = userId,
@@ -62,7 +62,7 @@ class UserReaderTest : FunSpec({
 
         test("존재하지 않는 사용자 ID로 조회하면 USER_NOT_FOUND 예외를 발생시킨다") {
             // given
-            val nonExistentUserId = UserId("non-existent-user")
+            val nonExistentUserId = UserId(9999999L)
 
             // when & then
             val exception =
@@ -70,12 +70,12 @@ class UserReaderTest : FunSpec({
                     userReader.get(nonExistentUserId)
                 }
             exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
-            exception.params shouldBe arrayOf("non-existent-user")
+            exception.params shouldBe arrayOf(9999999L)
         }
 
         test("PENDING 상태의 사용자를 조회하면 USER_PENDING 예외를 발생시킨다") {
             // given
-            val userId = UserId("pending-user")
+            val userId = UserId(4000001L)
             val pendingUser =
                 User.create(
                     id = userId,
@@ -98,7 +98,7 @@ class UserReaderTest : FunSpec({
 
         test("DORMANT 상태의 사용자를 조회하면 USER_DORMANT 예외를 발생시킨다") {
             // given
-            val userId = UserId("dormant-user")
+            val userId = UserId(4000002L)
             val dormantUser =
                 User.create(
                     id = userId,
@@ -121,7 +121,7 @@ class UserReaderTest : FunSpec({
 
         test("BANNED 상태의 사용자를 조회하면 USER_BANNED 예외를 발생시킨다") {
             // given
-            val userId = UserId("banned-user")
+            val userId = UserId(4000003L)
             val bannedUser =
                 User.create(
                     id = userId,
@@ -144,7 +144,7 @@ class UserReaderTest : FunSpec({
 
         test("DELETED 상태의 사용자를 조회하면 USER_DELETED 예외를 발생시킨다") {
             // given
-            val userId = UserId("deleted-user")
+            val userId = UserId(4000004L)
             val deletedUser =
                 User.create(
                     id = userId,
@@ -169,7 +169,7 @@ class UserReaderTest : FunSpec({
             // given
             val user1 =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("user1@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("user1"),
@@ -179,7 +179,7 @@ class UserReaderTest : FunSpec({
                 )
             val user2 =
                 User.create(
-                    id = UserId("user-2"),
+                    id = UserId(1000002L),
                     email = Email("user2@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("user2"),
@@ -189,7 +189,7 @@ class UserReaderTest : FunSpec({
                 )
             val user3 =
                 User.create(
-                    id = UserId("user-3"),
+                    id = UserId(1000003L),
                     email = Email("user3@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("user3"),
@@ -202,11 +202,11 @@ class UserReaderTest : FunSpec({
             repository.save(user3)
 
             // when
-            val result = userReader.get(UserId("user-2"))
+            val result = userReader.get(UserId(1000002L))
 
             // then
             result shouldBe user2
-            result.id shouldBe UserId("user-2")
+            result.id shouldBe UserId(1000002L)
             result.email shouldBe Email("user2@example.com")
         }
     }
@@ -217,7 +217,7 @@ class UserReaderTest : FunSpec({
             val email = Email("active@example.com")
             val activeUser =
                 User.create(
-                    id = UserId("active-user"),
+                    id = UserId(5000001L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("activeuser"),
@@ -255,7 +255,7 @@ class UserReaderTest : FunSpec({
             val email = Email("pending@example.com")
             val pendingUser =
                 User.create(
-                    id = UserId("pending-user"),
+                    id = UserId(4000001L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("pendinguser"),
@@ -278,7 +278,7 @@ class UserReaderTest : FunSpec({
             val email = Email("dormant@example.com")
             val dormantUser =
                 User.create(
-                    id = UserId("dormant-user"),
+                    id = UserId(4000002L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("dormantuser"),
@@ -301,7 +301,7 @@ class UserReaderTest : FunSpec({
             val email = Email("banned@example.com")
             val bannedUser =
                 User.create(
-                    id = UserId("banned-user"),
+                    id = UserId(4000003L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("banneduser"),
@@ -324,7 +324,7 @@ class UserReaderTest : FunSpec({
             val email = Email("deleted@example.com")
             val deletedUser =
                 User.create(
-                    id = UserId("deleted-user"),
+                    id = UserId(4000004L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("deleteduser"),
@@ -349,7 +349,7 @@ class UserReaderTest : FunSpec({
             // 먼저 PENDING 사용자 저장
             val pendingUser =
                 User.create(
-                    id = UserId("pending-user"),
+                    id = UserId(4000001L),
                     email = Email("pending@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("pendinguser"),
@@ -362,7 +362,7 @@ class UserReaderTest : FunSpec({
             // ACTIVE 사용자 저장
             val activeUser =
                 User.create(
-                    id = UserId("active-user"),
+                    id = UserId(5000001L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("activeuser"),
@@ -385,7 +385,7 @@ class UserReaderTest : FunSpec({
             val email = Email("admin@example.com")
             val adminUser =
                 User.create(
-                    id = UserId("admin-user"),
+                    id = UserId(6000001L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("adminuser"),
@@ -411,7 +411,7 @@ class UserReaderTest : FunSpec({
             val email = Email("pending@example.com")
             val pendingUser =
                 User.create(
-                    id = UserId("pending-user"),
+                    id = UserId(4000001L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("pendinguser"),
@@ -432,7 +432,7 @@ class UserReaderTest : FunSpec({
             val email = Email("active@example.com")
             val activeUser =
                 User.create(
-                    id = UserId("active-user"),
+                    id = UserId(5000001L),
                     email = email,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("activeuser"),

@@ -18,7 +18,7 @@ class UserProfileController(
     fun getUserProfile(
         @PathVariable("userId") userId: String,
     ): ResponseEntity<Response> =
-        UserId(userId)
+        UserId.from(userId)
             .let(useCase::execute)
             .let(Response::from)
             .let { ResponseEntity.ok(it) }
@@ -35,7 +35,7 @@ class UserProfileController(
         companion object {
             fun from(result: UserProfileUseCase.Result): Response =
                 Response(
-                    userId = result.userId.value,
+                    userId = result.userId.value.toString(),
                     email = result.email,
                     nickname = result.nickname,
                     role = result.role.name,

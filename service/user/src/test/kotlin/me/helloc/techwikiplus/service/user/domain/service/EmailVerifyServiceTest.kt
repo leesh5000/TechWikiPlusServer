@@ -40,7 +40,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val user =
             User.create(
-                id = UserId("test-user-1"),
+                id = UserId(1000001L),
                 email = Email("test@example.com"),
                 nickname = Nickname("testuser"),
                 encodedPassword = EncodedPassword("encoded_password"),
@@ -68,7 +68,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val user =
             User.create(
-                id = UserId("test-user-1"),
+                id = UserId(1000001L),
                 email = Email("test@example.com"),
                 nickname = Nickname("testuser"),
                 encodedPassword = EncodedPassword("encoded_password"),
@@ -95,7 +95,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val user =
             User.create(
-                id = UserId("test-user-1"),
+                id = UserId(1000001L),
                 email = Email("test@example.com"),
                 nickname = Nickname("testuser"),
                 encodedPassword = EncodedPassword("encoded_password"),
@@ -188,7 +188,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val user1 =
             User.create(
-                id = UserId("user-1"),
+                id = UserId(1000001L),
                 email = Email("user1@example.com"),
                 nickname = Nickname("user1"),
                 encodedPassword = EncodedPassword("encoded_password1"),
@@ -200,7 +200,7 @@ class EmailVerifyServiceTest : FunSpec({
 
         val user2 =
             User.create(
-                id = UserId("user-2"),
+                id = UserId(1000002L),
                 email = Email("user2@example.com"),
                 nickname = Nickname("user2"),
                 encodedPassword = EncodedPassword("encoded_password2"),
@@ -237,7 +237,7 @@ class EmailVerifyServiceTest : FunSpec({
         // given
         val user =
             User.create(
-                id = UserId("test-user-1"),
+                id = UserId(1000001L),
                 email = Email("test@example.com"),
                 nickname = Nickname("testuser"),
                 encodedPassword = EncodedPassword("encoded_password"),

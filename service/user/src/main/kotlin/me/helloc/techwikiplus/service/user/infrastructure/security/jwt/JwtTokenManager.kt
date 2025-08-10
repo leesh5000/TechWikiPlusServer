@@ -24,7 +24,7 @@ class JwtTokenManager(
 
         val token: String =
             Jwts.builder()
-                .setSubject(userId.value)
+                .setSubject(userId.value.toString())
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .claim("token_type", "access")
@@ -42,7 +42,7 @@ class JwtTokenManager(
         val expiration = Date(now.time + refreshTokenValidityInSeconds * 1000)
         val token: String =
             Jwts.builder()
-                .setSubject(userId.value)
+                .setSubject(userId.value.toString())
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .claim("token_type", "refresh")
@@ -76,7 +76,7 @@ class JwtTokenManager(
                 throw DomainException(ErrorCode.INVALID_TOKEN_TYPE, arrayOf(tokenType))
             }
 
-            val tokenUserId = UserId(claims.subject)
+            val tokenUserId = UserId.from(claims.subject)
             if (tokenUserId != userId) {
                 throw DomainException(ErrorCode.INVALID_TOKEN, arrayOf("User ID mismatch"))
             }
@@ -103,7 +103,7 @@ class JwtTokenManager(
                 throw DomainException(ErrorCode.INVALID_TOKEN_TYPE, arrayOf(tokenType))
             }
 
-            return UserId(claims.subject)
+            return UserId.from(claims.subject)
         } catch (e: ExpiredJwtException) {
             throw DomainException(ErrorCode.TOKEN_EXPIRED, arrayOf("Access token"))
         }
