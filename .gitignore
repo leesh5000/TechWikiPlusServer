@@ -45,7 +45,8 @@ build
 
 ### User Service ###
 service/user/.env
-service/user/src/main/resources/static/api-docs/
+# OpenAPI 문서는 Git에 커밋되어야 함 (운영 배포 시 필요)
+# service/user/src/main/resources/static/api-docs/
 .env.base
 .env.user-service
 .env.mail
