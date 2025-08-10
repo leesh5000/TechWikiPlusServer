@@ -18,9 +18,9 @@ import java.time.Instant
 open class UserEntity(
     @Id
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT")
-    val id: Long,
+    open val id: Long,
     @Column(name = "email", nullable = false, unique = true, length = 255)
-    val email: String,
+    open val email: String,
     // 저장은 그대로, 조회 시에는 대소문자 구분 X (utf8mb4_0900_ai_ci: case insensitive)
     @Column(
         name = "nickname",
@@ -29,17 +29,17 @@ open class UserEntity(
         length = 50,
         columnDefinition = "VARCHAR(50) COLLATE utf8mb4_0900_ai_ci",
     )
-    val nickname: String,
+    open val nickname: String,
     @Column(name = "password", nullable = false, length = 255)
-    val password: String,
+    open val password: String,
     @Column(name = "status", nullable = false, length = 20)
-    val status: String = "PENDING",
+    open val status: String = "PENDING",
     @Column(name = "role", nullable = false, length = 20)
-    val role: String = "USER",
+    open val role: String = "USER",
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant,
+    open val createdAt: Instant,
     @Column(name = "modified_at", nullable = false)
-    val modifiedAt: Instant,
+    open val modifiedAt: Instant,
 ) {
     // JPA requires a no-arg constructor
     protected constructor() : this(

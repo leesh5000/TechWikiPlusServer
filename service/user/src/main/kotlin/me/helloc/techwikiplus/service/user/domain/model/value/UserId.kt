@@ -7,7 +7,7 @@ class UserId(val value: Long) {
     init {
         if (value <= 0) {
             throw DomainException(
-                errorCode = ErrorCode.BLANK_USER_ID,
+                errorCode = ErrorCode.INVALID_USER_ID_FORMAT,
                 params = arrayOf("userId"),
             )
         }

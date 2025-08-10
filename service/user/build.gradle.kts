@@ -70,6 +70,15 @@ dependencies {
 }
 
 // OpenAPI 3.0.1 문서 생성 설정
+//
+// 📌 중요: OpenAPI 문서 관리 정책
+// - 생성된 openapi3.yml 파일은 Git에 커밋되어 관리됨
+// - Docker 빌드 시 성능 최적화를 위해 테스트를 건너뛰므로 (-x test)
+//   사전에 생성된 문서가 JAR에 포함되어야 함
+// - API 변경 시 개발자는 반드시:
+//   1. ./gradlew test 실행하여 문서 재생성
+//   2. src/main/resources/static/api-docs/openapi3.yml 파일 커밋
+// - 자세한 내용은 src/main/resources/static/api-docs/README.md 참조
 openapi3 {
     val protocol = System.getenv("PROTOCOL") ?: "http"
     val host = System.getenv("SERVER_HOST") ?: "localhost"
@@ -87,6 +96,8 @@ openapi3 {
 }
 
 // OpenAPI 문서를 정적 리소스로 복사하는 태스크
+// 테스트 실행 후 자동으로 실행되어 문서를 리소스 디렉토리에 복사
+// 개발자는 이 파일을 Git에 커밋해야 함
 tasks.register<Copy>("copyOpenApiToResources") {
     dependsOn("openapi3")
     from("build/api-spec/openapi3.yml")
