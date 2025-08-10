@@ -112,8 +112,8 @@ jobs:
           echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Run tests for both common and user service modules
-          ./gradlew :common:snowflake:test :service:user:test --no-daemon --stacktrace > test-output.log 2>&1 || TEST_EXIT_CODE=$?
+          # Run tests for both common and user service modules with more verbose output
+          ./gradlew :common:snowflake:test :service:user:test --no-daemon --stacktrace --info > test-output.log 2>&1 || TEST_EXIT_CODE=$?
 
           if [ -z "$TEST_EXIT_CODE" ]; then
             echo "✅ **Status:** All tests passed" >> $GITHUB_STEP_SUMMARY
@@ -123,9 +123,21 @@ jobs:
             echo "### Failed Tests:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
 
-            # Extract test failures
-            grep -A 5 -B 5 "FAILED" test-output.log | grep -E "(FAILED|expected|but was|at )" >> $GITHUB_STEP_SUMMARY || true
+            # Extract test failures with more context
+            grep -A 10 -B 5 "FAILED" test-output.log | head -100 >> $GITHUB_STEP_SUMMARY || true
+            
+            # Also look for Docker/TestContainers related errors
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Container/Docker Errors (if any):" >> $GITHUB_STEP_SUMMARY
+            grep -i -E "(docker|container|testcontainers|could not|connection|refused)" test-output.log | head -20 >> $GITHUB_STEP_SUMMARY || true
 
+            echo '```' >> $GITHUB_STEP_SUMMARY
+
+            # Show last 50 lines of output for debugging
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Last 50 lines of output:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -50 test-output.log >> $GITHUB_STEP_SUMMARY || true
             echo '```' >> $GITHUB_STEP_SUMMARY
 
             # Fail the step
