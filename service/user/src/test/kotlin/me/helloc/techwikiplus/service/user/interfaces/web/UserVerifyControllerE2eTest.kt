@@ -5,6 +5,7 @@ import com.epages.restdocs.apispec.Schema
 import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
@@ -85,11 +86,14 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isCreated)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/login"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/login"),
+            )
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "user-verify",
+                    "올바른 입력값으로 이메일 인증",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증")
@@ -110,7 +114,10 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                                 .description("6자리 인증 코드"),
                         )
                         .requestSchema(
-                            Schema.Companion.schema(UserVerifyController.Request::class.java.simpleName),
+                            Schema.Companion.schema(
+                                "${UserVerifyController::class.simpleName}" +
+                                    ".${UserVerifyController.Request::class.simpleName}",
+                            ),
                         )
                         .build(),
                 ),
@@ -160,11 +167,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-invalid-code",
+                    "잘못된 인증 코드",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 잘못된 인증 코드")
                         .description("인증 코드가 일치하지 않는 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -206,11 +214,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-expired-code",
+                    "만료된 인증 코드",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 만료된 인증 코드")
                         .description("인증 코드가 만료된 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -242,11 +251,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-user-not-found",
+                    "존재하지 않은 이메일",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 사용자 없음")
                         .description("등록되지 않은 이메일로 인증을 시도하는 경우 404 Not Found를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -282,11 +292,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-already-verified",
+                    "이미 인증이 완료된 이메일",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 이미 인증됨")
                         .description("이미 인증된 사용자가 재인증을 시도하는 경우 404 Not Found 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -316,11 +327,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-invalid-email",
+                    "잘못된 이메일 형식",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 잘못된 이메일 형식")
                         .description("이메일 형식이 올바르지 않은 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -356,11 +368,12 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-invalid-code-length",
+                    "잘못된 인증 코드",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 잘못된 코드 길이")
                         .description("인증 코드가 6자리가 아닌 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -504,7 +517,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-missing-field",
+                    "이메일 인증 필수 필드 누락",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증 - 필수 필드 누락")
@@ -512,6 +525,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
                             "필수 필드(email, registrationCode)가 누락된 경우" +
                                 " 400 Bad Request를 반환합니다.",
                         )
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )

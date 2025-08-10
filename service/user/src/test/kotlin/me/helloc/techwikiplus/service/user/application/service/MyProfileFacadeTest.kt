@@ -18,7 +18,7 @@ import me.helloc.techwikiplus.service.user.domain.service.UserAuthorizationServi
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import java.time.Instant
 
-class GetMyProfileFacadeTest : DescribeSpec({
+class MyProfileFacadeTest : DescribeSpec({
     lateinit var facade: MyProfileFacade
     lateinit var userRepository: FakeUserRepository
     lateinit var authorizationPort: FakeAuthorizationPort

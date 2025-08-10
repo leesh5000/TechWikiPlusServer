@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
@@ -79,7 +80,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "user-verify-resend",
+                    "유효한 입력 값으로 인증 코드 재발송",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송")
@@ -98,7 +99,10 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
                                 .description("인증 코드를 재발송할 이메일 주소"),
                         )
                         .requestSchema(
-                            Schema.schema(UserVerifyResendController.Request::class.java.simpleName),
+                            Schema.schema(
+                                "${UserVerifyResendController::class.simpleName}" +
+                                    ".${UserVerifyResendController.Request::class.simpleName}",
+                            ),
                         )
                         .build(),
                 ),
@@ -162,11 +166,12 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-resend-user-not-found",
+                    "존재하지 않는 이메일로 인증 코드 재발송",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 사용자 없음")
                         .description("등록되지 않은 이메일로 재발송을 요청하는 경우 404 Not Found를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -199,11 +204,12 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-resend-already-verified",
+                    "이메일 인증 코드 재발송 - 이미 인증됨",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 이미 인증됨")
                         .description("이미 인증된 사용자가 재발송을 요청하는 경우 404 Not Found를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -274,11 +280,12 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-resend-invalid-email",
+                    "이메일 인증 코드 재발송 - 잘못된 이메일 형식",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 잘못된 이메일 형식")
                         .description("이메일 형식이 올바르지 않은 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -341,11 +348,12 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-verify-resend-missing-field",
+                    "이메일 인증 코드 재발송 - 필수 필드 누락",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송 - 필수 필드 누락")
                         .description("필수 필드(email)가 누락된 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )

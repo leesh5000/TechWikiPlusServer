@@ -1,13 +1,14 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
-import com.epages.restdocs.apispec.ResourceSnippetParameters
-import com.epages.restdocs.apispec.Schema
+import com.epages.restdocs.apispec.ResourceSnippetParameters.Companion.builder
+import com.epages.restdocs.apispec.Schema.Companion.schema
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.restdocs.payload.JsonFieldType
-import org.springframework.restdocs.payload.PayloadDocumentation
+import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -53,8 +54,8 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "user-signup",
-                    ResourceSnippetParameters.Companion.builder()
+                    "올바른 입력값",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입")
                         .description(
@@ -66,21 +67,24 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                             """.trimIndent(),
                         )
                         .requestFields(
-                            PayloadDocumentation.fieldWithPath("email")
+                            fieldWithPath("email")
                                 .type(JsonFieldType.STRING)
                                 .description("사용자 이메일 주소"),
-                            PayloadDocumentation.fieldWithPath("nickname")
+                            fieldWithPath("nickname")
                                 .type(JsonFieldType.STRING)
                                 .description("사용자 닉네임 (2-20자)"),
-                            PayloadDocumentation.fieldWithPath("password")
+                            fieldWithPath("password")
                                 .type(JsonFieldType.STRING)
                                 .description("비밀번호 (8-20자, 대소문자, 특수문자 포함)"),
-                            PayloadDocumentation.fieldWithPath("confirmPassword")
+                            fieldWithPath("confirmPassword")
                                 .type(JsonFieldType.STRING)
                                 .description("비밀번호 확인"),
                         )
                         .requestSchema(
-                            Schema.Companion.schema(UserSignUpController.Request::class.java.simpleName),
+                            schema(
+                                "${UserSignUpController::class.simpleName}" +
+                                    ".${UserSignUpController.Request::class.simpleName}",
+                            ),
                         )
                         .build(),
                 ),
@@ -109,8 +113,8 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("INVALID_EMAIL_FORMAT"))
             .andDo(
                 documentWithResource(
-                    "user-signup-invalid-email",
-                    ResourceSnippetParameters.Companion.builder()
+                    "빈 이메일로 회원가입",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 잘못된 이메일 형식")
                         .description("이메일 형식이 올바르지 않은 경우 400 Bad Request를 반환합니다.")
@@ -141,11 +145,12 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_MISMATCH"))
             .andDo(
                 documentWithResource(
-                    "user-signup-password-mismatch",
-                    ResourceSnippetParameters.Companion.builder()
+                    "비밀번호가 일치하지 않는 경우",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 비밀번호 불일치")
                         .description("비밀번호와 비밀번호 확인이 일치하지 않는 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -173,11 +178,12 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_TOO_SHORT"))
             .andDo(
                 documentWithResource(
-                    "user-signup-short-nickname",
-                    ResourceSnippetParameters.Companion.builder()
+                    "닉네임이 짧은 경우",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 짧은 닉네임")
                         .description("닉네임이 2자 미만인 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -206,11 +212,12 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_TOO_SHORT"))
             .andDo(
                 documentWithResource(
-                    "user-signup-short-password",
-                    ResourceSnippetParameters.Companion.builder()
+                    "비밀번호가 짧은 경우",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 짧은 비밀번호")
                         .description("비밀번호가 8자 미만인 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -239,11 +246,12 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_NO_UPPERCASE"))
             .andDo(
                 documentWithResource(
-                    "user-signup-password-no-uppercase",
-                    ResourceSnippetParameters.Companion.builder()
+                    "대문자가 없는 비밀번호",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 대문자 없는 비밀번호")
                         .description("비밀번호에 대문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -269,14 +277,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_NO_LOWERCASE"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("PASSWORD_NO_LOWERCASE"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-password-no-lowercase",
-                    ResourceSnippetParameters.Companion.builder()
+                    "소문자가 없는 비밀번호",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 소문자 없는 비밀번호")
                         .description("비밀번호에 소문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -302,14 +314,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_NO_SPECIAL_CHAR"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("PASSWORD_NO_SPECIAL_CHAR"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-password-no-special",
-                    ResourceSnippetParameters.Companion.builder()
+                    "특수문자 없는 비밀번호",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 특수문자 없는 비밀번호")
                         .description("비밀번호에 특수문자가 포함되지 않은 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -335,14 +351,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("PASSWORD_TOO_LONG"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("PASSWORD_TOO_LONG"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-long-password",
-                    ResourceSnippetParameters.Companion.builder()
+                    "긴 비밀번호",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 긴 비밀번호")
                         .description("비밀번호가 30자를 초과하는 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -377,14 +397,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isConflict)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("DUPLICATE_EMAIL"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("DUPLICATE_EMAIL"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-duplicate-email",
-                    ResourceSnippetParameters.Companion.builder()
+                    "중복 이메일로 회원가입",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 중복 이메일")
                         .description("이미 등록된 이메일로 회원가입을 시도하는 경우 409 Conflict를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -427,14 +451,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(secondRequest)),
         )
             .andExpect(MockMvcResultMatchers.status().isConflict)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("DUPLICATE_NICKNAME"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("DUPLICATE_NICKNAME"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-duplicate-nickname",
-                    ResourceSnippetParameters.Companion.builder()
+                    "중복 닉네임으로 회원가입",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 중복 닉네임")
                         .description("이미 사용 중인 닉네임으로 회원가입을 시도하는 경우 409 Conflict를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -460,16 +488,20 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(requestWithoutEmail),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("MISSING_REQUIRED_FIELD"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("MISSING_REQUIRED_FIELD"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-missing-field",
-                    ResourceSnippetParameters.Companion.builder()
+                    "필수 입력 필드 누락",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 필수 필드 누락")
                         .description(
                             "필수 필드(email, nickname, password, confirmPassword)가 누락된 경우 400 Bad Request를 반환합니다.",
                         )
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -494,14 +526,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_CONTAINS_SPECIAL_CHAR"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("NICKNAME_CONTAINS_SPECIAL_CHAR"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-invalid-nickname",
-                    ResourceSnippetParameters.Companion.builder()
+                    "잘못된 닉네임 형식",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 잘못된 닉네임 형식")
                         .description("닉네임에 허용되지 않는 특수문자가 포함된 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -527,14 +563,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_TOO_LONG"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("NICKNAME_TOO_LONG"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-long-nickname",
-                    ResourceSnippetParameters.Companion.builder()
+                    "너무 긴 닉네임",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 긴 닉네임")
                         .description("닉네임이 20자를 초과하는 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -559,14 +599,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NICKNAME_CONTAINS_SPACE"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("NICKNAME_CONTAINS_SPACE"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-nickname-with-space",
-                    ResourceSnippetParameters.Companion.builder()
+                    "공백이 포함된 닉네임",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 공백 포함 닉네임")
                         .description("닉네임에 공백이 포함된 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -592,14 +636,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("BLANK_NICKNAME"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("BLANK_NICKNAME"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-blank-nickname",
-                    ResourceSnippetParameters.Companion.builder()
+                    "빈 닉네임",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 빈 닉네임")
                         .description("닉네임이 공백만으로 이루어진 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -625,14 +673,18 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("BLANK_EMAIL"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.code")
+                    .value("BLANK_EMAIL"),
+            )
             .andDo(
                 documentWithResource(
-                    "user-signup-blank-email",
-                    ResourceSnippetParameters.Companion.builder()
+                    "빈 이메일",
+                    builder()
                         .tag("User Management")
                         .summary("사용자 회원가입 - 빈 이메일")
                         .description("이메일이 공백만으로 이루어진 경우 400 Bad Request를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -681,7 +733,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test
@@ -704,7 +759,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test
@@ -727,7 +785,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test
@@ -749,7 +810,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test
@@ -771,7 +835,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test
@@ -793,7 +860,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test
@@ -815,7 +885,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test
@@ -837,7 +910,10 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.header().string("Location", "/api/v1/users/verify"))
+            .andExpect(
+                MockMvcResultMatchers.header()
+                    .string("Location", "/api/v1/users/verify"),
+            )
     }
 
     @Test

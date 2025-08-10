@@ -1,10 +1,10 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
-import com.epages.restdocs.apispec.Schema
 import com.epages.restdocs.apispec.Schema.Companion.schema
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
@@ -73,12 +73,15 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").isNotEmpty)
             .andExpect(MockMvcResultMatchers.jsonPath("$.refreshToken").isNotEmpty)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.userId").value(user.id.toString()))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.userId")
+                    .value(user.id.toString()),
+            )
             .andExpect(MockMvcResultMatchers.jsonPath("$.accessTokenExpiresAt").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("$.refreshTokenExpiresAt").exists())
             .andDo(
                 documentWithResource(
-                    "user-login",
+                    "사용자 로그인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인")
@@ -118,10 +121,16 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                                 .description("리프레시 토큰 만료 시간 (ISO-8601 형식)"),
                         )
                         .requestSchema(
-                            schema(UserLoginController.Request::class.java.simpleName),
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Request::class.simpleName}",
+                            ),
                         )
                         .responseSchema(
-                            schema(UserLoginController.Response::class.java.simpleName),
+                            schema(
+                                "${UserLoginController::class.simpleName}" +
+                                    ".${UserLoginController.Response::class.simpleName}",
+                            ),
                         )
                         .build(),
                 ),
@@ -152,22 +161,12 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("인증 정보가 올바르지 않습니다"))
             .andDo(
                 documentWithResource(
-                    "user-login-wrong-password",
+                    "사용자 로그인 - 잘못된 비밀번호",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 잘못된 비밀번호")
                         .description("비밀번호가 일치하지 않는 경우 401 Unauthorized를 반환합니다.")
-                        .responseFields(
-                            PayloadDocumentation.fieldWithPath("code")
-                                .type(JsonFieldType.STRING)
-                                .description("에러 코드"),
-                            PayloadDocumentation.fieldWithPath("message")
-                                .type(JsonFieldType.STRING)
-                                .description("에러 메시지"),
-                            PayloadDocumentation.fieldWithPath("timestamp")
-                                .type(JsonFieldType.STRING)
-                                .description("에러 발생 시간 (ISO-8601 형식)"),
-                        )
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -194,11 +193,12 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists())
             .andDo(
                 documentWithResource(
-                    "user-login-user-not-found",
+                    "사용자 로그인 - 존재하지 않는 사용자",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 존재하지 않는 사용자")
                         .description("등록되지 않은 이메일로 로그인 시도하는 경우 404 Not Found를 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -230,11 +230,12 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-login-banned-user",
+                    "사용자 로그인 - 차단된 사용자",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 차단된 사용자")
                         .description("BANNED 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -264,11 +265,12 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("이미 삭제된 계정입니다."))
             .andDo(
                 documentWithResource(
-                    "user-login-deleted-user",
+                    "사용자 로그인 - 삭제된 사용자",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 삭제된 사용자")
                         .description("DELETED 상태의 사용자가 로그인 시도하는 경우 410 Gone을 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -300,11 +302,12 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-login-dormant-user",
+                    "사용자 로그인 - 휴면 사용자",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 휴면 사용자")
                         .description("DORMANT 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )
@@ -338,11 +341,12 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             )
             .andDo(
                 documentWithResource(
-                    "user-login-pending-user",
+                    "사용자 로그인 - 미인증 사용자",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인 - 미인증 사용자")
                         .description("PENDING 상태의 사용자가 로그인 시도하는 경우 403 Forbidden을 반환합니다.")
+                        .withStandardErrorResponse()
                         .build(),
                 ),
             )

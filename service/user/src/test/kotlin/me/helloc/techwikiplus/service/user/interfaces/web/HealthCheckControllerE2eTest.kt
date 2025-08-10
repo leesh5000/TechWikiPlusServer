@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
-import com.epages.restdocs.apispec.Schema
+import com.epages.restdocs.apispec.Schema.Companion.schema
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
 import org.junit.jupiter.api.Test
@@ -45,7 +45,7 @@ class HealthCheckControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.serviceName").value("techwikiplus-user"))
             .andDo(
                 documentWithResource(
-                    "health-check",
+                    "서비스 상태 확인",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("Health Check")
                         .summary("서비스 상태 확인")
@@ -69,7 +69,10 @@ class HealthCheckControllerE2eTest : BaseE2eTest() {
                                 .description("서비스 이름"),
                         )
                         .responseSchema(
-                            Schema.Companion.schema(HealthCheckController.Response::class.java.simpleName),
+                            schema(
+                                "${HealthCheckController::class.simpleName}" +
+                                    ".${HealthCheckController.Response::class.simpleName}",
+                            ),
                         )
                         .build(),
                 ),
