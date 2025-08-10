@@ -13,32 +13,32 @@ repositories {
 
 dependencies {
 
+    // Common modules
+    implementation(project(":common:snowflake"))
+
     // Spring Boot Web - REST API 개발
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     // Spring Boot Data JPA - 데이터베이스 연동
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
-    // Common modules
-    implementation(project(":common:snowflake"))
+    // Spring Security - 인증/인가 및 비밀번호 암호화
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    // JWT
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
 
-    // Logging & Tracing
-    // Structured logging with JSON format for log aggregation
-    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
-    // Coroutine MDC support for correlation ID propagation
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.6.0")
-    // Kotlin logging facade
-    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-
     // Spring Boot 테스트 지원
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // Spring Security 테스트 지원
+    testImplementation("org.springframework.security:spring-security-test")
     // WebTestClient를 위한 WebFlux 의존성
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
-    // Mockito-Kotlin for better Kotlin support
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     // TestContainers 핵심 라이브러리
     testImplementation("org.testcontainers:testcontainers")
     // JUnit5 통합을 위한 TestContainers 확장
@@ -56,6 +56,17 @@ dependencies {
 
     // Swagger UI - OpenAPI 문서 시각화
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
+
+    // MailSender - 이메일 전송 기능
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+
+    // Redis - 캐시 저장소
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    // Kotlin Coroutines - 병렬 처리를 위한 코루틴
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // MockK - Kotlin mocking library for testing
+    testImplementation("io.mockk:mockk:1.13.8")
 }
 
 // OpenAPI 3.0.1 문서 생성 설정
@@ -80,9 +91,42 @@ tasks.register<Copy>("copyOpenApiToResources") {
     dependsOn("openapi3")
     from("build/api-spec/openapi3.yml")
     into("src/main/resources/static/api-docs")
+
+    // 복사 전 대상 디렉토리 정리
+    doFirst {
+        delete("src/main/resources/static/api-docs/openapi3.yml")
+    }
 }
 
-// 테스트 실행 후 자동으로 OpenAPI 문서 생성 및 복사
-tasks.named("test") {
+// 테스트 설정
+tasks.test {
+    useJUnitPlatform()
+
+    // 테스트 실행 전 기존 스니펫 정리 - 중복 문서화 방지
+    doFirst {
+        delete("build/api-spec")
+        delete("build/generated-snippets")
+    }
+
+    // Java 21+ 경고 메시지 제거
+    jvmArgs(
+        // 동적 에이전트 로딩 명시적 허용
+        "-XX:+EnableDynamicAgentLoading",
+        // 클래스 데이터 공유 비활성화로 bootstrap classpath 경고 제거
+        "-Xshare:off",
+    )
+
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = false
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+
+    // 테스트 실행 후 자동으로 OpenAPI 문서 생성 및 복사
     finalizedBy("copyOpenApiToResources")
+}
+
+// Spring Boot 메인 클래스 지정
+springBoot {
+    mainClass.set("me.helloc.techwikiplus.service.user.UserApplicationKt")
 }
