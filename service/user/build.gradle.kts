@@ -70,7 +70,7 @@ dependencies {
 }
 
 // OpenAPI 3.0.1 문서 생성 설정
-// 
+//
 // 📌 중요: OpenAPI 문서 관리 정책
 // - 생성된 openapi3.yml 파일은 Git에 커밋되어 관리됨
 // - Docker 빌드 시 성능 최적화를 위해 테스트를 건너뛰므로 (-x test)
