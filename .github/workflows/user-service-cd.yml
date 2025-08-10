@@ -21,7 +21,7 @@ on:
         required: false
         default: 'Manual deployment triggered'
 
-# Set defaults for all jobs - ensure the pipeline fails fast
+# Set defaults for all jobs - ensure pipeline fails fast
 defaults:
   run:
     shell: bash -euo pipefail {0}
