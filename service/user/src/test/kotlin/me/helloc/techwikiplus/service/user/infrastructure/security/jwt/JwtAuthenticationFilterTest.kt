@@ -50,7 +50,7 @@ class JwtAuthenticationFilterTest : DescribeSpec({
             it("SecurityContext에 인증 정보를 설정해야 함") {
                 // given
                 val token = "valid.jwt.token"
-                val userId = UserId("user123")
+                val userId = UserId(123L)
                 val user =
                     User(
                         id = userId,

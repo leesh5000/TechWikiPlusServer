@@ -15,10 +15,10 @@ import java.time.Instant
         // nickname은 UNIQUE 제약조건으로 자동 인덱스 생성됨
     ],
 )
-class UserEntity(
+open class UserEntity(
     @Id
-    @Column(name = "id", nullable = false, columnDefinition = "CHAR(36)")
-    val id: String,
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT")
+    val id: Long,
     @Column(name = "email", nullable = false, unique = true, length = 255)
     val email: String,
     // 저장은 그대로, 조회 시에는 대소문자 구분 X (utf8mb4_0900_ai_ci: case insensitive)
@@ -43,7 +43,7 @@ class UserEntity(
 ) {
     // JPA requires a no-arg constructor
     protected constructor() : this(
-        id = "",
+        id = 0L,
         email = "",
         nickname = "",
         password = "",

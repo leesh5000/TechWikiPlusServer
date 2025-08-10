@@ -37,7 +37,7 @@ class MyProfileFacadeTest : DescribeSpec({
         context("인증된 사용자가 자신의 프로필을 조회할 때") {
             it("프로필 정보를 반환한다") {
                 // Given
-                val userId = UserId("test-user-id")
+                val userId = UserId(5000001L)
                 val user =
                     User(
                         id = userId,
@@ -81,7 +81,7 @@ class MyProfileFacadeTest : DescribeSpec({
         context("사용자가 존재하지 않을 때") {
             it("USER_NOT_FOUND 예외를 발생시킨다") {
                 // Given
-                val userId = UserId("non-existent-user")
+                val userId = UserId(9999999L)
                 authorizationPort.setCurrentUser(userId)
 
                 // When & Then

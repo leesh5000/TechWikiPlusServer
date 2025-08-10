@@ -31,7 +31,7 @@ class UserProfileFacadeTest : DescribeSpec({
         context("존재하는 사용자의 프로필을 조회할 때") {
             it("프로필 정보를 반환한다") {
                 // Given
-                val userId = UserId("test-user-id")
+                val userId = UserId(5000001L)
                 val user =
                     User(
                         id = userId,
@@ -60,7 +60,7 @@ class UserProfileFacadeTest : DescribeSpec({
         context("관리자 사용자의 프로필을 조회할 때") {
             it("프로필 정보를 반환한다") {
                 // Given
-                val adminUserId = UserId("admin-user-id")
+                val adminUserId = UserId(6000001L)
 
                 val adminUser =
                     User(
@@ -91,7 +91,7 @@ class UserProfileFacadeTest : DescribeSpec({
         context("존재하지 않는 사용자의 프로필을 조회할 때") {
             it("USER_NOT_FOUND 예외를 발생시킨다") {
                 // Given
-                val nonExistentUserId = UserId("non-existent-user")
+                val nonExistentUserId = UserId(9999999L)
 
                 // When & Then
                 val exception =

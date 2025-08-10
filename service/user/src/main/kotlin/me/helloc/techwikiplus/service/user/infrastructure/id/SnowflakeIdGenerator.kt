@@ -10,6 +10,6 @@ class SnowflakeIdGenerator : IdGenerator {
     private val snowflake = Snowflake()
 
     override fun next(): UserId {
-        return UserId(snowflake.nextId().toString())
+        return UserId(snowflake.nextId())
     }
 }

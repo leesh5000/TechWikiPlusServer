@@ -35,7 +35,7 @@ class UserModifierTest : FunSpec({
             // given
             val pendingUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -56,7 +56,7 @@ class UserModifierTest : FunSpec({
             result.createdAt shouldBe Instant.parse("2025-01-01T00:00:00Z")
 
             // 저장소에 업데이트되었는지 확인
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser shouldNotBe null
             savedUser?.status shouldBe UserStatus.ACTIVE
             savedUser?.modifiedAt shouldBe Instant.parse("2025-01-07T10:00:00Z")
@@ -66,7 +66,7 @@ class UserModifierTest : FunSpec({
             // given
             val activeUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -85,7 +85,7 @@ class UserModifierTest : FunSpec({
             result.modifiedAt shouldBe Instant.parse("2025-01-01T00:00:00Z") // 시간이 변경되지 않음
 
             // 저장소에서도 동일한지 확인
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser shouldBe activeUser
         }
 
@@ -93,7 +93,7 @@ class UserModifierTest : FunSpec({
             // given
             val dormantUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -112,7 +112,7 @@ class UserModifierTest : FunSpec({
             result.modifiedAt shouldBe Instant.parse("2025-01-07T10:00:00Z")
 
             // 저장소에 업데이트되었는지 확인
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser?.status shouldBe UserStatus.ACTIVE
         }
 
@@ -120,7 +120,7 @@ class UserModifierTest : FunSpec({
             // given
             val bannedUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -139,7 +139,7 @@ class UserModifierTest : FunSpec({
             result.modifiedAt shouldBe Instant.parse("2025-01-07T10:00:00Z")
 
             // 저장소에 업데이트되었는지 확인
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser?.status shouldBe UserStatus.ACTIVE
         }
 
@@ -147,7 +147,7 @@ class UserModifierTest : FunSpec({
             // given
             val originalUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -179,7 +179,7 @@ class UserModifierTest : FunSpec({
             // given
             val activeUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -200,7 +200,7 @@ class UserModifierTest : FunSpec({
             result.createdAt shouldBe Instant.parse("2025-01-01T00:00:00Z")
 
             // 저장소에 업데이트되었는지 확인
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser shouldNotBe null
             savedUser?.status shouldBe UserStatus.PENDING
             savedUser?.modifiedAt shouldBe Instant.parse("2025-01-07T10:00:00Z")
@@ -210,7 +210,7 @@ class UserModifierTest : FunSpec({
             // given
             val pendingUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -229,7 +229,7 @@ class UserModifierTest : FunSpec({
             result.modifiedAt shouldBe Instant.parse("2025-01-01T00:00:00Z") // 시간이 변경되지 않음
 
             // 저장소에서도 동일한지 확인
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser shouldBe pendingUser
         }
 
@@ -237,7 +237,7 @@ class UserModifierTest : FunSpec({
             // given
             val dormantUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -256,7 +256,7 @@ class UserModifierTest : FunSpec({
             result.modifiedAt shouldBe Instant.parse("2025-01-07T10:00:00Z")
 
             // 저장소에 업데이트되었는지 확인
-            val savedUser = repository.findBy(UserId("user-1"))
+            val savedUser = repository.findBy(UserId(1000001L))
             savedUser?.status shouldBe UserStatus.PENDING
         }
 
@@ -264,7 +264,7 @@ class UserModifierTest : FunSpec({
             // given
             val originalUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -296,7 +296,7 @@ class UserModifierTest : FunSpec({
             // given
             val pendingUser =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("test@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("testuser"),
@@ -321,7 +321,7 @@ class UserModifierTest : FunSpec({
             // given
             val user1 =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("user1@example.com"),
                     encodedPassword = EncodedPassword("encoded_password1"),
                     nickname = Nickname("user1"),
@@ -332,7 +332,7 @@ class UserModifierTest : FunSpec({
                 )
             val user2 =
                 User.create(
-                    id = UserId("user-2"),
+                    id = UserId(1000002L),
                     email = Email("user2@example.com"),
                     encodedPassword = EncodedPassword("encoded_password2"),
                     nickname = Nickname("user2"),
@@ -360,8 +360,8 @@ class UserModifierTest : FunSpec({
             pendingUser2.modifiedAt shouldBe Instant.parse("2025-01-07T10:01:00Z")
 
             // 저장소에서 확인
-            repository.findBy(UserId("user-1"))?.status shouldBe UserStatus.ACTIVE
-            repository.findBy(UserId("user-2"))?.status shouldBe UserStatus.PENDING
+            repository.findBy(UserId(1000001L))?.status shouldBe UserStatus.ACTIVE
+            repository.findBy(UserId(1000002L))?.status shouldBe UserStatus.PENDING
         }
     }
 
@@ -370,7 +370,7 @@ class UserModifierTest : FunSpec({
             // given
             val user1 =
                 User.create(
-                    id = UserId("user-1"),
+                    id = UserId(1000001L),
                     email = Email("user1@example.com"),
                     encodedPassword = EncodedPassword("encoded_password1"),
                     nickname = Nickname("user1"),
@@ -381,7 +381,7 @@ class UserModifierTest : FunSpec({
                 )
             val user2 =
                 User.create(
-                    id = UserId("user-2"),
+                    id = UserId(1000002L),
                     email = Email("user2@example.com"),
                     encodedPassword = EncodedPassword("encoded_password2"),
                     nickname = Nickname("user2"),
@@ -397,8 +397,8 @@ class UserModifierTest : FunSpec({
             userModifier.activate(user1)
 
             // then
-            val savedUser1 = repository.findBy(UserId("user-1"))
-            val savedUser2 = repository.findBy(UserId("user-2"))
+            val savedUser1 = repository.findBy(UserId(1000001L))
+            val savedUser2 = repository.findBy(UserId(1000002L))
 
             savedUser1?.status shouldBe UserStatus.ACTIVE
             savedUser2?.status shouldBe UserStatus.PENDING // 변경되지 않음

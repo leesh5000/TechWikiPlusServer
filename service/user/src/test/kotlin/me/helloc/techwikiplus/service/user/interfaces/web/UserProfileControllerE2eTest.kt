@@ -68,7 +68,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
         // 테스트 사용자 생성
         testUser =
             User(
-                id = UserId("test-user-${System.currentTimeMillis()}"),
+                id = UserId(System.currentTimeMillis()),
                 email = Email("test@example.com"),
                 encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
                 nickname = Nickname("testuser"),
@@ -82,7 +82,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
 
         adminUser =
             User(
-                id = UserId("admin-user-${System.currentTimeMillis()}"),
+                id = UserId(System.currentTimeMillis()),
                 email = Email("admin@example.com"),
                 encodedPassword = passwordEncryptor.encode(RawPassword("Admin1234!")),
                 nickname = Nickname("admin"),
@@ -96,7 +96,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
 
         otherUser =
             User(
-                id = UserId("other-user-${System.currentTimeMillis()}"),
+                id = UserId(System.currentTimeMillis()),
                 email = Email("other@example.com"),
                 encodedPassword = passwordEncryptor.encode(RawPassword("Other1234!")),
                 nickname = Nickname("otheruser"),
@@ -424,7 +424,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
         // Given
         val dormantUser =
             User(
-                id = UserId("dormant-user-${System.currentTimeMillis()}"),
+                id = UserId(System.currentTimeMillis()),
                 email = Email("dormant@example.com"),
                 encodedPassword = passwordEncryptor.encode(RawPassword("Dormant1234!")),
                 nickname = Nickname("dormantuser"),
@@ -477,7 +477,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
         // Given
         val deletedUser =
             User(
-                id = UserId("deleted-user-${System.currentTimeMillis()}"),
+                id = UserId(System.currentTimeMillis()),
                 email = Email("deleted@example.com"),
                 encodedPassword = passwordEncryptor.encode(RawPassword("Deleted1234!")),
                 nickname = Nickname("deleteduser"),

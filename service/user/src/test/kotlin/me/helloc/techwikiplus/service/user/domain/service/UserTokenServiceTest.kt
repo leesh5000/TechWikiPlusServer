@@ -25,7 +25,7 @@ class UserTokenServiceTest : FunSpec({
     context("generateTokens 메서드는") {
         test("사용자 ID를 받아 액세스 토큰과 리프레시 토큰 쌍을 생성한다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -40,7 +40,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("생성된 액세스 토큰과 리프레시 토큰은 서로 다른 토큰이다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -51,7 +51,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("액세스 토큰은 'fake-access-token'으로 시작한다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -62,7 +62,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("리프레시 토큰은 'fake-refresh-token'으로 시작한다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -73,7 +73,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("액세스 토큰의 만료 시간은 리프레시 토큰보다 짧다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -86,7 +86,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("동일한 사용자 ID로 여러 번 호출하면 매번 다른 토큰을 생성한다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair1 = userTokenService.generateTokens(userId)
@@ -104,8 +104,8 @@ class UserTokenServiceTest : FunSpec({
 
         test("서로 다른 사용자 ID로 토큰을 생성할 수 있다") {
             // given
-            val userId1 = UserId("test-user-1")
-            val userId2 = UserId("test-user-2")
+            val userId1 = UserId(1000001L)
+            val userId2 = UserId(1000002L)
 
             // when
             val tokenPair1 = userTokenService.generateTokens(userId1)
@@ -123,7 +123,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("생성된 토큰은 TokenManager를 통해 검증 가능하다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -142,7 +142,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("짧은 사용자 ID로도 토큰을 생성할 수 있다") {
             // given
-            val userId = UserId("a")
+            val userId = UserId(1L)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -168,7 +168,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("연속적으로 많은 토큰을 생성해도 각각 고유하다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
             val tokenPairs = mutableListOf<UserTokenService.TokenPair>()
 
             // when
@@ -191,7 +191,7 @@ class UserTokenServiceTest : FunSpec({
     context("TokenPair 데이터 클래스는") {
         test("동일한 토큰 쌍을 비교하면 같다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
             val tokenPair1 = userTokenService.generateTokens(userId)
 
             // when
@@ -207,7 +207,7 @@ class UserTokenServiceTest : FunSpec({
 
         test("다른 토큰 쌍을 비교하면 다르다") {
             // given
-            val userId = UserId("test-user-1")
+            val userId = UserId(1000001L)
 
             // when
             val tokenPair1 = userTokenService.generateTokens(userId)
@@ -219,8 +219,8 @@ class UserTokenServiceTest : FunSpec({
 
         test("copy 메서드를 사용하여 일부 필드만 변경할 수 있다") {
             // given
-            val userId1 = UserId("test-user-1")
-            val userId2 = UserId("test-user-2")
+            val userId1 = UserId(1000001L)
+            val userId2 = UserId(1000002L)
             val tokenPair1 = userTokenService.generateTokens(userId1)
             val newAccessToken = fakeTokenManager.generateAccessToken(userId2)
 

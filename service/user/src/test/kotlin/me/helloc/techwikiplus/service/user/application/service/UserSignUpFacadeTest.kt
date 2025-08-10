@@ -206,7 +206,7 @@ class UserSignUpFacadeTest : FunSpec({
         val existingEmail = Email("existing@example.com")
         val existingUser =
             User.create(
-                id = UserId("existing-user"),
+                id = UserId(2000001L),
                 email = existingEmail,
                 nickname = Nickname("existinguser"),
                 encodedPassword = EncodedPassword("encoded_password"),
@@ -243,7 +243,7 @@ class UserSignUpFacadeTest : FunSpec({
         val existingNickname = Nickname("existinguser")
         val existingUser =
             User.create(
-                id = UserId("existing-user"),
+                id = UserId(2000001L),
                 email = Email("existing@example.com"),
                 nickname = existingNickname,
                 encodedPassword = EncodedPassword("encoded_password"),

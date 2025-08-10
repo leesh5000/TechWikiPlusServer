@@ -27,7 +27,7 @@ class MyProfileController(
         companion object {
             fun from(result: MyProfileUseCase.Result): Response {
                 return Response(
-                    userId = result.userId.value,
+                    userId = result.userId.value.toString(),
                     email = result.email,
                     nickname = result.nickname,
                     role = result.role.name,
