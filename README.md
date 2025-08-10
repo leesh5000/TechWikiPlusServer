@@ -1,6 +1,6 @@
 # TechWikiPlus Server
 
-TechWikiPlus 프로젝트의 백엔드 서버입니다. 멀티 모듈 입
+TechWikiPlus 프로젝트의 백엔드 서버입니다. 멀티 모듈 입니다.
 
 ## 프로젝트 구조
 
