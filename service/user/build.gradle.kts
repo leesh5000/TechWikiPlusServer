@@ -96,8 +96,25 @@ tasks.register<Copy>("copyOpenApiToResources") {
     into("src/main/resources/static/api-docs")
 }
 
-// 테스트 실행 후 자동으로 OpenAPI 문서 생성 및 복사
-tasks.named("test") {
+// 테스트 설정
+tasks.test {
+    useJUnitPlatform()
+
+    // Java 21+ 경고 메시지 제거
+    jvmArgs(
+        // 동적 에이전트 로딩 명시적 허용
+        "-XX:+EnableDynamicAgentLoading",
+        // 클래스 데이터 공유 비활성화로 bootstrap classpath 경고 제거
+        "-Xshare:off",
+    )
+
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = false
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+
+    // 테스트 실행 후 자동으로 OpenAPI 문서 생성 및 복사
     finalizedBy("copyOpenApiToResources")
 }
 

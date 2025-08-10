@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
+import com.epages.restdocs.apispec.Schema.Companion.schema
 import me.helloc.techwikiplus.service.user.config.BaseE2eTest
 import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
 import me.helloc.techwikiplus.service.user.domain.model.User
@@ -77,7 +78,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.refreshTokenExpiresAt").exists())
             .andDo(
                 documentWithResource(
-                    "user-login-success",
+                    "user-login",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 로그인")
@@ -117,10 +118,10 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
                                 .description("리프레시 토큰 만료 시간 (ISO-8601 형식)"),
                         )
                         .requestSchema(
-                            Schema.Companion.schema(UserLoginController.Request::class.java.simpleName),
+                            schema(UserLoginController.Request::class.java.simpleName),
                         )
                         .responseSchema(
-                            Schema.Companion.schema(UserLoginController.Response::class.java.simpleName),
+                            schema(UserLoginController.Response::class.java.simpleName),
                         )
                         .build(),
                 ),

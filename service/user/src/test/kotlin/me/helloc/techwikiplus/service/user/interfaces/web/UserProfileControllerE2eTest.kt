@@ -136,7 +136,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.modifiedAt").exists())
             .andDo(
                 documentWithResource(
-                    "user-profile-get-my-profile-success",
+                    "user-profile-get-my-profile",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("내 프로필 조회")
@@ -197,7 +197,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("testuser"))
             .andDo(
                 documentWithResource(
-                    "user-profile-get-user-profile-self-success",
+                    "user-profile-get-user-profile-self",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 자신의 프로필")
@@ -255,7 +255,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("otheruser"))
             .andDo(
                 documentWithResource(
-                    "user-profile-get-user-profile-admin-success",
+                    "user-profile-get-user-profile-admin",
                     ResourceSnippetParameters.builder()
                         .tag("User Profile")
                         .summary("특정 사용자 프로필 조회 - 관리자 권한")

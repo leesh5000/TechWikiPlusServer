@@ -89,7 +89,7 @@ class UserVerifyControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "user-verify-success",
+                    "user-verify",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("이메일 인증")

@@ -53,7 +53,7 @@ class UserSignUpControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "user-signup-success",
+                    "user-signup",
                     ResourceSnippetParameters.Companion.builder()
                         .tag("User Management")
                         .summary("사용자 회원가입")

@@ -79,7 +79,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.content().string(""))
             .andDo(
                 documentWithResource(
-                    "user-verify-resend-success",
+                    "user-verify-resend",
                     ResourceSnippetParameters.builder()
                         .tag("User Management")
                         .summary("이메일 인증 코드 재발송")
