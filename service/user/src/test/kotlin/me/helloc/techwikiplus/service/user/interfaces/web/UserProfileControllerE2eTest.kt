@@ -324,7 +324,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
     fun `GET profile by userId - 존재하지 않는 사용자의 프로필을 조회할 때 404 Not Found를 반환해야 한다`() {
         // When & Then
         mockMvc.perform(
-            RestDocumentationRequestBuilders.get("/api/v1/users/{userId}", "non-existent-user")
+            RestDocumentationRequestBuilders.get("/api/v1/users/{userId}", 999999L)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $adminUserToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON),
@@ -379,7 +379,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
             .andExpect(
                 MockMvcResultMatchers.jsonPath("$.code")
-                    .value("USER_ID_TOO_LONG"),
+                    .value("INVALID_USER_ID_FORMAT"),
             )
             .andDo(
                 documentWithResource(

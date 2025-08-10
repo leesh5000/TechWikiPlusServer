@@ -91,7 +91,7 @@ class SecurityConfigurationE2eTest : BaseE2eTest() {
     @Test
     fun `유효한 JWT 토큰으로 접근시 접근 가능해야 함`() {
         // Given: 테스트용 사용자를 데이터베이스에 생성
-        val userId = "user123"
+        val userId = 123L
         val testUser = createTestUser(userId)
         userRepository.save(testUser)
 
@@ -106,7 +106,7 @@ class SecurityConfigurationE2eTest : BaseE2eTest() {
         ).andExpect(status().is2xxSuccessful) // 200 OK 또는 204 No Content 예상
     }
 
-    private fun createTestUser(userId: String): User {
+    private fun createTestUser(userId: Long): User {
         // 테스트용 사용자 객체 생성
         return User.create(
             id = UserId(userId),

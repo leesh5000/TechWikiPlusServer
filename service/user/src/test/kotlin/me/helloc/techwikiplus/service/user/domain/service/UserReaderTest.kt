@@ -70,7 +70,7 @@ class UserReaderTest : FunSpec({
                     userReader.get(nonExistentUserId)
                 }
             exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
-            exception.params shouldBe arrayOf("non-existent-user")
+            exception.params shouldBe arrayOf(9999999L)
         }
 
         test("PENDING 상태의 사용자를 조회하면 USER_PENDING 예외를 발생시킨다") {

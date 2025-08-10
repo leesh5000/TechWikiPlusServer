@@ -152,10 +152,10 @@ class UserTokenServiceTest : FunSpec({
             tokenPair.refreshToken.userId shouldBe userId
         }
 
-        test("최대 길이의 사용자 ID로도 토큰을 생성할 수 있다") {
+        test("큰 숫자 ID로도 토큰을 생성할 수 있다") {
             // given
-            val longId = "a".repeat(64)
-            val userId = UserId(longId)
+            val maxSnowflakeId = Long.MAX_VALUE // Snowflake ID의 최대값
+            val userId = UserId(maxSnowflakeId)
 
             // when
             val tokenPair = userTokenService.generateTokens(userId)
@@ -163,7 +163,7 @@ class UserTokenServiceTest : FunSpec({
             // then
             tokenPair.accessToken.userId shouldBe userId
             tokenPair.refreshToken.userId shouldBe userId
-            tokenPair.accessToken.userId.value shouldBe longId
+            tokenPair.accessToken.userId.value shouldBe maxSnowflakeId
         }
 
         test("연속적으로 많은 토큰을 생성해도 각각 고유하다") {

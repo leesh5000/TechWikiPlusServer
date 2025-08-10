@@ -13,7 +13,6 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.port.IdGenerator
 import me.helloc.techwikiplus.service.user.domain.port.PasswordEncryptor
 import me.helloc.techwikiplus.service.user.domain.port.UserRepository
@@ -508,7 +507,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
     // Helper Methods
     private fun createPendingUser(email: String): User {
         return User.create(
-            id = UserId(idGenerator.next().toString()),
+            id = idGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("pendinguser"),
@@ -521,7 +520,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
 
     private fun createActiveUser(email: String): User {
         return User.create(
-            id = UserId(idGenerator.next().toString()),
+            id = idGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("activeuser"),
@@ -534,7 +533,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
 
     private fun createBannedUser(email: String): User {
         return User.create(
-            id = UserId(idGenerator.next().toString()),
+            id = idGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("banneduser"),
@@ -547,7 +546,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
 
     private fun createDeletedUser(email: String): User {
         return User.create(
-            id = UserId(idGenerator.next().toString()),
+            id = idGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("deleteduser"),

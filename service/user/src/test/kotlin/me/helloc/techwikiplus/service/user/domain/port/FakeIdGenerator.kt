@@ -4,7 +4,8 @@ import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import java.util.concurrent.atomic.AtomicLong
 
 class FakeIdGenerator(
-    private val startFrom: Long = 1000000L,  // Snowflake ID처럼 큰 숫자로 시작
+    // Snowflake ID처럼 큰 숫자로 시작
+    startFrom: Long = 1000000L,
 ) : IdGenerator {
     private val counter = AtomicLong(startFrom)
 

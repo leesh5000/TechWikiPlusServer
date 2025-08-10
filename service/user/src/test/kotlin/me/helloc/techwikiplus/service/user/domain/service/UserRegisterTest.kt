@@ -167,8 +167,8 @@ class UserRegisterTest : FunSpec({
             val user2 = userRegister.insert(user2Email, user2Nickname, user2Password, user2Password)
 
             // then
-            user1.id shouldBe UserId(1000001L)
-            user2.id shouldBe UserId(1000002L)
+            user1.id shouldBe UserId(1000000L)
+            user2.id shouldBe UserId(1000001L)
 
             repository.getAll().size shouldBe 2
             repository.findBy(user1Email) shouldBe user1
