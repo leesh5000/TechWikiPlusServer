@@ -33,22 +33,12 @@ dependencies {
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
 
-    // Logging & Tracing
-    // Structured logging with JSON format for log aggregation
-    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
-    // Coroutine MDC support for correlation ID propagation
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.6.0")
-    // Kotlin logging facade
-    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-
     // Spring Boot 테스트 지원
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     // Spring Security 테스트 지원
     testImplementation("org.springframework.security:spring-security-test")
     // WebTestClient를 위한 WebFlux 의존성
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
-    // Mockito-Kotlin for better Kotlin support
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     // TestContainers 핵심 라이브러리
     testImplementation("org.testcontainers:testcontainers")
     // JUnit5 통합을 위한 TestContainers 확장
@@ -74,9 +64,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     // Kotlin Coroutines - 병렬 처리를 위한 코루틴
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-
-    // Apache Commons Text - XSS 방어를 위한 HTML 이스케이프
-    implementation("org.apache.commons:commons-text:1.11.0")
 
     // MockK - Kotlin mocking library for testing
     testImplementation("io.mockk:mockk:1.13.8")
