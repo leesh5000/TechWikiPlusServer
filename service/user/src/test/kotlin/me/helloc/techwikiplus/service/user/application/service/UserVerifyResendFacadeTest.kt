@@ -18,7 +18,6 @@ import me.helloc.techwikiplus.service.user.domain.port.FakeClockHolder
 import me.helloc.techwikiplus.service.user.domain.port.FakeMailSender
 import me.helloc.techwikiplus.service.user.domain.port.FakeUserRepository
 import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
-import me.helloc.techwikiplus.service.user.domain.service.UserModifier
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import java.time.Instant
 
@@ -27,7 +26,6 @@ class UserVerifyResendFacadeTest : FunSpec({
     lateinit var userVerifyResendFacade: UserVerifyResendFacade
     lateinit var userReader: UserReader
     lateinit var emailVerifyService: EmailVerifyService
-    lateinit var userModifier: UserModifier
 
     lateinit var fakeUserRepository: FakeUserRepository
     lateinit var fakeClockHolder: FakeClockHolder
@@ -46,12 +44,6 @@ class UserVerifyResendFacadeTest : FunSpec({
             EmailVerifyService(
                 mailSender = fakeMailSender,
                 cacheStore = fakeCacheStore,
-            )
-
-        userModifier =
-            UserModifier(
-                clockHolder = fakeClockHolder,
-                repository = fakeUserRepository,
             )
 
         userVerifyResendFacade =

@@ -94,11 +94,22 @@ tasks.register<Copy>("copyOpenApiToResources") {
     dependsOn("openapi3")
     from("build/api-spec/openapi3.yml")
     into("src/main/resources/static/api-docs")
+
+    // 복사 전 대상 디렉토리 정리
+    doFirst {
+        delete("src/main/resources/static/api-docs/openapi3.yml")
+    }
 }
 
 // 테스트 설정
 tasks.test {
     useJUnitPlatform()
+
+    // 테스트 실행 전 기존 스니펫 정리 - 중복 문서화 방지
+    doFirst {
+        delete("build/api-spec")
+        delete("build/generated-snippets")
+    }
 
     // Java 21+ 경고 메시지 제거
     jvmArgs(
