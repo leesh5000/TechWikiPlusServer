@@ -54,7 +54,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
     @Test
     fun `POST login - 유효한 로그인 정보로 200 OK와 토큰 정보를 반환해야 한다`() {
         // Given
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
         val user = createActiveUser("logintest@example.com", "로그인테스터")
 
         val request =
@@ -140,7 +140,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
     @Test
     fun `POST login - 잘못된 비밀번호로 401 Unauthorized를 반환해야 한다`() {
         // Given
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
         createActiveUser("wrongpass@example.com", "잘못된비밀번호")
 
         val request =
@@ -219,7 +219,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
     @Test
     fun `POST login - BANNED 상태 사용자로 403 Forbidden을 반환해야 한다`() {
         // Given
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
         createUserWithStatus("banned@example.com", "차단된사용자", UserStatus.BANNED)
 
         val request =
@@ -262,7 +262,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
     @Test
     fun `POST login - DELETED 상태 사용자로 401 Unauthorized를 반환해야 한다`() {
         // Given
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
         createUserWithStatus("deleted@example.com", "삭제된사용자", UserStatus.DELETED)
 
         val request =
@@ -303,7 +303,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
     @Test
     fun `POST login - DORMANT 상태 사용자로 423 Locked를 반환해야 한다`() {
         // Given
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
         createUserWithStatus("dormant@example.com", "휴면사용자", UserStatus.DORMANT)
 
         val request =
@@ -346,7 +346,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
     @Test
     fun `POST login - PENDING 상태 사용자로 403 Forbidden을 반환해야 한다`() {
         // Given
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
         createUserWithStatus("pending@example.com", "미인증사용자", UserStatus.PENDING)
 
         val request =

@@ -78,7 +78,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
                 modifiedAt = Instant.now(),
             )
         testUser = userRepository.save(testUser)
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
 
         adminUser =
             User(
@@ -92,7 +92,7 @@ class UserProfileControllerE2eTest : BaseE2eTest() {
                 modifiedAt = Instant.now(),
             )
         adminUser = userRepository.save(adminUser)
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
 
         otherUser =
             User(

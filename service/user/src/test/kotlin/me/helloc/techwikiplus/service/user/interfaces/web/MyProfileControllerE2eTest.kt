@@ -88,7 +88,7 @@ class MyProfileControllerE2eTest : BaseE2eTest() {
                 modifiedAt = Instant.now().minusSeconds(3600),
             )
         activeUser = userRepository.save(activeUser)
-        Thread.sleep(10) // Snowflake ID 충돌 방지
+        // Snowflake ID 충돌 방지
 
         // ADMIN 권한 사용자
         adminUser =
@@ -104,7 +104,6 @@ class MyProfileControllerE2eTest : BaseE2eTest() {
                 modifiedAt = Instant.now(),
             )
         adminUser = userRepository.save(adminUser)
-        Thread.sleep(10)
 
         // PENDING 상태 사용자 (이메일 미인증)
         pendingUser =
@@ -119,7 +118,6 @@ class MyProfileControllerE2eTest : BaseE2eTest() {
                 modifiedAt = Instant.now(),
             )
         pendingUser = userRepository.save(pendingUser)
-        Thread.sleep(10)
 
         // DORMANT 상태 사용자 (휴면 계정)
         dormantUser =
@@ -136,7 +134,6 @@ class MyProfileControllerE2eTest : BaseE2eTest() {
                 modifiedAt = Instant.now().minusSeconds(7776000),
             )
         dormantUser = userRepository.save(dormantUser)
-        Thread.sleep(10)
 
         // BANNED 상태 사용자 (정지된 계정)
         bannedUser =
@@ -152,7 +149,6 @@ class MyProfileControllerE2eTest : BaseE2eTest() {
                 modifiedAt = Instant.now(),
             )
         bannedUser = userRepository.save(bannedUser)
-        Thread.sleep(10)
 
         // DELETED 상태 사용자 (삭제된 계정)
         deletedUser =
@@ -555,7 +551,7 @@ class MyProfileControllerE2eTest : BaseE2eTest() {
                         .description(
                             """
                             삭제된 상태(DELETED)의 사용자 토큰으로 프로필을 조회하려고 할 때
-                            404 Not Found를 반환합니다.
+                            410 Gone를 반환합니다.
                             
                             삭제된 계정은 복구할 수 없으며, 새로운 계정을 생성해야 합니다.
                             """.trimIndent(),
