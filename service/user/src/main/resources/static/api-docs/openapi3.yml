@@ -56,11 +56,10 @@ paths:
                 $ref: '#/components/schemas/UserLoginController.Response'
               examples:
                 사용자 로그인 성공:
-                  value: "{\r\n  \"accessToken\" : \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMTMxNDc1ODI3MTA0Njg2MDgiLCJpYXQiOjE3NTQ4ODU1NDMsImV4cCI6MTc1NDg4OTE0MywidG9rZW5fdHlwZSI6ImFjY2VzcyJ9.OrPlt2ScawMTXhhQUSQXwuD4slYP1jjHp0jEZ67AD00\"\
-                    ,\r\n  \"refreshToken\" : \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMTMxNDc1ODI3MTA0Njg2MDgiLCJpYXQiOjE3NTQ4ODU1NDMsImV4cCI6MTc1NzQ3NzU0MywidG9rZW5fdHlwZSI6InJlZnJlc2gifQ.98B0P2W0M7Yj90MvJCjjr9SAehHBggYUzFy4Heo3Ko8\"\
-                    ,\r\n  \"userId\" : \"213147582710468608\",\r\n  \"accessTokenExpiresAt\"\
-                    \ : \"2025-08-11T05:12:23.827Z\",\r\n  \"refreshTokenExpiresAt\"\
-                    \ : \"2025-09-10T04:12:23.828Z\"\r\n}"
+                  value: "{\r\n  \"accessToken\" : \"<ACCESS_TOKEN>\",\r\n  \"refreshToken\"\
+                    \ : \"<REFRESH_TOKEN>\",\r\n  \"userId\" : \"<USER_ID>\",\r\n\
+                    \  \"accessTokenExpiresAt\" : \"<ISO_TIMESTAMP>\",\r\n  \"refreshTokenExpiresAt\"\
+                    \ : \"<ISO_TIMESTAMP>\"\r\n}"
         "410":
           description: "410"
           content:
@@ -70,7 +69,7 @@ paths:
               examples:
                 삭제된 사용자 로그인:
                   value: "{\r\n  \"code\" : \"USER_DELETED\",\r\n  \"message\" : \"\
-                    이미 삭제된 계정입니다.\",\r\n  \"timestamp\" : \"2025-08-11T04:12:24.028286500Z\"\
+                    이미 삭제된 계정입니다.\",\r\n  \"timestamp\" : \"2025-08-11T05:49:25.190659900Z\"\
                     \r\n}"
         "403":
           description: "403"
@@ -82,14 +81,14 @@ paths:
                 인증 대기중 사용자 로그인:
                   value: "{\r\n  \"code\" : \"USER_PENDING\",\r\n  \"message\" : \"\
                     인증 대기중인 계정입니다. 이메일 인증을 완료 후 다시 시도해주세요.\",\r\n  \"timestamp\" :\
-                    \ \"2025-08-11T04:12:23.348752400Z\"\r\n}"
+                    \ \"2025-08-11T05:49:24.718886400Z\"\r\n}"
                 차단된 사용자 로그인:
                   value: "{\r\n  \"code\" : \"USER_BANNED\",\r\n  \"message\" : \"\
-                    차단된 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T04:12:23.551370Z\"\
+                    차단된 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T05:49:24.822041900Z\"\
                     \r\n}"
                 휴면 사용자 로그인:
                   value: "{\r\n  \"code\" : \"USER_DORMANT\",\r\n  \"message\" : \"\
-                    휴면 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T04:12:23.662591200Z\"\
+                    휴면 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T05:49:24.918963900Z\"\
                     \r\n}"
         "401":
           description: "401"
@@ -100,7 +99,7 @@ paths:
               examples:
                 잘못된 비밀번호로 로그인:
                   value: "{\r\n  \"code\" : \"INVALID_CREDENTIALS\",\r\n  \"message\"\
-                    \ : \"인증 정보가 올바르지 않습니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:24.245988Z\"\
+                    \ : \"인증 정보가 올바르지 않습니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:25.470901800Z\"\
                     \r\n}"
         "404":
           description: "404"
@@ -112,7 +111,7 @@ paths:
                 존재하지 않는 사용자 로그인:
                   value: "{\r\n  \"code\" : \"USER_NOT_FOUND\",\r\n  \"message\" :\
                     \ \"사용자(nonexistent@example.com)를 찾을 수 없습니다\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:24.134800Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:25.268249Z\"\r\n}"
   /api/v1/users/me:
     get:
       tags:
@@ -129,7 +128,7 @@ paths:
         required: false
         schema:
           type: string
-        example: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxNzU0ODg1NTMxODk4IiwiaWF0IjoxNzU0ODg1NTMyLCJleHAiOjE3NTQ4ODkxMzIsInRva2VuX3R5cGUiOiJhY2Nlc3MifQ.VBIdtmbzqXunAMkOc8dh4UbInB_PAshOA_vxTHrqoC4
+        example: Bearer <JWT_TOKEN>
       responses:
         "200":
           description: "200"
@@ -139,11 +138,11 @@ paths:
                 $ref: '#/components/schemas/MyProfileController.Response'
               examples:
                 내 프로필 조회 성공:
-                  value: "{\r\n  \"userId\" : \"1754885531898\",\r\n  \"email\" :\
+                  value: "{\r\n  \"userId\" : \"1754891354690\",\r\n  \"email\" :\
                     \ \"active@example.com\",\r\n  \"nickname\" : \"activeuser\",\r\
                     \n  \"role\" : \"USER\",\r\n  \"status\" : \"ACTIVE\",\r\n  \"\
-                    createdAt\" : \"2025-08-10T04:12:11.983174200Z\",\r\n  \"modifiedAt\"\
-                    \ : \"2025-08-11T03:12:11.983174200Z\"\r\n}"
+                    createdAt\" : \"2025-08-10T05:49:14.768637700Z\",\r\n  \"modifiedAt\"\
+                    \ : \"2025-08-11T04:49:14.768637700Z\"\r\n}"
         "401":
           description: "401"
           content:
@@ -153,15 +152,15 @@ paths:
               examples:
                 만료된 토큰으로 프로필 조회:
                   value: "{\r\n  \"code\" : \"UNAUTHORIZED\",\r\n  \"message\" : \"\
-                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:18.953198900Z\"\
+                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:19.819841Z\"\
                     \r\n}"
                 잘못된 인증 헤더 형식:
                   value: "{\r\n  \"code\" : \"UNAUTHORIZED\",\r\n  \"message\" : \"\
-                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:17.480587200Z\"\
+                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:18.158632400Z\"\
                     \r\n}"
                 잘못된 토큰으로 프로필 조회:
                   value: "{\r\n  \"code\" : \"UNAUTHORIZED\",\r\n  \"message\" : \"\
-                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:22.126122Z\"\
+                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:23.427788800Z\"\
                     \r\n}"
         "403":
           description: "403"
@@ -173,14 +172,14 @@ paths:
                 미인증 사용자 프로필 조회 실패:
                   value: "{\r\n  \"code\" : \"USER_PENDING\",\r\n  \"message\" : \"\
                     인증 대기중인 계정입니다. 이메일 인증을 완료 후 다시 시도해주세요.\",\r\n  \"timestamp\" :\
-                    \ \"2025-08-11T04:12:15.853663600Z\"\r\n}"
+                    \ \"2025-08-11T05:49:17.158090Z\"\r\n}"
                 정지된 계정 프로필 조회:
                   value: "{\r\n  \"code\" : \"USER_BANNED\",\r\n  \"message\" : \"\
-                    차단된 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T04:12:22.994285200Z\"\
+                    차단된 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T05:49:24.341541800Z\"\
                     \r\n}"
                 휴면 계정 프로필 조회:
                   value: "{\r\n  \"code\" : \"USER_DORMANT\",\r\n  \"message\" : \"\
-                    휴면 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T04:12:14.211390Z\"\
+                    휴면 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T05:49:16.154484600Z\"\
                     \r\n}"
         "410":
           description: "410"
@@ -191,10 +190,8 @@ paths:
               examples:
                 삭제된 계정으로 프로필 조회:
                   value: "{\r\n  \"code\" : \"USER_DELETED\",\r\n  \"message\" : \"\
-                    이미 삭제된 계정입니다.\",\r\n  \"timestamp\" : \"2025-08-11T04:12:16.650691400Z\"\
+                    이미 삭제된 계정입니다.\",\r\n  \"timestamp\" : \"2025-08-11T05:49:17.652926400Z\"\
                     \r\n}"
-      security:
-      - bearerAuthJWT: []
   /api/v1/users/signup:
     post:
       tags:
@@ -289,60 +286,60 @@ paths:
               examples:
                 공백 포함 닉네임으로 회원가입:
                   value: "{\r\n  \"code\" : \"NICKNAME_CONTAINS_SPACE\",\r\n  \"message\"\
-                    \ : \"닉네임에는 공백을 포함할 수 없습니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:33.185135400Z\"\
+                    \ : \"닉네임에는 공백을 포함할 수 없습니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:32.206546100Z\"\
                     \r\n}"
                 긴 닉네임으로 회원가입:
                   value: "{\r\n  \"code\" : \"NICKNAME_TOO_LONG\",\r\n  \"message\"\
-                    \ : \"닉네임은 최대 20자 이하여야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:32.258298600Z\"\
+                    \ : \"닉네임은 최대 20자 이하여야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:31.800061600Z\"\
                     \r\n}"
                 긴 비밀번호로 회원가입:
                   value: "{\r\n  \"code\" : \"PASSWORD_TOO_LONG\",\r\n  \"message\"\
-                    \ : \"비밀번호는 최대 30자 이하여야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:31.442370900Z\"\
+                    \ : \"비밀번호는 최대 30자 이하여야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:31.388385100Z\"\
                     \r\n}"
                 대문자 없는 비밀번호로 회원가입:
                   value: "{\r\n  \"code\" : \"PASSWORD_NO_UPPERCASE\",\r\n  \"message\"\
-                    \ : \"비밀번호는 대문자를 포함해야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:31.611267600Z\"\
+                    \ : \"비밀번호는 대문자를 포함해야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:31.484385100Z\"\
                     \r\n}"
                 비밀번호 불일치로 회원가입 실패:
                   value: "{\r\n  \"code\" : \"PASSWORD_MISMATCH\",\r\n  \"message\"\
-                    \ : \"비밀번호가 일치하지 않습니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:31.335439600Z\"\
+                    \ : \"비밀번호가 일치하지 않습니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:31.339536300Z\"\
                     \r\n}"
                 빈 닉네임으로 회원가입:
                   value: "{\r\n  \"code\" : \"BLANK_NICKNAME\",\r\n  \"message\" :\
-                    \ \"닉네임은 필수 입력 항목입니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:32.316415100Z\"\
+                    \ \"닉네임은 필수 입력 항목입니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:31.846499500Z\"\
                     \r\n}"
                 빈 이메일로 회원가입:
                   value: "{\r\n  \"code\" : \"BLANK_EMAIL\",\r\n  \"message\" : \"\
-                    이메일은 필수 입력 항목입니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:31.529758500Z\"\
+                    이메일은 필수 입력 항목입니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:31.433206400Z\"\
                     \r\n}"
                 소문자 없는 비밀번호로 회원가입:
                   value: "{\r\n  \"code\" : \"PASSWORD_NO_LOWERCASE\",\r\n  \"message\"\
-                    \ : \"비밀번호는 소문자를 포함해야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:31.670094600Z\"\
+                    \ : \"비밀번호는 소문자를 포함해야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:31.528599900Z\"\
                     \r\n}"
                 잘못된 닉네임 형식으로 회원가입:
                   value: "{\r\n  \"code\" : \"NICKNAME_CONTAINS_SPECIAL_CHAR\",\r\n\
                     \  \"message\" : \"닉네임은 한글, 영문, 숫자, 언더스코어(_), 하이픈(-)만 사용할 수 있습\
-                    니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:30.458557100Z\"\r\
+                    니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:30.738229100Z\"\r\
                     \n}"
                 잘못된 이메일 형식으로 회원가입:
                   value: "{\r\n  \"code\" : \"INVALID_EMAIL_FORMAT\",\r\n  \"message\"\
-                    \ : \"올바른 이메일 형식이 아닙니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:33.897152300Z\"\
+                    \ : \"올바른 이메일 형식이 아닙니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:32.657232500Z\"\
                     \r\n}"
                 짧은 닉네임으로 회원가입:
                   value: "{\r\n  \"code\" : \"NICKNAME_TOO_SHORT\",\r\n  \"message\"\
-                    \ : \"닉네임은 최소 2자 이상이어야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:34.349605400Z\"\
+                    \ : \"닉네임은 최소 2자 이상이어야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:33.364216600Z\"\
                     \r\n}"
                 짧은 비밀번호로 회원가입:
                   value: "{\r\n  \"code\" : \"PASSWORD_TOO_SHORT\",\r\n  \"message\"\
-                    \ : \"비밀번호는 최소 8자 이상이어야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:33.253759Z\"\
+                    \ : \"비밀번호는 최소 8자 이상이어야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:32.246786400Z\"\
                     \r\n}"
                 특수문자 없는 비밀번호로 회원가입:
                   value: "{\r\n  \"code\" : \"PASSWORD_NO_SPECIAL_CHAR\",\r\n  \"\
                     message\" : \"비밀번호는 특수문자를 포함해야 합니다\",\r\n  \"timestamp\" : \"\
-                    2025-08-11T04:12:30.730703900Z\"\r\n}"
+                    2025-08-11T05:49:30.901901200Z\"\r\n}"
                 필수 필드 누락으로 회원가입 실패:
                   value: "{\r\n  \"code\" : \"MISSING_REQUIRED_FIELD\",\r\n  \"message\"\
-                    \ : \"필수 필드 'email'이(가) 누락되었습니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:32.909900100Z\"\
+                    \ : \"필수 필드 'email'이(가) 누락되었습니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:32.057598600Z\"\
                     \r\n}"
         "409":
           description: "409"
@@ -354,11 +351,11 @@ paths:
                 중복 닉네임으로 회원가입:
                   value: "{\r\n  \"code\" : \"DUPLICATE_NICKNAME\",\r\n  \"message\"\
                     \ : \"이미 사용중인 닉네임(existingUser123)입니다\",\r\n  \"timestamp\" :\
-                    \ \"2025-08-11T04:12:34.226712600Z\"\r\n}"
+                    \ \"2025-08-11T05:49:33.180627900Z\"\r\n}"
                 중복 이메일로 회원가입:
                   value: "{\r\n  \"code\" : \"DUPLICATE_EMAIL\",\r\n  \"message\"\
                     \ : \"이미 사용중인 이메일(existing@example.com)입니다\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:31.011478100Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:31.151217400Z\"\r\n}"
         "200":
           description: "200"
   /api/v1/users/verify:
@@ -409,15 +406,15 @@ paths:
                 만료된 인증 코드로 인증:
                   value: "{\r\n  \"code\" : \"REGISTRATION_EXPIRED\",\r\n  \"message\"\
                     \ : \"회원 가입 요청이 만료되었습니다. 인증 코드 다시 발송 후 재인증 해주세요.\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:35.438112700Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:34.425362500Z\"\r\n}"
                 이미 인증된 사용자 재인증:
                   value: "{\r\n  \"code\" : \"NOT_FOUND_PENDING_USER\",\r\n  \"message\"\
                     \ : \"인증 대기중인 사용자(active@example.com)를 찾을 수 없습니다\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:34.559207700Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:33.590744200Z\"\r\n}"
                 존재하지 않는 사용자 인증:
                   value: "{\r\n  \"code\" : \"USER_NOT_FOUND\",\r\n  \"message\" :\
                     \ \"사용자(nonexistent@example.com)를 찾을 수 없습니다\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:36.296350400Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:34.954807800Z\"\r\n}"
         "201":
           description: "201"
         "400":
@@ -429,20 +426,20 @@ paths:
               examples:
                 잘못된 길이의 인증 코드:
                   value: "{\r\n  \"code\" : \"INVALID_ARGUMENT\",\r\n  \"message\"\
-                    \ : \"인증 코드는 정확히 6자리여야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:35.851655900Z\"\
+                    \ : \"인증 코드는 정확히 6자리여야 합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:34.676454Z\"\
                     \r\n}"
                 잘못된 이메일로 인증:
                   value: "{\r\n  \"code\" : \"INVALID_EMAIL_FORMAT\",\r\n  \"message\"\
-                    \ : \"올바른 이메일 형식이 아닙니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:36.112596900Z\"\
+                    \ : \"올바른 이메일 형식이 아닙니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:34.834298Z\"\
                     \r\n}"
                 잘못된 인증 코드로 인증:
                   value: "{\r\n  \"code\" : \"CODE_MISMATCH\",\r\n  \"message\" :\
-                    \ \"인증 코드가 일치하지 않습니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:35.666764600Z\"\
+                    \ \"인증 코드가 일치하지 않습니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:34.560284800Z\"\
                     \r\n}"
                 필수 필드 누락으로 인증 실패:
                   value: "{\r\n  \"code\" : \"MISSING_REQUIRED_FIELD\",\r\n  \"message\"\
                     \ : \"필수 필드 'registrationCode'이(가) 누락되었습니다\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:36.202459500Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:34.896765Z\"\r\n}"
   /api/v1/users/{userId}:
     get:
       tags:
@@ -466,7 +463,7 @@ paths:
         required: true
         schema:
           type: string
-        example: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxNzU0ODg1NTQ4MDk2IiwiaWF0IjoxNzU0ODg1NTQ4LCJleHAiOjE3NTQ4ODkxNDgsInRva2VuX3R5cGUiOiJhY2Nlc3MifQ.QZygVLqiz-ty8QqLsZ3eEG-JO2lz0EqDaiYAUSSpAcY
+        example: Bearer <JWT_TOKEN>
       responses:
         "200":
           description: "200"
@@ -476,23 +473,23 @@ paths:
                 $ref: '#/components/schemas/UserProfileController.Response'
               examples:
                 관리자 프로필 조회:
-                  value: "{\r\n  \"userId\" : \"1754885548205\",\r\n  \"email\" :\
+                  value: "{\r\n  \"userId\" : \"1754891368980\",\r\n  \"email\" :\
                     \ \"other@example.com\",\r\n  \"nickname\" : \"otheruser\",\r\n\
                     \  \"role\" : \"USER\",\r\n  \"status\" : \"ACTIVE\",\r\n  \"\
-                    createdAt\" : \"2025-08-11T04:12:28.295480Z\",\r\n  \"modifiedAt\"\
-                    \ : \"2025-08-11T04:12:28.295480Z\"\r\n}"
+                    createdAt\" : \"2025-08-11T05:49:29.150512Z\",\r\n  \"modifiedAt\"\
+                    \ : \"2025-08-11T05:49:29.150512Z\"\r\n}"
                 사용자 프로필 조회 성공:
-                  value: "{\r\n  \"userId\" : \"1754885544401\",\r\n  \"email\" :\
+                  value: "{\r\n  \"userId\" : \"1754891365790\",\r\n  \"email\" :\
                     \ \"test@example.com\",\r\n  \"nickname\" : \"testuser\",\r\n\
                     \  \"role\" : \"USER\",\r\n  \"status\" : \"ACTIVE\",\r\n  \"\
-                    createdAt\" : \"2025-08-11T04:12:24.477645400Z\",\r\n  \"modifiedAt\"\
-                    \ : \"2025-08-11T04:12:24.477645400Z\"\r\n}"
+                    createdAt\" : \"2025-08-11T05:49:25.895164800Z\",\r\n  \"modifiedAt\"\
+                    \ : \"2025-08-11T05:49:25.895164800Z\"\r\n}"
                 타인 프로필 조회:
-                  value: "{\r\n  \"userId\" : \"1754885549686\",\r\n  \"email\" :\
+                  value: "{\r\n  \"userId\" : \"1754891370255\",\r\n  \"email\" :\
                     \ \"other@example.com\",\r\n  \"nickname\" : \"otheruser\",\r\n\
                     \  \"role\" : \"USER\",\r\n  \"status\" : \"ACTIVE\",\r\n  \"\
-                    createdAt\" : \"2025-08-11T04:12:29.771606100Z\",\r\n  \"modifiedAt\"\
-                    \ : \"2025-08-11T04:12:29.771606100Z\"\r\n}"
+                    createdAt\" : \"2025-08-11T05:49:30.321689400Z\",\r\n  \"modifiedAt\"\
+                    \ : \"2025-08-11T05:49:30.321689400Z\"\r\n}"
         "410":
           description: "410"
           content:
@@ -502,7 +499,7 @@ paths:
               examples:
                 삭제된 사용자 프로필 조회:
                   value: "{\r\n  \"code\" : \"USER_DELETED\",\r\n  \"message\" : \"\
-                    이미 삭제된 계정입니다.\",\r\n  \"timestamp\" : \"2025-08-11T04:12:29.070312100Z\"\
+                    이미 삭제된 계정입니다.\",\r\n  \"timestamp\" : \"2025-08-11T05:49:29.691324Z\"\
                     \r\n}"
         "401":
           description: "401"
@@ -513,7 +510,7 @@ paths:
               examples:
                 인증 없이 프로필 조회:
                   value: "{\r\n  \"code\" : \"UNAUTHORIZED\",\r\n  \"message\" : \"\
-                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:26.551376400Z\"\
+                    인증이 필요합니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:27.778929600Z\"\
                     \r\n}"
         "400":
           description: "400"
@@ -525,7 +522,7 @@ paths:
                 잘못된 사용자ID로 프로필 조회:
                   value: "{\r\n  \"code\" : \"INVALID_USER_ID_FORMAT\",\r\n  \"message\"\
                     \ : \"유효하지 않은 사용자 ID 형식입니다: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\
-                    ,\r\n  \"timestamp\" : \"2025-08-11T04:12:27.360466600Z\"\r\n}"
+                    ,\r\n  \"timestamp\" : \"2025-08-11T05:49:28.387028700Z\"\r\n}"
         "404":
           description: "404"
           content:
@@ -535,7 +532,7 @@ paths:
               examples:
                 존재하지 않는 사용자 프로필 조회:
                   value: "{\r\n  \"code\" : \"USER_NOT_FOUND\",\r\n  \"message\" :\
-                    \ \"사용자(999999)를 찾을 수 없습니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:27.856124100Z\"\
+                    \ \"사용자(999999)를 찾을 수 없습니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:28.756346500Z\"\
                     \r\n}"
         "403":
           description: "403"
@@ -546,10 +543,8 @@ paths:
               examples:
                 휴면 사용자 프로필 조회:
                   value: "{\r\n  \"code\" : \"USER_DORMANT\",\r\n  \"message\" : \"\
-                    휴면 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T04:12:25.314297900Z\"\
+                    휴면 계정입니다. 관리자에게 문의해주세요\",\r\n  \"timestamp\" : \"2025-08-11T05:49:26.773228100Z\"\
                     \r\n}"
-      security:
-      - bearerAuthJWT: []
   /api/v1/users/verify/resend:
     post:
       tags:
@@ -585,11 +580,11 @@ paths:
                 이미 인증된 사용자 재발송:
                   value: "{\r\n  \"code\" : \"NOT_FOUND_PENDING_USER\",\r\n  \"message\"\
                     \ : \"인증 대기중인 사용자(active@example.com)를 찾을 수 없습니다\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:38.007149Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:36.117654800Z\"\r\n}"
                 존재하지 않는 사용자 재발송:
                   value: "{\r\n  \"code\" : \"USER_NOT_FOUND\",\r\n  \"message\" :\
                     \ \"사용자(nonexistent@example.com)를 찾을 수 없습니다\",\r\n  \"timestamp\"\
-                    \ : \"2025-08-11T04:12:37.001190600Z\"\r\n}"
+                    \ : \"2025-08-11T05:49:35.381135300Z\"\r\n}"
         "200":
           description: "200"
         "400":
@@ -601,11 +596,11 @@ paths:
               examples:
                 잘못된 이메일로 재발송:
                   value: "{\r\n  \"code\" : \"INVALID_EMAIL_FORMAT\",\r\n  \"message\"\
-                    \ : \"올바른 이메일 형식이 아닙니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:37.410562400Z\"\
+                    \ : \"올바른 이메일 형식이 아닙니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:35.721332Z\"\
                     \r\n}"
                 필수 필드 누락으로 재발송 실패:
                   value: "{\r\n  \"code\" : \"MISSING_REQUIRED_FIELD\",\r\n  \"message\"\
-                    \ : \"필수 필드 'email'이(가) 누락되었습니다\",\r\n  \"timestamp\" : \"2025-08-11T04:12:38.352652400Z\"\
+                    \ : \"필수 필드 'email'이(가) 누락되었습니다\",\r\n  \"timestamp\" : \"2025-08-11T05:49:36.443139800Z\"\
                     \r\n}"
   /health:
     get:
@@ -631,6 +626,27 @@ paths:
                     ,\r\n  \"serviceName\" : \"techwikiplus-user\"\r\n}"
 components:
   schemas:
+    UserSignUpController.Request:
+      title: UserSignUpController.Request
+      required:
+      - confirmPassword
+      - email
+      - nickname
+      - password
+      type: object
+      properties:
+        password:
+          type: string
+          description: "비밀번호 (8-20자, 대소문자, 특수문자 포함)"
+        nickname:
+          type: string
+          description: 사용자 닉네임 (2-20자)
+        confirmPassword:
+          type: string
+          description: 비밀번호 확인
+        email:
+          type: string
+          description: 사용자 이메일 주소
     UserLoginController.Request:
       title: UserLoginController.Request
       required:
@@ -669,27 +685,6 @@ components:
         refreshToken:
           type: string
           description: 리프레시 토큰
-    UserSignUpController.Request:
-      title: UserSignUpController.Request
-      required:
-      - confirmPassword
-      - email
-      - nickname
-      - password
-      type: object
-      properties:
-        password:
-          type: string
-          description: "비밀번호 (8-20자, 대소문자, 특수문자 포함)"
-        nickname:
-          type: string
-          description: 사용자 닉네임 (2-20자)
-        confirmPassword:
-          type: string
-          description: 비밀번호 확인
-        email:
-          type: string
-          description: 사용자 이메일 주소
     UserVerifyResendController.Request:
       title: UserVerifyResendController.Request
       required:
@@ -812,8 +807,3 @@ components:
         status:
           type: string
           description: 서비스 상태 (UP/DOWN)
-  securitySchemes:
-    bearerAuthJWT:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
