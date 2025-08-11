@@ -1,5 +1,6 @@
 package me.helloc.techwikiplus.service.user.domain.port
 
+import me.helloc.techwikiplus.service.user.domain.service.port.CacheStore
 import java.time.Duration
 import java.time.Instant
 

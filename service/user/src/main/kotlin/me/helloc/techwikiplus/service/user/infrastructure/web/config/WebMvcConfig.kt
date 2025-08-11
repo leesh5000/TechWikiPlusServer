@@ -2,46 +2,79 @@ package me.helloc.techwikiplus.service.user.infrastructure.web.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.CacheControl
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.resource.VersionResourceResolver
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /**
  * Web MVC 설정
  *
  * 정적 리소스에 대한 캐싱 전략과 버전 관리를 설정합니다.
- * 애플리케이션 버전을 기반으로 캐시를 무효화하여
+ * 배포마다 고유한 UUID를 생성하여 캐시를 무효화하고,
  * 배포 시 자동으로 최신 문서가 로드되도록 합니다.
  */
 @Configuration
 class WebMvcConfig(
     @param:Value("\${spring.application.version:LOCAL_VERSION}")
     private val appVersion: String,
+    @param:Value("\${IMAGE_TAG:#{null}}")
+    private val imageTag: String?,
 ) : WebMvcConfigurer {
+    // 배포마다 고유한 버전 식별자 생성
+    // 우선순위: IMAGE_TAG > appVersion > UUID
+    private val deploymentVersion: String =
+        when {
+            !imageTag.isNullOrBlank() -> imageTag
+            appVersion != "LOCAL_VERSION" -> appVersion
+            else -> UUID.randomUUID().toString()
+        }
+
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-        // 로컬 환경에서는 캐시 비활성화, 배포 환경에서는 버전 기반 캐싱 (로컬: 0, 배포: 1년)
-        val cachePeriod = if (appVersion == "LOCAL_VERSION") 0 else 31536000
+        val isLocalEnvironment = appVersion == "LOCAL_VERSION" && imageTag.isNullOrBlank()
 
         // API 문서에 대한 캐싱 전략 설정
         registry.addResourceHandler("/api-docs/**")
             .addResourceLocations("classpath:/static/api-docs/")
-            .setCachePeriod(cachePeriod)
+            .setCacheControl(
+                if (isLocalEnvironment) {
+                    // 로컬 환경: 캐시 비활성화
+                    CacheControl.noCache()
+                } else {
+                    // 프로덕션 환경: 1년 캐싱 + must-revalidate
+                    CacheControl.maxAge(365, TimeUnit.DAYS)
+                        .mustRevalidate()
+                        .cachePublic()
+                },
+            )
             .resourceChain(true)
             .addResolver(
                 VersionResourceResolver()
-                    // 앱 버전 기반 버전 관리 - URL에 버전 추가
-                    .addFixedVersionStrategy(appVersion, "/**"),
+                    // 배포 버전 기반 캐시 버스팅
+                    .addFixedVersionStrategy(deploymentVersion, "/**"),
             )
 
         // Swagger UI 정적 리소스 캐싱 설정
         registry.addResourceHandler("/swagger-ui/**")
             .addResourceLocations("classpath:/META-INF/resources/webjars/swagger-ui/")
-            .setCachePeriod(cachePeriod)
+            .setCacheControl(
+                if (isLocalEnvironment) {
+                    // 로컬 환경: 캐시 비활성화
+                    CacheControl.noCache()
+                } else {
+                    // 프로덕션 환경: 1년 캐싱 + must-revalidate
+                    CacheControl.maxAge(365, TimeUnit.DAYS)
+                        .mustRevalidate()
+                        .cachePublic()
+                },
+            )
             .resourceChain(true)
             .addResolver(
                 VersionResourceResolver()
-                    // 앱 버전 기반 버전 관리 - URL에 버전 추가
-                    .addFixedVersionStrategy(appVersion, "/**"),
+                    // 배포 버전 기반 캐시 버스팅
+                    .addFixedVersionStrategy(deploymentVersion, "/**"),
             )
     }
 }

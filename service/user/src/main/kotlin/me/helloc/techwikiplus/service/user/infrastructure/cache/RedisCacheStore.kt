@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.infrastructure.cache
 
-import me.helloc.techwikiplus.service.user.domain.port.CacheStore
+import me.helloc.techwikiplus.service.user.domain.service.port.CacheStore
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration

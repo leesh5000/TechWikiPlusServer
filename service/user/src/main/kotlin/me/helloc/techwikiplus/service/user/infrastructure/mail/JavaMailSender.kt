@@ -4,7 +4,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.port.MailSender
+import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.mail.MailProperties
 import org.springframework.mail.SimpleMailMessage

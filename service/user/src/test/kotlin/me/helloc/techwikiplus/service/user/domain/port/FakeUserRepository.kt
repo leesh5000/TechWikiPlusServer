@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 
 open class FakeUserRepository : UserRepository {
     private val users = mutableMapOf<UserId, User>()

@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.service.user.infrastructure.security
 
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.port.PasswordEncryptor
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.stereotype.Component
 

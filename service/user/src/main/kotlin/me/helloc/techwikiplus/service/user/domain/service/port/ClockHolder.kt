@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.domain.port
+package me.helloc.techwikiplus.service.user.domain.service.port
 
 import java.time.Instant
 

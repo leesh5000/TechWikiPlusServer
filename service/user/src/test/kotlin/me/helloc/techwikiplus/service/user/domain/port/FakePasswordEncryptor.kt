@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.service.user.domain.port
 
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
 
 class FakePasswordEncryptor : PasswordEncryptor {
     override fun encode(rawPassword: RawPassword): EncodedPassword {

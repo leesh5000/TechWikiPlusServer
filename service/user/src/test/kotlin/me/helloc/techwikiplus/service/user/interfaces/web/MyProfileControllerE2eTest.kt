@@ -12,8 +12,8 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.PasswordEncryptor
-import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtTokenManager
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach

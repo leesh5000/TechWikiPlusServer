@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.UserToken
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 
 class FakeTokenManager : TokenManager {
     private val refreshTokens = mutableMapOf<String, UserId>()

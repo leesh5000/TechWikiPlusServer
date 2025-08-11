@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
 
-import me.helloc.techwikiplus.service.user.domain.port.TokenManager
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

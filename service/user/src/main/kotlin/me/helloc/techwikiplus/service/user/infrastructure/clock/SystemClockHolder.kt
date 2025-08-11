@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.infrastructure.clock
 
-import me.helloc.techwikiplus.service.user.domain.port.ClockHolder
+import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
 import org.springframework.stereotype.Component
 import java.time.Instant
 

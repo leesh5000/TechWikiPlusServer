@@ -8,7 +8,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.UserToken
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.TokenManager
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 import java.util.Date
 
 class JwtTokenManager(

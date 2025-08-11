@@ -55,3 +55,4 @@ service/user/.env
 # Claude 개인 설정 파일 (사용자별로 다를 수 있음)
 # 프로젝트 공통 Claude 지침은 CLAUDE.md 사용
 .claude/settings.local.json
+ *.pem
