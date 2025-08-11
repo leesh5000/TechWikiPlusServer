@@ -80,12 +80,9 @@ dependencies {
 //   2. src/main/resources/static/api-docs/openapi3.yml 파일 커밋
 // - 자세한 내용은 src/main/resources/static/api-docs/README.md 참조
 openapi3 {
-    val protocol = System.getenv("PROTOCOL") ?: "http"
-    val host = System.getenv("SERVER_HOST") ?: "localhost"
-    val port = System.getenv("SERVER_PORT") ?: "9000"
-
-    // 단일 서버 설정
-    setServer("$protocol://$host:$port")
+    // 서버 설정 - 기본값 사용 (http://localhost)
+    // TODO: 다중 서버 설정 구현 필요
+    setServer("http://localhost:9000")
 
     title = "TechWikiPlus User Service API"
     description = "User Service API Documentation"
@@ -95,11 +92,33 @@ openapi3 {
     snippetsDirectory = "build/generated-snippets"
 }
 
+// OpenAPI 문서에 다중 서버 설정을 추가하는 태스크
+tasks.register("updateOpenApiServers") {
+    dependsOn("openapi3")
+    doLast {
+        val openApiFile = file("build/api-spec/openapi3.yml")
+        if (openApiFile.exists()) {
+            val content = openApiFile.readText()
+            // 단일 서버를 다중 서버로 교체
+            val updatedContent =
+                content.replace(
+                    Regex("servers:\\s*\\n\\s*- url: http://localhost:9000"),
+                    """servers:
+  - url: http://localhost:9000
+    description: Local server
+  - url: http://13.124.188.47:9000
+    description: Production server""",
+                )
+            openApiFile.writeText(updatedContent)
+        }
+    }
+}
+
 // OpenAPI 문서를 정적 리소스로 복사하는 태스크
 // 테스트 실행 후 자동으로 실행되어 문서를 리소스 디렉토리에 복사
 // 개발자는 이 파일을 Git에 커밋해야 함
 tasks.register<Copy>("copyOpenApiToResources") {
-    dependsOn("openapi3")
+    dependsOn("updateOpenApiServers")
     from("build/api-spec/openapi3.yml")
     into("src/main/resources/static/api-docs")
 
