@@ -6,6 +6,8 @@ import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.fasterxml.jackson.databind.ObjectMapper
 import me.helloc.techwikiplus.service.user.config.config.TestContainersInitializer
 import me.helloc.techwikiplus.service.user.config.documentation.ApiDocumentationSupport
+import me.helloc.techwikiplus.service.user.config.documentation.maskHeaders
+import me.helloc.techwikiplus.service.user.config.documentation.maskSensitiveData
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -109,8 +111,8 @@ abstract class BaseE2eTest : ApiDocumentationSupport {
         return if (documentationEnabled) {
             document(
                 identifier,
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
+                preprocessRequest(prettyPrint(), maskHeaders()),
+                preprocessResponse(prettyPrint(), maskSensitiveData()),
                 ResourceDocumentation.resource(resourceParameters),
             )
         } else {
