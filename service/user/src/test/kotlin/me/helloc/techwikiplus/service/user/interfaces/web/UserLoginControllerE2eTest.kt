@@ -11,7 +11,7 @@ import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import me.helloc.techwikiplus.service.user.infrastructure.id.SnowflakeIdGenerator
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

@@ -5,8 +5,8 @@ import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.PasswordEncryptor
-import me.helloc.techwikiplus.service.user.domain.port.TokenManager
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 import org.springframework.stereotype.Service
 
 @Service

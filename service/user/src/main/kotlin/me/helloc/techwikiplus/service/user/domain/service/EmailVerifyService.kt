@@ -7,8 +7,8 @@ import me.helloc.techwikiplus.service.user.domain.model.RegistrationMailTemplate
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
-import me.helloc.techwikiplus.service.user.domain.port.CacheStore
-import me.helloc.techwikiplus.service.user.domain.port.MailSender
+import me.helloc.techwikiplus.service.user.domain.service.port.CacheStore
+import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 import org.springframework.stereotype.Service
 import java.time.Duration
 

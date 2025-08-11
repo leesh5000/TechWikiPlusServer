@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.infrastructure.security.config
 
-import me.helloc.techwikiplus.service.user.domain.port.TokenManager
-import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtAuthenticationEntryPoint
 import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean

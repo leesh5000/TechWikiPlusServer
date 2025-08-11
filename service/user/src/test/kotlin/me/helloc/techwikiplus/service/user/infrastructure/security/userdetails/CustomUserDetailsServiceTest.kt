@@ -13,7 +13,7 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import java.time.Instant
 

@@ -3,8 +3,8 @@ package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import me.helloc.techwikiplus.service.user.domain.port.TokenManager
-import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority

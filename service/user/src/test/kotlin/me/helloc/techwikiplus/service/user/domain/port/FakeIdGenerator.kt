@@ -1,6 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.port
 
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
 import java.util.concurrent.atomic.AtomicLong
 
 class FakeIdGenerator(

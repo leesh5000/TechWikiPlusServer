@@ -4,7 +4,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.AuthorizationPort
+import me.helloc.techwikiplus.service.user.domain.service.port.AuthorizationPort
 import me.helloc.techwikiplus.service.user.infrastructure.security.context.SecurityContextService
 import org.springframework.stereotype.Component
 

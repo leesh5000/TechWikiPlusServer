@@ -2,6 +2,7 @@ package me.helloc.techwikiplus.service.user.domain.port
 
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
 import me.helloc.techwikiplus.service.user.domain.model.value.Email
+import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 
 open class FakeMailSender : MailSender {
     data class SentMail(

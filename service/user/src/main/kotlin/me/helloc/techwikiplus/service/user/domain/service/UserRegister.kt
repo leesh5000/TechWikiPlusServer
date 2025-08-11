@@ -8,10 +8,10 @@ import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.port.ClockHolder
-import me.helloc.techwikiplus.service.user.domain.port.IdGenerator
-import me.helloc.techwikiplus.service.user.domain.port.PasswordEncryptor
-import me.helloc.techwikiplus.service.user.domain.port.UserRepository
+import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
+import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
+import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
+import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 

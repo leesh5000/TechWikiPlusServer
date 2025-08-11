@@ -4,6 +4,7 @@ import me.helloc.techwikiplus.service.user.domain.exception.DomainException
 import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.service.port.AuthorizationPort
 
 class FakeAuthorizationPort : AuthorizationPort {
     private var currentUserId: UserId? = null
