@@ -13,15 +13,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  */
 @Configuration
 class WebMvcConfig : WebMvcConfigurer {
-    
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-
         // API 문서에 대한 캐싱 전략 설정
         registry.addResourceHandler("/api-docs/**")
             .addResourceLocations("classpath:/static/api-docs/")
             .setCacheControl(
                 // 모든 환경에서 캐시 비활성화 - 항상 최신 API 문서를 보장
-                CacheControl.noStore()
+                CacheControl.noStore(),
             )
 
         // Swagger UI 정적 리소스 캐싱 설정
@@ -29,7 +27,7 @@ class WebMvcConfig : WebMvcConfigurer {
             .addResourceLocations("classpath:/META-INF/resources/webjars/swagger-ui/")
             .setCacheControl(
                 // 모든 환경에서 캐시 비활성화 - 항상 최신 UI를 보장
-                CacheControl.noStore()
+                CacheControl.noStore(),
             )
     }
 }
