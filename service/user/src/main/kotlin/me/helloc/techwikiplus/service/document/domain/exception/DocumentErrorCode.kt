@@ -14,4 +14,7 @@ enum class DocumentErrorCode {
     BLANK_CONTENT,
     CONTENT_TOO_SHORT,
     CONTENT_TOO_LONG,
+
+    // Author Validation
+    INVALID_AUTHOR_ID_FORMAT,
 }

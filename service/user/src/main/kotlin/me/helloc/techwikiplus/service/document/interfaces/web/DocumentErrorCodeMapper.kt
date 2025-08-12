@@ -19,6 +19,8 @@ class DocumentErrorCodeMapper {
             DocumentErrorCode.BLANK_CONTENT,
             DocumentErrorCode.CONTENT_TOO_SHORT,
             DocumentErrorCode.CONTENT_TOO_LONG,
+            // Author Validation
+            DocumentErrorCode.INVALID_AUTHOR_ID_FORMAT,
             -> HttpStatus.BAD_REQUEST
         }
     }
@@ -66,6 +68,13 @@ class DocumentErrorCodeMapper {
                         "내용은 최대 ${params[1]}자 이하여야 합니다"
                     } else {
                         "내용이 너무 깁니다"
+                    }
+                // Author Validation
+                DocumentErrorCode.INVALID_AUTHOR_ID_FORMAT ->
+                    if (params.isNotEmpty()) {
+                        "유효하지 않은 작성자 ID 형식입니다: ${params[0]}"
+                    } else {
+                        "유효하지 않은 작성자 ID 형식입니다"
                     }
             }
 
