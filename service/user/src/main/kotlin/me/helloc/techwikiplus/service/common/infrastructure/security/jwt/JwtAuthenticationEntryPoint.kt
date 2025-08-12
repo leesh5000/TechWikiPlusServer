@@ -3,7 +3,7 @@ package me.helloc.techwikiplus.service.common.infrastructure.security.jwt
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import me.helloc.techwikiplus.service.common.interfaces.ErrorResponse
+import me.helloc.techwikiplus.service.common.interfaces.web.ErrorResponse
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint

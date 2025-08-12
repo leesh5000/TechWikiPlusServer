@@ -47,6 +47,9 @@ allprojects {
         testImplementation("io.kotest:kotest-assertions-core:5.7.2")
         testImplementation("io.kotest:kotest-property:5.7.2")
         testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
+
+        // ArchUnit: 아키텍처 테스트
+        testImplementation("com.tngtech.archunit:archunit-junit5:1.2.1")
     }
 
     kotlin {

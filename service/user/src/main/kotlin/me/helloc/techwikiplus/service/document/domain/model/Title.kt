@@ -58,6 +58,7 @@ class Title(value: String) {
         private const val MAX_LENGTH = 200
 
         // 한글, 영문, 숫자, 공백, 일부 특수문자 허용 (기술 문서에서 자주 사용되는 문자들)
-        private val ALLOWED_PATTERN = """^[가-힣a-zA-Z0-9\s\-_.,():/@#&+\[\]{}'"]+$""".toRegex()
+        // 주의: 공백은 일반 스페이스만 허용, 제어 문자(탭, 개행 등)는 허용하지 않음
+        private val ALLOWED_PATTERN = """^[가-힣a-zA-Z0-9 \-_.,():/@#&+\[\]{}'"]+$""".toRegex()
     }
 }

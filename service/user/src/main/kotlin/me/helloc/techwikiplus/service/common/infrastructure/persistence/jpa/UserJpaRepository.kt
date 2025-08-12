@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.common.infrastructure.persistence.jpa
 
-import me.helloc.techwikiplus.service.user.infrastructure.persistence.jpa.entity.UserEntity
+import me.helloc.techwikiplus.service.common.infrastructure.persistence.jpa.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param

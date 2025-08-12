@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.common.infrastructure.security.userdetails
 
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService

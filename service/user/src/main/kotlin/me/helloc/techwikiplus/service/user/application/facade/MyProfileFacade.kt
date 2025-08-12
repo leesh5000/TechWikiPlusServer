@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.application.service
+package me.helloc.techwikiplus.service.user.application.facade
 
 import me.helloc.techwikiplus.service.user.domain.service.UserAuthorizationService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
@@ -14,7 +14,6 @@ class MyProfileFacade(
 ) : MyProfileUseCase {
     override fun execute(): MyProfileUseCase.Result {
         val currentUserId = authorizationService.getCurrentUserOrThrow()
-
         val user = userReader.get(currentUserId)
 
         return MyProfileUseCase.Result(

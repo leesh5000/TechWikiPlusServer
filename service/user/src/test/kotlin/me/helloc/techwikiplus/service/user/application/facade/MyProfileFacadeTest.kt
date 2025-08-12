@@ -1,8 +1,9 @@
-package me.helloc.techwikiplus.service.user.application.service
+package me.helloc.techwikiplus.service.user.application.facade
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import me.helloc.techwikiplus.service.common.infrastructure.FakeAuthorizationPort
 import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
@@ -13,22 +14,27 @@ import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.UserStatus
+import me.helloc.techwikiplus.service.user.domain.service.UserAuthorizationService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import java.time.Instant
 
-class UserProfileFacadeTest : DescribeSpec({
-    lateinit var facade: UserProfileFacade
+class MyProfileFacadeTest : DescribeSpec({
+    lateinit var facade: MyProfileFacade
     lateinit var userRepository: FakeUserRepository
+    lateinit var authorizationPort: FakeAuthorizationPort
     lateinit var userReader: UserReader
+    lateinit var authorizationService: UserAuthorizationService
 
     beforeEach {
         userRepository = FakeUserRepository()
+        authorizationPort = FakeAuthorizationPort()
         userReader = UserReader(userRepository)
-        facade = UserProfileFacade(userReader)
+        authorizationService = UserAuthorizationService(authorizationPort)
+        facade = MyProfileFacade(userReader, authorizationService)
     }
 
     describe("execute") {
-        context("존재하는 사용자의 프로필을 조회할 때") {
+        context("인증된 사용자가 자신의 프로필을 조회할 때") {
             it("프로필 정보를 반환한다") {
                 // Given
                 val userId = UserId(5000001L)
@@ -44,9 +50,10 @@ class UserProfileFacadeTest : DescribeSpec({
                         modifiedAt = Instant.now(),
                     )
                 userRepository.save(user)
+                authorizationPort.setCurrentUser(userId)
 
                 // When
-                val result = facade.execute(userId)
+                val result = facade.execute()
 
                 // Then
                 result.userId shouldBe userId
@@ -57,46 +64,30 @@ class UserProfileFacadeTest : DescribeSpec({
             }
         }
 
-        context("관리자 사용자의 프로필을 조회할 때") {
-            it("프로필 정보를 반환한다") {
+        context("인증되지 않은 사용자가 프로필을 조회할 때") {
+            it("UNAUTHORIZED 예외를 발생시킨다") {
                 // Given
-                val adminUserId = UserId(6000001L)
-
-                val adminUser =
-                    User(
-                        id = adminUserId,
-                        email = Email("admin@example.com"),
-                        encodedPassword = EncodedPassword("encoded"),
-                        nickname = Nickname("admin"),
-                        role = UserRole.ADMIN,
-                        status = UserStatus.ACTIVE,
-                        createdAt = Instant.now(),
-                        modifiedAt = Instant.now(),
-                    )
-
-                userRepository.save(adminUser)
-
-                // When
-                val result = facade.execute(adminUserId)
-
-                // Then
-                result.userId shouldBe adminUserId
-                result.email shouldBe "admin@example.com"
-                result.nickname shouldBe "admin"
-                result.role shouldBe UserRole.ADMIN
-                result.status shouldBe UserStatus.ACTIVE
-            }
-        }
-
-        context("존재하지 않는 사용자의 프로필을 조회할 때") {
-            it("USER_NOT_FOUND 예외를 발생시킨다") {
-                // Given
-                val nonExistentUserId = UserId(9999999L)
+                authorizationPort.clearCurrentUser()
 
                 // When & Then
                 val exception =
                     shouldThrow<UserDomainException> {
-                        facade.execute(nonExistentUserId)
+                        facade.execute()
+                    }
+                exception.userErrorCode shouldBe UserErrorCode.UNAUTHORIZED
+            }
+        }
+
+        context("사용자가 존재하지 않을 때") {
+            it("USER_NOT_FOUND 예외를 발생시킨다") {
+                // Given
+                val userId = UserId(9999999L)
+                authorizationPort.setCurrentUser(userId)
+
+                // When & Then
+                val exception =
+                    shouldThrow<UserDomainException> {
+                        facade.execute()
                     }
                 exception.userErrorCode shouldBe UserErrorCode.USER_NOT_FOUND
             }

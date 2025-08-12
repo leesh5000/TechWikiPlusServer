@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.application.service
+package me.helloc.techwikiplus.service.user.application.facade
 
 import jakarta.transaction.Transactional
 import me.helloc.techwikiplus.service.user.domain.model.Email

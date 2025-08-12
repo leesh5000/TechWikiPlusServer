@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.application.service
+package me.helloc.techwikiplus.service.user.application.facade
 
 import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.Nickname

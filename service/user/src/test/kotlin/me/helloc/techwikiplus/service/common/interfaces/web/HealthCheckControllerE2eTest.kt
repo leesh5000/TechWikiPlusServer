@@ -2,7 +2,6 @@ package me.helloc.techwikiplus.service.common.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
-import me.helloc.techwikiplus.service.common.interfaces.HealthCheckController
 import me.helloc.techwikiplus.service.config.BaseE2eTest
 import me.helloc.techwikiplus.service.config.annotations.E2eTest
 import org.junit.jupiter.api.Test

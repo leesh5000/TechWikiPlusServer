@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.application.service
+package me.helloc.techwikiplus.service.user.application.facade
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec

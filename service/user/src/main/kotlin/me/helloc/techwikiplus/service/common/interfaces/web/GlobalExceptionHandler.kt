@@ -1,6 +1,10 @@
-package me.helloc.techwikiplus.service.common.interfaces
+package me.helloc.techwikiplus.service.common.interfaces.web
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import me.helloc.techwikiplus.service.document.domain.exception.DocumentDomainException
+import me.helloc.techwikiplus.service.document.interfaces.web.DocumentErrorCodeMapper
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.interfaces.web.UserErrorCodeMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -11,8 +15,35 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice(basePackages = ["me.helloc.techwikiplus.service"])
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(
+    private val documentErrorCodeMapper: DocumentErrorCodeMapper,
+    private val userErrorCodeMapper: UserErrorCodeMapper,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    @ExceptionHandler(UserDomainException::class)
+    fun handleDomainException(e: UserDomainException): ResponseEntity<ErrorResponse> {
+        val httpStatus = userErrorCodeMapper.mapToHttpStatus(e.userErrorCode)
+        val message = userErrorCodeMapper.mapToMessage(e.userErrorCode, e.params)
+
+        logger.warn("Domain exception occurred - ErrorCode: {}, Status: {}", e.userErrorCode, httpStatus)
+
+        return ResponseEntity
+            .status(httpStatus)
+            .body(ErrorResponse.Companion.of(e.userErrorCode.name, message))
+    }
+
+    @ExceptionHandler(DocumentDomainException::class)
+    fun handleDomainException(e: DocumentDomainException): ResponseEntity<ErrorResponse> {
+        val httpStatus = documentErrorCodeMapper.mapToHttpStatus(e.documentErrorCode)
+        val message = documentErrorCodeMapper.mapToMessage(e.documentErrorCode, e.params)
+
+        logger.warn("Domain exception occurred - ErrorCode: {}, Status: {}", e.documentErrorCode, httpStatus)
+
+        return ResponseEntity
+            .status(httpStatus)
+            .body(ErrorResponse.Companion.of(e.documentErrorCode.name, message))
+    }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadable(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {

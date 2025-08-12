@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.common.interfaces
+package me.helloc.techwikiplus.service.common.interfaces.web
 
 import java.time.Instant
 

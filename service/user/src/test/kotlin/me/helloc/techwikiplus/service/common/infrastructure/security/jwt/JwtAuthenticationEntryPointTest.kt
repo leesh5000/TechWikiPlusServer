@@ -9,7 +9,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import me.helloc.techwikiplus.service.common.interfaces.ErrorResponse
+import me.helloc.techwikiplus.service.common.interfaces.web.ErrorResponse
 import org.springframework.security.core.AuthenticationException
 import java.io.PrintWriter
 
