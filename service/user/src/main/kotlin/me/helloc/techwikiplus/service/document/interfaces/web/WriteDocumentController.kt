@@ -5,12 +5,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class WriteDocumentController {
-
+class WriteDocumentController() {
     @PostMapping("/api/v1/documents", consumes = ["application/json"])
-    fun writeDocument(
-
-    ): ResponseEntity<Void> {
+    fun writeDocument(): ResponseEntity<Void> {
         return ResponseEntity.ok().build()
     }
 
@@ -18,7 +15,5 @@ class WriteDocumentController {
         val title: String,
         val content: String,
         val authorId: String,
-    ) {
-
-    }
+    )
 }
