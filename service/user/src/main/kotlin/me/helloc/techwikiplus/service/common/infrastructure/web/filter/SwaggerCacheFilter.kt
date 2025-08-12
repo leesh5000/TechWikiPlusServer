@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.web.filter
+package me.helloc.techwikiplus.service.common.infrastructure.web.filter
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

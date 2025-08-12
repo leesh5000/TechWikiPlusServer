@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldStartWith
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.FakeTokenManager
+import me.helloc.techwikiplus.service.common.infrastructure.FakeTokenManager
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 
 class UserTokenServiceTest : FunSpec({
 

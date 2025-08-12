@@ -1,10 +1,10 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
 import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 import org.springframework.stereotype.Service
@@ -20,11 +20,11 @@ class UserAuthenticator(
     ) {
         user.validateUserStatus()
         if (!encryptor.matches(rawPassword, user.encodedPassword)) {
-            throw DomainException(ErrorCode.INVALID_CREDENTIALS)
+            throw UserDomainException(UserErrorCode.INVALID_CREDENTIALS)
         }
     }
 
-    @Throws(DomainException::class)
+    @Throws(UserDomainException::class)
     fun authenticate(
         user: User,
         refreshToken: String,

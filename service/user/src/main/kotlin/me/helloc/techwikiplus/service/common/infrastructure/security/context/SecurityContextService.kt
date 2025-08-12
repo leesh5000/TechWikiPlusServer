@@ -1,6 +1,6 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.context
+package me.helloc.techwikiplus.service.common.infrastructure.security.context
 
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 

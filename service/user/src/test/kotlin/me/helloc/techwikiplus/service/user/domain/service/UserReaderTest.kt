@@ -5,16 +5,16 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import java.time.Instant
 
 class UserReaderTest : FunSpec({
@@ -66,10 +66,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(nonExistentUserId)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.userErrorCode shouldBe UserErrorCode.USER_NOT_FOUND
             exception.params shouldBe arrayOf(9999999L)
         }
 
@@ -90,10 +90,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(userId)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_PENDING
+            exception.userErrorCode shouldBe UserErrorCode.USER_PENDING
         }
 
         test("DORMANT 상태의 사용자를 조회하면 USER_DORMANT 예외를 발생시킨다") {
@@ -113,10 +113,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(userId)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_DORMANT
+            exception.userErrorCode shouldBe UserErrorCode.USER_DORMANT
         }
 
         test("BANNED 상태의 사용자를 조회하면 USER_BANNED 예외를 발생시킨다") {
@@ -136,10 +136,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(userId)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_BANNED
+            exception.userErrorCode shouldBe UserErrorCode.USER_BANNED
         }
 
         test("DELETED 상태의 사용자를 조회하면 USER_DELETED 예외를 발생시킨다") {
@@ -159,10 +159,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(userId)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_DELETED
+            exception.userErrorCode shouldBe UserErrorCode.USER_DELETED
         }
 
         test("여러 사용자 중에서 정확한 ID로 사용자를 찾는다") {
@@ -243,10 +243,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(nonExistentEmail)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.userErrorCode shouldBe UserErrorCode.USER_NOT_FOUND
             exception.params shouldBe arrayOf("nonexistent@example.com")
         }
 
@@ -267,10 +267,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_PENDING
+            exception.userErrorCode shouldBe UserErrorCode.USER_PENDING
         }
 
         test("DORMANT 상태의 사용자만 있으면 USER_DORMANT 예외를 발생시킨다") {
@@ -290,10 +290,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_DORMANT
+            exception.userErrorCode shouldBe UserErrorCode.USER_DORMANT
         }
 
         test("BANNED 상태의 사용자만 있으면 USER_BANNED 예외를 발생시킨다") {
@@ -313,10 +313,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_BANNED
+            exception.userErrorCode shouldBe UserErrorCode.USER_BANNED
         }
 
         test("DELETED 상태의 사용자만 있으면 USER_DELETED 예외를 발생시킨다") {
@@ -336,10 +336,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(email)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_DELETED
+            exception.userErrorCode shouldBe UserErrorCode.USER_DELETED
         }
 
         test("여러 사용자 중 ACTIVE 상태의 사용자만 조회한다") {
@@ -422,7 +422,7 @@ class UserReaderTest : FunSpec({
             repository.save(pendingUser)
 
             // when & then
-            shouldNotThrow<DomainException> {
+            shouldNotThrow<UserDomainException> {
                 userReader.getPendingUser(email)
             }
         }
@@ -444,10 +444,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.getPendingUser(email)
                 }
-            exception.errorCode shouldBe ErrorCode.NOT_FOUND_PENDING_USER
+            exception.userErrorCode shouldBe UserErrorCode.NOT_FOUND_PENDING_USER
             exception.params shouldBe arrayOf(email.value)
         }
 
@@ -457,10 +457,10 @@ class UserReaderTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userReader.get(nonExistentEmail)
                 }
-            exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND
+            exception.userErrorCode shouldBe UserErrorCode.USER_NOT_FOUND
             exception.params shouldBe arrayOf("nonexistent@example.com")
         }
     }

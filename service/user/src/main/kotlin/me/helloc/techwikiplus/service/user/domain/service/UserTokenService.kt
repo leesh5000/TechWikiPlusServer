@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserToken
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 import org.springframework.stereotype.Service
 

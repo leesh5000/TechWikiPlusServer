@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.interfaces.web.port.UserLoginUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping

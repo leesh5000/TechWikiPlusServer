@@ -1,8 +1,8 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.userdetails
+package me.helloc.techwikiplus.service.common.infrastructure.security.userdetails
 
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails

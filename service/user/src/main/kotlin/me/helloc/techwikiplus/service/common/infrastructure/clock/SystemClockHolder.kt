@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.clock
+package me.helloc.techwikiplus.service.common.infrastructure.clock
 
 import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
 import org.springframework.stereotype.Component

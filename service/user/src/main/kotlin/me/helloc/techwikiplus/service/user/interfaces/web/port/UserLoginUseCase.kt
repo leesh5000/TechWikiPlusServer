@@ -1,9 +1,9 @@
 package me.helloc.techwikiplus.service.user.interfaces.web.port
 
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserToken
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 
 interface UserLoginUseCase {
     fun execute(

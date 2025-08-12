@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.common.config.documentation
+package me.helloc.techwikiplus.service.config.documentation
 
 import org.springframework.http.HttpHeaders
 import org.springframework.restdocs.operation.OperationRequest

@@ -1,9 +1,9 @@
-package me.helloc.techwikiplus.service.user.infrastructure.mail
+package me.helloc.techwikiplus.service.common.infrastructure.mail
 
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.mail.MailProperties
@@ -35,8 +35,8 @@ class JavaMailSender(
             logger.info("Email sent successfully to: ${to.value}")
         } catch (e: Exception) {
             logger.error("Failed to send email to: ${to.value}", e)
-            throw DomainException(
-                errorCode = ErrorCode.NOTIFICATION_FAILED,
+            throw UserDomainException(
+                userErrorCode = UserErrorCode.NOTIFICATION_FAILED,
                 params = arrayOf(to.value),
                 cause = e,
             )

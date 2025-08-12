@@ -1,12 +1,12 @@
-package me.helloc.techwikiplus.service.user.domain.port
+package me.helloc.techwikiplus.service.common.infrastructure
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
 
 class FakeAuthorizationPortTest : DescribeSpec({
     lateinit var authorizationPort: FakeAuthorizationPort

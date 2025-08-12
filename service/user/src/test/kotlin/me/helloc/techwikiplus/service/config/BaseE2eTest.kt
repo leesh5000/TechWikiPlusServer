@@ -1,13 +1,13 @@
-package me.helloc.techwikiplus.service.common.config
+package me.helloc.techwikiplus.service.config
 
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
 import com.epages.restdocs.apispec.ResourceDocumentation
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.fasterxml.jackson.databind.ObjectMapper
-import me.helloc.techwikiplus.service.common.config.config.TestContainersInitializer
-import me.helloc.techwikiplus.service.common.config.documentation.ApiDocumentationSupport
-import me.helloc.techwikiplus.service.common.config.documentation.maskHeaders
-import me.helloc.techwikiplus.service.common.config.documentation.maskSensitiveData
+import me.helloc.techwikiplus.service.config.config.TestContainersInitializer
+import me.helloc.techwikiplus.service.config.documentation.ApiDocumentationSupport
+import me.helloc.techwikiplus.service.config.documentation.maskHeaders
+import me.helloc.techwikiplus.service.config.documentation.maskSensitiveData
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired

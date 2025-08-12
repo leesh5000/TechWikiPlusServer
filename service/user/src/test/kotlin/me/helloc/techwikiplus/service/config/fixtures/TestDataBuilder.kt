@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.common.config.fixtures
+package me.helloc.techwikiplus.service.config.fixtures
 
 /**
  * 테스트 데이터 빌더

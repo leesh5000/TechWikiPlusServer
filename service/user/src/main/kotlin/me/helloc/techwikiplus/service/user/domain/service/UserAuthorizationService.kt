@@ -1,9 +1,9 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
 import me.helloc.techwikiplus.service.user.domain.service.port.AuthorizationPort
 import org.springframework.stereotype.Service
 
@@ -21,13 +21,13 @@ class UserAuthorizationService(
 
     fun requireUserAccess(targetUserId: UserId) {
         if (!authorizationPort.canAccessUser(targetUserId)) {
-            throw DomainException(ErrorCode.FORBIDDEN)
+            throw UserDomainException(UserErrorCode.FORBIDDEN)
         }
     }
 
     fun requireRole(role: UserRole) {
         if (!authorizationPort.hasRole(role)) {
-            throw DomainException(ErrorCode.FORBIDDEN)
+            throw UserDomainException(UserErrorCode.FORBIDDEN)
         }
     }
 

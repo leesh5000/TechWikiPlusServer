@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.common.config.documentation
+package me.helloc.techwikiplus.service.config.documentation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode

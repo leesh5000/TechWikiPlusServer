@@ -1,8 +1,8 @@
 package me.helloc.techwikiplus.service.user.application.service
 
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
 import me.helloc.techwikiplus.service.user.domain.service.UserModifier
 import me.helloc.techwikiplus.service.user.domain.service.UserRegister

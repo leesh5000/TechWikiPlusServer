@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service.port
 
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 
 interface PasswordEncryptor {
     fun encode(rawPassword: RawPassword): EncodedPassword

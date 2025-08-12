@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.domain.model.type
+package me.helloc.techwikiplus.service.user.domain.model
 
 enum class UserRole {
     ADMIN,

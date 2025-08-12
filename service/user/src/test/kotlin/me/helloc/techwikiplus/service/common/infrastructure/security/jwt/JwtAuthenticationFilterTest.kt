@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
+package me.helloc.techwikiplus.service.common.infrastructure.security.jwt
 
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -7,13 +7,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.FilterChain
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import org.springframework.mock.web.MockHttpServletRequest

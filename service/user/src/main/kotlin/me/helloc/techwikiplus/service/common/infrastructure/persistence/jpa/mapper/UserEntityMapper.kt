@@ -1,13 +1,13 @@
-package me.helloc.techwikiplus.service.user.infrastructure.persistence.jpa.mapper
+package me.helloc.techwikiplus.service.common.infrastructure.persistence.jpa.mapper
 
+import me.helloc.techwikiplus.service.common.infrastructure.persistence.jpa.entity.UserEntity
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.infrastructure.persistence.jpa.entity.UserEntity
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import org.springframework.stereotype.Component
 
 @Component

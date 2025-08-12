@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.interfaces.web.port.UserProfileUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated

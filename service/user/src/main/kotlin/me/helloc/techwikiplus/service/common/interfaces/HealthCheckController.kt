@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.interfaces.web
+package me.helloc.techwikiplus.service.common.interfaces
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping

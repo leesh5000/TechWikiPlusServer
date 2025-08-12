@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.userdetails
+package me.helloc.techwikiplus.service.common.infrastructure.security.userdetails
 
 import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository

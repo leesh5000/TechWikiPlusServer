@@ -6,5 +6,4 @@ enum class DocumentErrorCode {
     TITLE_TOO_SHORT,
     TITLE_TOO_LONG,
     TITLE_CONTAINS_INVALID_CHAR,
-
 }

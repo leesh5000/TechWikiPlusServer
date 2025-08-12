@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.application.service
 
 import jakarta.transaction.Transactional
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.service.UserAuthenticator
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
 import me.helloc.techwikiplus.service.user.domain.service.UserTokenService

@@ -4,18 +4,18 @@ import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.common.infrastructure.FakePasswordEncryptor
+import me.helloc.techwikiplus.service.common.infrastructure.FakeTokenManager
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.FakePasswordEncryptor
-import me.helloc.techwikiplus.service.user.domain.port.FakeTokenManager
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import java.time.Instant
 
 class UserAuthenticatorTest : FunSpec({
@@ -52,7 +52,7 @@ class UserAuthenticatorTest : FunSpec({
                     )
 
                 // when & then
-                shouldNotThrow<DomainException> {
+                shouldNotThrow<UserDomainException> {
                     userAuthenticator.authenticate(user, rawPassword)
                 }
             }
@@ -74,10 +74,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, rawPassword)
                     }
-                exception.errorCode shouldBe ErrorCode.USER_PENDING
+                exception.userErrorCode shouldBe UserErrorCode.USER_PENDING
             }
 
             test("BANNED 상태의 사용자는 USER_BANNED 예외를 발생시킨다") {
@@ -97,10 +97,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, rawPassword)
                     }
-                exception.errorCode shouldBe ErrorCode.USER_BANNED
+                exception.userErrorCode shouldBe UserErrorCode.USER_BANNED
             }
 
             test("DELETED 상태의 사용자는 USER_DELETED 예외를 발생시킨다") {
@@ -120,10 +120,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, rawPassword)
                     }
-                exception.errorCode shouldBe ErrorCode.USER_DELETED
+                exception.userErrorCode shouldBe UserErrorCode.USER_DELETED
             }
 
             test("DORMANT 상태의 사용자는 정상적으로 인증을 통과할 수 있다") {
@@ -142,7 +142,7 @@ class UserAuthenticatorTest : FunSpec({
                     )
 
                 // when & then
-                shouldNotThrow<DomainException> {
+                shouldNotThrow<UserDomainException> {
                     userAuthenticator.authenticate(user, rawPassword)
                 }
             }
@@ -165,7 +165,7 @@ class UserAuthenticatorTest : FunSpec({
                     )
 
                 // when & then
-                shouldNotThrow<DomainException> {
+                shouldNotThrow<UserDomainException> {
                     userAuthenticator.authenticate(user, rawPassword)
                 }
             }
@@ -188,10 +188,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, wrongPassword)
                     }
-                exception.errorCode shouldBe ErrorCode.INVALID_CREDENTIALS
+                exception.userErrorCode shouldBe UserErrorCode.INVALID_CREDENTIALS
             }
 
             test("대소문자가 다른 비밀번호는 INVALID_CREDENTIALS 예외를 발생시킨다") {
@@ -212,20 +212,20 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, wrongPassword)
                     }
-                exception.errorCode shouldBe ErrorCode.INVALID_CREDENTIALS
+                exception.userErrorCode shouldBe UserErrorCode.INVALID_CREDENTIALS
             }
 
             test("빈 비밀번호로 인증 시 BLANK_PASSWORD 예외를 발생시킨다") {
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         RawPassword("Password123!")
                         RawPassword("")
                     }
-                exception.errorCode shouldBe ErrorCode.BLANK_PASSWORD
+                exception.userErrorCode shouldBe UserErrorCode.BLANK_PASSWORD
             }
         }
 
@@ -246,7 +246,7 @@ class UserAuthenticatorTest : FunSpec({
                     )
 
                 // when & then
-                shouldNotThrow<DomainException> {
+                shouldNotThrow<UserDomainException> {
                     userAuthenticator.authenticate(adminUser, rawPassword)
                 }
             }
@@ -267,7 +267,7 @@ class UserAuthenticatorTest : FunSpec({
                     )
 
                 // when & then
-                shouldNotThrow<DomainException> {
+                shouldNotThrow<UserDomainException> {
                     userAuthenticator.authenticate(normalUser, rawPassword)
                 }
             }
@@ -319,10 +319,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, refreshToken)
                     }
-                exception.errorCode shouldBe ErrorCode.USER_PENDING
+                exception.userErrorCode shouldBe UserErrorCode.USER_PENDING
             }
 
             test("BANNED 상태의 사용자는 USER_BANNED 예외를 발생시킨다") {
@@ -344,10 +344,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, refreshToken)
                     }
-                exception.errorCode shouldBe ErrorCode.USER_BANNED
+                exception.userErrorCode shouldBe UserErrorCode.USER_BANNED
             }
 
             test("DELETED 상태의 사용자는 USER_DELETED 예외를 발생시킨다") {
@@ -369,10 +369,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, refreshToken)
                     }
-                exception.errorCode shouldBe ErrorCode.USER_DELETED
+                exception.userErrorCode shouldBe UserErrorCode.USER_DELETED
             }
         }
 
@@ -419,10 +419,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, invalidToken)
                     }
-                exception.errorCode shouldBe ErrorCode.INVALID_TOKEN
+                exception.userErrorCode shouldBe UserErrorCode.INVALID_TOKEN
             }
 
             test("다른 사용자의 리프레시 토큰으로 인증 시 INVALID_TOKEN 예외를 발생시킨다") {
@@ -448,10 +448,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user1, refreshToken)
                     }
-                exception.errorCode shouldBe ErrorCode.INVALID_TOKEN
+                exception.userErrorCode shouldBe UserErrorCode.INVALID_TOKEN
             }
 
             test("빈 리프레시 토큰으로 인증 시 INVALID_TOKEN 예외를 발생시킨다") {
@@ -472,10 +472,10 @@ class UserAuthenticatorTest : FunSpec({
 
                 // when & then
                 val exception =
-                    shouldThrow<DomainException> {
+                    shouldThrow<UserDomainException> {
                         userAuthenticator.authenticate(user, emptyToken)
                     }
-                exception.errorCode shouldBe ErrorCode.INVALID_TOKEN
+                exception.userErrorCode shouldBe UserErrorCode.INVALID_TOKEN
             }
         }
 
@@ -535,17 +535,17 @@ class UserAuthenticatorTest : FunSpec({
 
             // when & then
             // user1 인증 성공
-            shouldNotThrow<DomainException> {
+            shouldNotThrow<UserDomainException> {
                 userAuthenticator.authenticate(user1, RawPassword("Password1!"))
             }
 
             // user2 인증 실패 (잘못된 비밀번호)
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userAuthenticator.authenticate(user2, RawPassword("WrongPassword!"))
             }
 
             // user1 다시 인증 성공 (user2의 실패가 영향을 주지 않음)
-            shouldNotThrow<DomainException> {
+            shouldNotThrow<UserDomainException> {
                 userAuthenticator.authenticate(user1, RawPassword("Password1!"))
             }
         }
@@ -569,7 +569,7 @@ class UserAuthenticatorTest : FunSpec({
 
             // when & then
             // 비밀번호 인증 실패
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userAuthenticator.authenticate(user, RawPassword("WrongPassword!"))
             }
 
@@ -578,7 +578,7 @@ class UserAuthenticatorTest : FunSpec({
             result shouldBe userId
 
             // 비밀번호 인증 성공
-            shouldNotThrow<DomainException> {
+            shouldNotThrow<UserDomainException> {
                 userAuthenticator.authenticate(user, RawPassword("Password123!"))
             }
         }

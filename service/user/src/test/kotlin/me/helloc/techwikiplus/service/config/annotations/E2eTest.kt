@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.common.config.annotations
+package me.helloc.techwikiplus.service.config.annotations
 
 import org.junit.jupiter.api.Tag
 

@@ -39,7 +39,7 @@ class DocumentErrorCodeMapper {
                     }
                 DocumentErrorCode.TITLE_CONTAINS_INVALID_CHAR ->
                     "제목에 사용할 수 없는 문자가 포함되어 있습니다. " +
-                            "한글, 영문, 숫자, 공백 및 일부 특수문자(-_.,():/@#&+[]{}'\")만 사용 가능합니다"
+                        "한글, 영문, 숫자, 공백 및 일부 특수문자(-_.,():/@#&+[]{}'\")만 사용 가능합니다"
             }
 
         return baseMessage

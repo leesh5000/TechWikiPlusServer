@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
+package me.helloc.techwikiplus.service.common.infrastructure.security.jwt
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

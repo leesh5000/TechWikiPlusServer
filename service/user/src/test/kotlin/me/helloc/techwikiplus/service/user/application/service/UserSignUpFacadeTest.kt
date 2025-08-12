@@ -4,22 +4,22 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.common.infrastructure.FakeCacheStore
+import me.helloc.techwikiplus.service.common.infrastructure.FakeClockHolder
+import me.helloc.techwikiplus.service.common.infrastructure.FakeIdGenerator
+import me.helloc.techwikiplus.service.common.infrastructure.FakeMailSender
+import me.helloc.techwikiplus.service.common.infrastructure.FakePasswordEncryptor
+import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.FakeCacheStore
-import me.helloc.techwikiplus.service.user.domain.port.FakeClockHolder
-import me.helloc.techwikiplus.service.user.domain.port.FakeIdGenerator
-import me.helloc.techwikiplus.service.user.domain.port.FakeMailSender
-import me.helloc.techwikiplus.service.user.domain.port.FakePasswordEncryptor
-import me.helloc.techwikiplus.service.user.domain.port.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
 import me.helloc.techwikiplus.service.user.domain.service.UserModifier
 import me.helloc.techwikiplus.service.user.domain.service.UserRegister
@@ -187,7 +187,7 @@ class UserSignUpFacadeTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userSignUpFacade.execute(
                     email = email,
                     nickname = nickname,
@@ -196,7 +196,7 @@ class UserSignUpFacadeTest : FunSpec({
                 )
             }
 
-        exception.errorCode shouldBe ErrorCode.PASSWORD_MISMATCH
+        exception.userErrorCode shouldBe UserErrorCode.PASSWORD_MISMATCH
         fakeUserRepository.getAll().size shouldBe 0
         fakeMailSender.getSentMailCount() shouldBe 0
     }
@@ -223,7 +223,7 @@ class UserSignUpFacadeTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userSignUpFacade.execute(
                     email = existingEmail,
                     nickname = nickname,
@@ -232,7 +232,7 @@ class UserSignUpFacadeTest : FunSpec({
                 )
             }
 
-        exception.errorCode shouldBe ErrorCode.DUPLICATE_EMAIL
+        exception.userErrorCode shouldBe UserErrorCode.DUPLICATE_EMAIL
         exception.params shouldBe arrayOf(existingEmail.value)
         fakeUserRepository.getAll().size shouldBe 1
         fakeMailSender.getSentMailCount() shouldBe 0
@@ -260,7 +260,7 @@ class UserSignUpFacadeTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userSignUpFacade.execute(
                     email = email,
                     nickname = existingNickname,
@@ -269,7 +269,7 @@ class UserSignUpFacadeTest : FunSpec({
                 )
             }
 
-        exception.errorCode shouldBe ErrorCode.DUPLICATE_NICKNAME
+        exception.userErrorCode shouldBe UserErrorCode.DUPLICATE_NICKNAME
         exception.params shouldBe arrayOf(existingNickname.value)
         fakeUserRepository.getAll().size shouldBe 1
         fakeMailSender.getSentMailCount() shouldBe 0

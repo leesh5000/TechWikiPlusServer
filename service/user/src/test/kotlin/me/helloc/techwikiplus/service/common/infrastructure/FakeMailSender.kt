@@ -1,7 +1,7 @@
-package me.helloc.techwikiplus.service.user.domain.port
+package me.helloc.techwikiplus.service.common.infrastructure
 
+import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
 import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 
 open class FakeMailSender : MailSender {

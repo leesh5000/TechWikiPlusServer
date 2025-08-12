@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.domain.model.value
+package me.helloc.techwikiplus.service.user.domain.model
 
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode

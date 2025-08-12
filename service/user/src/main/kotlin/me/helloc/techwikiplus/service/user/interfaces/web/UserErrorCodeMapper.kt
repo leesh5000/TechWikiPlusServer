@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.common.interfaces
+package me.helloc.techwikiplus.service.user.interfaces.web
 
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
 import org.springframework.http.HttpStatus

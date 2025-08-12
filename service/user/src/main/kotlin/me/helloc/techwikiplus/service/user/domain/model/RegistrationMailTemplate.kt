@@ -1,7 +1,5 @@
 package me.helloc.techwikiplus.service.user.domain.model
 
-import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
-
 class RegistrationMailTemplate {
     companion object {
         private const val CODE_PLACEHOLDER = "{{code}}"

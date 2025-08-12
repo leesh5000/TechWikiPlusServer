@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.persistence.jpa.entity
+package me.helloc.techwikiplus.service.common.infrastructure.persistence.jpa.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

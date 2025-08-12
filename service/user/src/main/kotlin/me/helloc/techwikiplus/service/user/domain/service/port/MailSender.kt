@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.service.port
 
+import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
 
 interface MailSender {
     fun send(

@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.interfaces.web.port
 
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserToken
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
 
 interface UserLoginRefreshUseCase {
     fun execute(

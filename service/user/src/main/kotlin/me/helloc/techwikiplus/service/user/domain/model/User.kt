@@ -1,13 +1,7 @@
 package me.helloc.techwikiplus.service.user.domain.model
 
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
 import java.time.Instant
 
 class User(
@@ -93,13 +87,13 @@ class User(
     fun validateUserStatus() {
         when (status) {
             UserStatus.BANNED -> {
-                throw DomainException(ErrorCode.USER_BANNED)
+                throw UserDomainException(UserErrorCode.USER_BANNED)
             }
             UserStatus.DELETED -> {
-                throw DomainException(ErrorCode.USER_DELETED)
+                throw UserDomainException(UserErrorCode.USER_DELETED)
             }
             UserStatus.PENDING -> {
-                throw DomainException(ErrorCode.USER_PENDING)
+                throw UserDomainException(UserErrorCode.USER_PENDING)
             }
             else -> {}
         }

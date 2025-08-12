@@ -1,12 +1,12 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
+import me.helloc.techwikiplus.service.user.domain.model.RegistrationCode
 import me.helloc.techwikiplus.service.user.domain.model.RegistrationMailTemplate
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
 import me.helloc.techwikiplus.service.user.domain.service.port.CacheStore
 import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
 import org.springframework.stereotype.Service
@@ -30,7 +30,7 @@ class EmailVerifyService(
         store(registrationCode, user.email)
     }
 
-    @Throws(DomainException::class)
+    @Throws(UserDomainException::class)
     fun verify(
         email: Email,
         registrationCode: RegistrationCode,
@@ -38,9 +38,9 @@ class EmailVerifyService(
         val registrationCodeKey = getRegistrationCodeKey(email.value)
         val code: String =
             cacheStore.get(registrationCodeKey)
-                ?: throw DomainException(ErrorCode.REGISTRATION_EXPIRED, arrayOf(email.value))
+                ?: throw UserDomainException(UserErrorCode.REGISTRATION_EXPIRED, arrayOf(email.value))
         if (code != registrationCode.value) {
-            throw DomainException(ErrorCode.CODE_MISMATCH)
+            throw UserDomainException(UserErrorCode.CODE_MISMATCH)
         }
         cacheStore.delete(registrationCodeKey)
     }

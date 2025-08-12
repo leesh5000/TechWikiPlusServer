@@ -4,18 +4,18 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.common.infrastructure.FakeCacheStore
+import me.helloc.techwikiplus.service.common.infrastructure.FakeMailSender
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RegistrationCode
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.FakeCacheStore
-import me.helloc.techwikiplus.service.user.domain.port.FakeMailSender
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import java.time.Duration
 import java.time.Instant
 
@@ -141,11 +141,11 @@ class EmailVerifyServiceTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 emailVerifyService.verify(email, wrongCode)
             }
 
-        exception.errorCode shouldBe ErrorCode.CODE_MISMATCH
+        exception.userErrorCode shouldBe UserErrorCode.CODE_MISMATCH
         fakeCacheStore.contains(cacheKey) shouldBe true
     }
 
@@ -156,11 +156,11 @@ class EmailVerifyServiceTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 emailVerifyService.verify(email, registrationCode)
             }
 
-        exception.errorCode shouldBe ErrorCode.REGISTRATION_EXPIRED
+        exception.userErrorCode shouldBe UserErrorCode.REGISTRATION_EXPIRED
         exception.params shouldBe arrayOf(email.value)
     }
 
@@ -176,11 +176,11 @@ class EmailVerifyServiceTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 emailVerifyService.verify(email, registrationCode)
             }
 
-        exception.errorCode shouldBe ErrorCode.REGISTRATION_EXPIRED
+        exception.userErrorCode shouldBe UserErrorCode.REGISTRATION_EXPIRED
         exception.params shouldBe arrayOf(email.value)
     }
 
@@ -275,11 +275,11 @@ class EmailVerifyServiceTest : FunSpec({
 
         // then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 emailVerifyService.verify(email, registrationCode)
             }
 
-        exception.errorCode shouldBe ErrorCode.REGISTRATION_EXPIRED
+        exception.userErrorCode shouldBe UserErrorCode.REGISTRATION_EXPIRED
         exception.params shouldBe arrayOf(email.value)
     }
 })

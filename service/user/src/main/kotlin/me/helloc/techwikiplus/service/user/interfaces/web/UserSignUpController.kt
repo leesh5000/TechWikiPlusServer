@@ -1,8 +1,8 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.interfaces.web.port.UserSignUpUseCase
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus

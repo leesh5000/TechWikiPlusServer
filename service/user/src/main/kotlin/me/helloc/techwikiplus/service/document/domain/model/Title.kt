@@ -56,6 +56,7 @@ class Title(value: String) {
     companion object {
         private const val MIN_LENGTH = 1
         private const val MAX_LENGTH = 200
+
         // 한글, 영문, 숫자, 공백, 일부 특수문자 허용 (기술 문서에서 자주 사용되는 문자들)
         private val ALLOWED_PATTERN = """^[가-힣a-zA-Z0-9\s\-_.,():/@#&+\[\]{}'"]+$""".toRegex()
     }

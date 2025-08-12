@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.domain.exception
 
-enum class ErrorCode {
+enum class UserErrorCode {
     // User Status
     USER_DORMANT,
     USER_BANNED,

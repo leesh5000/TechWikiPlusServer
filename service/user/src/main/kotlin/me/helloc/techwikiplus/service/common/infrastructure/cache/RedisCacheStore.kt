@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.cache
+package me.helloc.techwikiplus.service.common.infrastructure.cache
 
 import me.helloc.techwikiplus.service.user.domain.service.port.CacheStore
 import org.springframework.data.redis.core.StringRedisTemplate

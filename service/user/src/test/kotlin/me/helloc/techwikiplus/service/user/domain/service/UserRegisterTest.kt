@@ -4,20 +4,19 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.user.TestFixtures
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.common.infrastructure.FakeClockHolder
+import me.helloc.techwikiplus.service.common.infrastructure.FakeIdGenerator
+import me.helloc.techwikiplus.service.common.infrastructure.FakePasswordEncryptor
+import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.FakeClockHolder
-import me.helloc.techwikiplus.service.user.domain.port.FakeIdGenerator
-import me.helloc.techwikiplus.service.user.domain.port.FakePasswordEncryptor
-import me.helloc.techwikiplus.service.user.domain.port.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import java.time.Instant
 
 class UserRegisterTest : FunSpec({
@@ -77,10 +76,10 @@ class UserRegisterTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userRegister.insert(email, nickname, password, passwordConfirm)
                 }
-            exception.errorCode shouldBe ErrorCode.PASSWORD_MISMATCH
+            exception.userErrorCode shouldBe UserErrorCode.PASSWORD_MISMATCH
 
             // 저장소에 저장되지 않았는지 확인
             repository.getAll().size shouldBe 0
@@ -91,7 +90,7 @@ class UserRegisterTest : FunSpec({
             val existingEmail = Email("existing@example.com")
             val existingUser =
                 User.create(
-                    id = TestFixtures.EXISTING_USER_ID,
+                    id = UserId(2000001L),
                     email = existingEmail,
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = Nickname("existinguser"),
@@ -107,10 +106,10 @@ class UserRegisterTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userRegister.insert(existingEmail, newNickname, password, passwordConfirm)
                 }
-            exception.errorCode shouldBe ErrorCode.DUPLICATE_EMAIL
+            exception.userErrorCode shouldBe UserErrorCode.DUPLICATE_EMAIL
             exception.params shouldBe arrayOf(existingEmail.value)
 
             // 새로운 사용자가 저장되지 않았는지 확인
@@ -122,7 +121,7 @@ class UserRegisterTest : FunSpec({
             val existingNickname = Nickname("existinguser")
             val existingUser =
                 User.create(
-                    id = TestFixtures.EXISTING_USER_ID,
+                    id = UserId(2000001L),
                     email = Email("existing@example.com"),
                     encodedPassword = EncodedPassword("encoded_password"),
                     nickname = existingNickname,
@@ -138,10 +137,10 @@ class UserRegisterTest : FunSpec({
 
             // when & then
             val exception =
-                shouldThrow<DomainException> {
+                shouldThrow<UserDomainException> {
                     userRegister.insert(newEmail, existingNickname, password, passwordConfirm)
                 }
-            exception.errorCode shouldBe ErrorCode.DUPLICATE_NICKNAME
+            exception.userErrorCode shouldBe UserErrorCode.DUPLICATE_NICKNAME
             exception.params shouldBe arrayOf(existingNickname.value)
 
             // 새로운 사용자가 저장되지 않았는지 확인

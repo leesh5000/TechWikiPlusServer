@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
+package me.helloc.techwikiplus.service.common.infrastructure.security.jwt
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -9,7 +9,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import me.helloc.techwikiplus.service.user.interfaces.web.ErrorResponse
+import me.helloc.techwikiplus.service.common.interfaces.ErrorResponse
 import org.springframework.security.core.AuthenticationException
 import java.io.PrintWriter
 

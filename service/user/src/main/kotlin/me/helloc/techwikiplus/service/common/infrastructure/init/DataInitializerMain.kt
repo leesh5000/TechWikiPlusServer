@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.init
+package me.helloc.techwikiplus.service.common.infrastructure.init
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.web.config
+package me.helloc.techwikiplus.service.common.infrastructure.web.config
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.CacheControl

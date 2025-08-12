@@ -3,20 +3,20 @@ package me.helloc.techwikiplus.service.user.application.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.common.infrastructure.FakeCacheStore
+import me.helloc.techwikiplus.service.common.infrastructure.FakeClockHolder
+import me.helloc.techwikiplus.service.common.infrastructure.FakeMailSender
+import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RegistrationCode
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
-import me.helloc.techwikiplus.service.user.domain.model.value.UserId
-import me.helloc.techwikiplus.service.user.domain.port.FakeCacheStore
-import me.helloc.techwikiplus.service.user.domain.port.FakeClockHolder
-import me.helloc.techwikiplus.service.user.domain.port.FakeMailSender
-import me.helloc.techwikiplus.service.user.domain.port.FakeUserRepository
+import me.helloc.techwikiplus.service.user.domain.model.UserId
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
 import me.helloc.techwikiplus.service.user.domain.service.UserModifier
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
@@ -115,11 +115,11 @@ class UserVerifyFacadeTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userVerifyFacade.execute(email, invalidCode)
             }
 
-        exception.errorCode shouldBe ErrorCode.CODE_MISMATCH
+        exception.userErrorCode shouldBe UserErrorCode.CODE_MISMATCH
 
         val user = fakeUserRepository.findBy(email)
         user?.status shouldBe UserStatus.PENDING
@@ -145,11 +145,11 @@ class UserVerifyFacadeTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userVerifyFacade.execute(email, code)
             }
 
-        exception.errorCode shouldBe ErrorCode.NOT_FOUND_PENDING_USER
+        exception.userErrorCode shouldBe UserErrorCode.NOT_FOUND_PENDING_USER
         exception.params shouldBe arrayOf(email.value)
     }
 
@@ -173,11 +173,11 @@ class UserVerifyFacadeTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userVerifyFacade.execute(email, code)
             }
 
-        exception.errorCode shouldBe ErrorCode.REGISTRATION_EXPIRED
+        exception.userErrorCode shouldBe UserErrorCode.REGISTRATION_EXPIRED
 
         val user = fakeUserRepository.findBy(email)
         user?.status shouldBe UserStatus.PENDING
@@ -362,11 +362,11 @@ class UserVerifyFacadeTest : FunSpec({
 
         // then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userVerifyFacade.execute(email, validCode)
             }
 
-        exception.errorCode shouldBe ErrorCode.NOT_FOUND_PENDING_USER
+        exception.userErrorCode shouldBe UserErrorCode.NOT_FOUND_PENDING_USER
     }
 
     test("BANNED 상태의 사용자는 인증할 수 없어야 한다") {
@@ -389,11 +389,11 @@ class UserVerifyFacadeTest : FunSpec({
 
         // when & then
         val exception =
-            shouldThrow<DomainException> {
+            shouldThrow<UserDomainException> {
                 userVerifyFacade.execute(email, code)
             }
 
-        exception.errorCode shouldBe ErrorCode.NOT_FOUND_PENDING_USER
+        exception.userErrorCode shouldBe UserErrorCode.NOT_FOUND_PENDING_USER
         exception.params shouldBe arrayOf(email.value)
     }
 })

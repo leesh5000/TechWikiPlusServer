@@ -2,17 +2,17 @@ package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema.Companion.schema
-import me.helloc.techwikiplus.service.user.config.BaseE2eTest
-import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
-import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
+import me.helloc.techwikiplus.service.common.infrastructure.id.SnowflakeIdGenerator
+import me.helloc.techwikiplus.service.config.BaseE2eTest
+import me.helloc.techwikiplus.service.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.config.documentation.withStandardErrorResponse
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserRole
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.UserRole
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
-import me.helloc.techwikiplus.service.user.infrastructure.id.SnowflakeIdGenerator
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType

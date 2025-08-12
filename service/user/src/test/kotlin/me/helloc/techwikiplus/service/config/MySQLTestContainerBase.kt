@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.common.config
+package me.helloc.techwikiplus.service.config
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringExtension

@@ -1,7 +1,7 @@
 package me.helloc.techwikiplus.service.user.interfaces.web
 
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.RegistrationCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.RegistrationCode
 import me.helloc.techwikiplus.service.user.interfaces.web.port.UserVerifyUseCase
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus

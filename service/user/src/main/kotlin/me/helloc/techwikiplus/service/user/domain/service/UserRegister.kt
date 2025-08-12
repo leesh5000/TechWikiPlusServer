@@ -1,13 +1,13 @@
 package me.helloc.techwikiplus.service.user.domain.service
 
-import me.helloc.techwikiplus.service.user.domain.exception.DomainException
-import me.helloc.techwikiplus.service.user.domain.exception.ErrorCode
+import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
+import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
+import me.helloc.techwikiplus.service.user.domain.model.Email
+import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
+import me.helloc.techwikiplus.service.user.domain.model.Nickname
+import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.type.UserStatus
-import me.helloc.techwikiplus.service.user.domain.model.value.Email
-import me.helloc.techwikiplus.service.user.domain.model.value.EncodedPassword
-import me.helloc.techwikiplus.service.user.domain.model.value.Nickname
-import me.helloc.techwikiplus.service.user.domain.model.value.RawPassword
+import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
 import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
@@ -22,7 +22,7 @@ class UserRegister(
     private val repository: UserRepository,
     private val passwordEncryptor: PasswordEncryptor,
 ) {
-    @Throws(DomainException::class)
+    @Throws(UserDomainException::class)
     fun insert(
         email: Email,
         nickname: Nickname,
@@ -30,15 +30,15 @@ class UserRegister(
         passwordConfirm: RawPassword,
     ): User {
         if (password != passwordConfirm) {
-            throw DomainException(ErrorCode.PASSWORD_MISMATCH)
+            throw UserDomainException(UserErrorCode.PASSWORD_MISMATCH)
         }
 
         if (repository.exists(email)) {
-            throw DomainException(ErrorCode.DUPLICATE_EMAIL, arrayOf(email.value))
+            throw UserDomainException(UserErrorCode.DUPLICATE_EMAIL, arrayOf(email.value))
         }
 
         if (repository.exists(nickname)) {
-            throw DomainException(ErrorCode.DUPLICATE_NICKNAME, arrayOf(nickname.value))
+            throw UserDomainException(UserErrorCode.DUPLICATE_NICKNAME, arrayOf(nickname.value))
         }
 
         val encodedPassword: EncodedPassword = passwordEncryptor.encode(rawPassword = password)

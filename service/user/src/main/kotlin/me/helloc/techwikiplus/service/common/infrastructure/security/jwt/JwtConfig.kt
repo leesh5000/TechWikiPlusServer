@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.infrastructure.security.jwt
+package me.helloc.techwikiplus.service.common.infrastructure.security.jwt
 
 import me.helloc.techwikiplus.service.user.domain.service.port.TokenManager
 import org.springframework.boot.context.properties.EnableConfigurationProperties
