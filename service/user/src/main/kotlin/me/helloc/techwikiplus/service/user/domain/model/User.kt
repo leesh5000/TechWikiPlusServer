@@ -15,7 +15,7 @@ class User(
     val modifiedAt: Instant,
 ) {
     init {
-        // UserId validation is already done in UserId value object
+        // UserId validation is already done in the UserId value object
     }
 
     fun copy(
@@ -43,7 +43,6 @@ class User(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is User) return false
-
         return id == other.id
     }
 
@@ -86,16 +85,13 @@ class User(
 
     fun validateUserStatus() {
         when (status) {
-            UserStatus.BANNED -> {
-                throw UserDomainException(UserErrorCode.USER_BANNED)
+            UserStatus.DORMANT -> throw UserDomainException(UserErrorCode.USER_DORMANT)
+            UserStatus.DELETED -> throw UserDomainException(UserErrorCode.USER_DELETED)
+            UserStatus.BANNED -> throw UserDomainException(UserErrorCode.USER_BANNED)
+            UserStatus.PENDING -> throw UserDomainException(UserErrorCode.USER_PENDING)
+            else -> {
+                // ACTIVE 상태는 유효하므로 아무 작업도 하지 않음
             }
-            UserStatus.DELETED -> {
-                throw UserDomainException(UserErrorCode.USER_DELETED)
-            }
-            UserStatus.PENDING -> {
-                throw UserDomainException(UserErrorCode.USER_PENDING)
-            }
-            else -> {}
         }
     }
 

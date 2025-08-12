@@ -17,7 +17,8 @@ class UserReader(
         val user: User =
             repository.findBy(userId)
                 ?: throw UserDomainException(UserErrorCode.USER_NOT_FOUND, arrayOf(userId.value))
-        return validateUserStatus(user)
+        user.validateUserStatus()
+        return user
     }
 
     fun getPendingUser(email: Email): User {
@@ -34,16 +35,7 @@ class UserReader(
         val user: User =
             repository.findBy(email)
                 ?: throw UserDomainException(UserErrorCode.USER_NOT_FOUND, arrayOf(email.value))
-        return validateUserStatus(user)
-    }
-
-    private fun validateUserStatus(user: User): User {
-        return when (user.status) {
-            UserStatus.ACTIVE -> user
-            UserStatus.DORMANT -> throw UserDomainException(UserErrorCode.USER_DORMANT)
-            UserStatus.DELETED -> throw UserDomainException(UserErrorCode.USER_DELETED)
-            UserStatus.BANNED -> throw UserDomainException(UserErrorCode.USER_BANNED)
-            UserStatus.PENDING -> throw UserDomainException(UserErrorCode.USER_PENDING)
-        }
+        user.validateUserStatus()
+        return user
     }
 }
