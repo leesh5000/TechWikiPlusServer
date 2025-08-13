@@ -77,7 +77,7 @@ class SecurityConfiguration(
 
     @Bean
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
-        return JwtAuthenticationFilter(jwtTokenManager, userRepository)
+        return JwtAuthenticationFilter(jwtTokenManager, userRepository, jwtAuthenticationEntryPoint)
     }
 
     @Bean

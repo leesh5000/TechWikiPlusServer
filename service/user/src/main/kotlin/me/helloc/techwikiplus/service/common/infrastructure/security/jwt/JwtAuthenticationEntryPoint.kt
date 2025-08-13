@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import me.helloc.techwikiplus.service.common.interfaces.web.ErrorResponse
+import me.helloc.techwikiplus.service.user.interfaces.web.UserErrorCodeMapper
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.stereotype.Component
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 class JwtAuthenticationEntryPoint(
     private val objectMapper: ObjectMapper,
+    private val userErrorCodeMapper: UserErrorCodeMapper,
 ) : AuthenticationEntryPoint {
     companion object {
         private val logger = LoggerFactory.getLogger(JwtAuthenticationEntryPoint::class.java)
@@ -21,18 +25,35 @@ class JwtAuthenticationEntryPoint(
     override fun commence(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        authException: AuthenticationException,
+        authException: AuthenticationException?,
     ) {
-        logger.debug("Authentication failed: ${authException.message}")
+        logger.debug("Authentication failed: ${authException?.message}")
+
+        val (httpStatus, errorCode, errorMessage) =
+            when (authException) {
+                is UserStatusAuthenticationException -> {
+                    val status = userErrorCodeMapper.mapToHttpStatus(authException.errorCode)
+                    val message = userErrorCodeMapper.mapToMessage(authException.errorCode, emptyArray())
+                    Triple(status, authException.errorCode.name, message)
+                }
+                else -> {
+                    Triple(
+                        HttpStatus.UNAUTHORIZED,
+                        "UNAUTHORIZED",
+                        authException?.message ?: DEFAULT_ERROR_MESSAGE,
+                    )
+                }
+            }
 
         val errorResponse =
             ErrorResponse.of(
-                code = "UNAUTHORIZED",
-                message = DEFAULT_ERROR_MESSAGE,
+                code = errorCode,
+                message = errorMessage,
             )
 
-        response.status = HttpServletResponse.SC_UNAUTHORIZED
-        response.contentType = "application/json;charset=UTF-8"
+        response.status = httpStatus.value()
+        response.contentType = MediaType.APPLICATION_JSON_VALUE
+        response.characterEncoding = "UTF-8"
         response.writer.write(objectMapper.writeValueAsString(errorResponse))
     }
 }
