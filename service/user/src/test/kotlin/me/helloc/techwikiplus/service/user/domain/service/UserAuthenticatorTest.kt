@@ -126,7 +126,7 @@ class UserAuthenticatorTest : FunSpec({
                 exception.userErrorCode shouldBe UserErrorCode.USER_DELETED
             }
 
-            test("DORMANT 상태의 사용자는 정상적으로 인증을 통과할 수 있다") {
+            test("DORMANT 상태의 사용자는 USER_DORMANT 예외를 발생시킨다") {
                 // given
                 val rawPassword = RawPassword("Password123!")
                 val user =
@@ -142,9 +142,11 @@ class UserAuthenticatorTest : FunSpec({
                     )
 
                 // when & then
-                shouldNotThrow<UserDomainException> {
-                    userAuthenticator.authenticate(user, rawPassword)
-                }
+                val exception =
+                    shouldThrow<UserDomainException> {
+                        userAuthenticator.authenticate(user, rawPassword)
+                    }
+                exception.userErrorCode shouldBe UserErrorCode.USER_DORMANT
             }
         }
 

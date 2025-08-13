@@ -7,11 +7,11 @@ import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
 import me.helloc.techwikiplus.service.user.domain.service.UserModifier
 import me.helloc.techwikiplus.service.user.domain.service.UserRegister
 import me.helloc.techwikiplus.service.user.interfaces.web.port.UserSignUpUseCase
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
-@Service
+@Component
 class UserSignUpFacade(
     private val userRegister: UserRegister,
     private val emailVerifyService: EmailVerifyService,

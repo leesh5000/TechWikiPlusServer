@@ -248,7 +248,7 @@ class ArchitectureTest {
         }
 
         @Test
-        @DisplayName("애플리케이션 서비스(Facade)는 application.service 패키지에 있어야 한다")
+        @DisplayName("애플리케이션 서비스(Facade)는 application.facade 패키지에 있어야 한다")
         fun applicationServicesShouldBeInApplicationServicePackage() {
             val rule =
                 classes()
