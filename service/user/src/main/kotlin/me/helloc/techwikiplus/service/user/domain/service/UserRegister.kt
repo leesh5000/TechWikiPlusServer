@@ -7,7 +7,6 @@ import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.User
-import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
 import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
@@ -49,7 +48,6 @@ class UserRegister(
                 email = email,
                 encodedPassword = encodedPassword,
                 nickname = nickname,
-                status = UserStatus.ACTIVE,
                 createdAt = now,
                 modifiedAt = now,
             )

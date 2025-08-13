@@ -8,7 +8,7 @@ class DocumentId(val value: Long) {
         if (value <= 0) {
             throw DocumentDomainException(
                 documentErrorCode = DocumentErrorCode.INVALID_DOCUMENT_ID_FORMAT,
-                params = arrayOf("documentId"),
+                params = arrayOf(value),
             )
         }
         // Snowflake ID는 64비트 정수이므로 Long 타입의 최대값을 넘지 않음

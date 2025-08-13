@@ -18,7 +18,7 @@ class AuthorTest : FunSpec({
             val author = Author(validId)
 
             // then
-            author.authorId shouldBe validId
+            author.id shouldBe validId
         }
 
         test("큰 양수 값으로 Author를 생성할 수 있다") {
@@ -29,7 +29,7 @@ class AuthorTest : FunSpec({
             val author = Author(largeId)
 
             // then
-            author.authorId shouldBe largeId
+            author.id shouldBe largeId
         }
 
         test("Snowflake ID 형식의 값으로 Author를 생성할 수 있다") {
@@ -40,7 +40,7 @@ class AuthorTest : FunSpec({
             val author = Author(snowflakeId)
 
             // then
-            author.authorId shouldBe snowflakeId
+            author.id shouldBe snowflakeId
         }
 
         test("일반적인 사용자 ID로 Author를 생성할 수 있다") {
@@ -51,7 +51,7 @@ class AuthorTest : FunSpec({
             val author = Author(userId)
 
             // then
-            author.authorId shouldBe userId
+            author.id shouldBe userId
         }
     }
 
@@ -119,7 +119,7 @@ class AuthorTest : FunSpec({
             val author = Author.from(validIdString)
 
             // then
-            author.authorId shouldBe 123L
+            author.id shouldBe 123L
         }
 
         test("큰 숫자 문자열로 Author를 생성할 수 있다") {
@@ -130,7 +130,7 @@ class AuthorTest : FunSpec({
             val author = Author.from(largeIdString)
 
             // then
-            author.authorId shouldBe 9223372036854775807L
+            author.id shouldBe 9223372036854775807L
         }
 
         test("Snowflake ID 문자열로 Author를 생성할 수 있다") {
@@ -141,7 +141,7 @@ class AuthorTest : FunSpec({
             val author = Author.from(snowflakeIdString)
 
             // then
-            author.authorId shouldBe 1234567890123456789L
+            author.id shouldBe 1234567890123456789L
         }
 
         test("숫자가 아닌 문자열로 생성하면 예외가 발생한다") {
@@ -382,7 +382,7 @@ class AuthorTest : FunSpec({
             val author = Author(minValidId)
 
             // then
-            author.authorId shouldBe minValidId
+            author.id shouldBe minValidId
         }
 
         test("Long.MAX_VALUE로 Author를 생성할 수 있다") {
@@ -393,7 +393,7 @@ class AuthorTest : FunSpec({
             val author = Author(maxId)
 
             // then
-            author.authorId shouldBe maxId
+            author.id shouldBe maxId
         }
 
         test("문자열 '1'로 Author를 생성할 수 있다") {
@@ -404,7 +404,7 @@ class AuthorTest : FunSpec({
             val author = Author.from(minValidString)
 
             // then
-            author.authorId shouldBe 1L
+            author.id shouldBe 1L
         }
 
         test("다양한 경계값으로 Author 생성을 테스트한다") {
@@ -424,7 +424,7 @@ class AuthorTest : FunSpec({
             boundaryValues.forEach { (value, shouldSucceed) ->
                 if (shouldSucceed) {
                     val author = Author(value)
-                    author.authorId shouldBe value
+                    author.id shouldBe value
                 } else {
                     shouldThrow<DocumentDomainException> {
                         Author(value)
@@ -495,14 +495,14 @@ class AuthorTest : FunSpec({
                 )
 
             // when
-            val sortedAuthors = authors.sortedBy { it.authorId }
+            val sortedAuthors = authors.sortedBy { it.id }
 
             // then
-            sortedAuthors[0].authorId shouldBe 1L
-            sortedAuthors[1].authorId shouldBe 2L
-            sortedAuthors[2].authorId shouldBe 3L
-            sortedAuthors[3].authorId shouldBe 4L
-            sortedAuthors[4].authorId shouldBe 5L
+            sortedAuthors[0].id shouldBe 1L
+            sortedAuthors[1].id shouldBe 2L
+            sortedAuthors[2].id shouldBe 3L
+            sortedAuthors[3].id shouldBe 4L
+            sortedAuthors[4].id shouldBe 5L
         }
 
         test("Author 컬렉션에서 distinct 연산이 올바르게 동작한다") {
@@ -522,7 +522,7 @@ class AuthorTest : FunSpec({
 
             // then
             distinctAuthors.size shouldBe 3
-            distinctAuthors.map { it.authorId }.sorted() shouldBe listOf(1L, 2L, 3L)
+            distinctAuthors.map { it.id }.sorted() shouldBe listOf(1L, 2L, 3L)
         }
     }
 
@@ -530,13 +530,13 @@ class AuthorTest : FunSpec({
         test("Author는 불변 객체이다") {
             // given
             val author = Author(123L)
-            val initialId = author.authorId
+            val initialId = author.id
 
             // when
             // authorId는 val로 선언되어 있어 수정 불가능
 
             // then
-            author.authorId shouldBe initialId
+            author.id shouldBe initialId
         }
 
         test("동일한 값으로 생성된 Author 객체들은 항상 동등하다") {

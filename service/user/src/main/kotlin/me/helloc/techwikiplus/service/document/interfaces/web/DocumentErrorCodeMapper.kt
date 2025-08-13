@@ -21,7 +21,11 @@ class DocumentErrorCodeMapper {
             DocumentErrorCode.CONTENT_TOO_LONG,
             // Author Validation
             DocumentErrorCode.INVALID_AUTHOR_ID_FORMAT,
+            // Login User Validation
+            DocumentErrorCode.INVALID_LOGIN_USER_ID_FORMAT,
             -> HttpStatus.BAD_REQUEST
+            DocumentErrorCode.NOT_AUTHOR_OF_DOCUMENT,
+            -> HttpStatus.FORBIDDEN
         }
     }
 
@@ -34,7 +38,7 @@ class DocumentErrorCodeMapper {
                 // DocumentId Validation
                 DocumentErrorCode.INVALID_DOCUMENT_ID_FORMAT ->
                     if (params.isNotEmpty()) {
-                        "유효하지 않은 문서 ID 형식입니다: ${params[0]}"
+                        "유효하지 않은 문서 ID(${params[0]}) 형식입니다"
                     } else {
                         "유효하지 않은 문서 ID 형식입니다"
                     }
@@ -72,9 +76,23 @@ class DocumentErrorCodeMapper {
                 // Author Validation
                 DocumentErrorCode.INVALID_AUTHOR_ID_FORMAT ->
                     if (params.isNotEmpty()) {
-                        "유효하지 않은 작성자 ID 형식입니다: ${params[0]}"
+                        "유효하지 않은 작성자 ID(${params[0]}) 형식입니다"
                     } else {
                         "유효하지 않은 작성자 ID 형식입니다"
+                    }
+                // Login User Validation
+                DocumentErrorCode.INVALID_LOGIN_USER_ID_FORMAT ->
+                    if (params.isNotEmpty()) {
+                        "유효하지 않은 로그인 사용자 ID(${params[0]}) 형식입니다"
+                    } else {
+                        "유효하지 않은 로그인 사용자 ID 형식입니다"
+                    }
+                // Author Validation
+                DocumentErrorCode.NOT_AUTHOR_OF_DOCUMENT ->
+                    if (params.isNotEmpty()) {
+                        "현재 로그인 한 유저 ID(${params[0]})와 작성자 ID(${params[1]})가 일치하지 않습니다"
+                    } else {
+                        "현재 로그인 한 유저가 작성자와 일치하지 않습니다"
                     }
             }
 

@@ -4,34 +4,34 @@ import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserRole
-import me.helloc.techwikiplus.service.user.domain.service.port.AuthorizationPort
+import me.helloc.techwikiplus.service.user.domain.service.port.UserAuthorizationPort
 import org.springframework.stereotype.Service
 
 @Service
 class UserAuthorizationService(
-    private val authorizationPort: AuthorizationPort,
+    private val userAuthorizationPort: UserAuthorizationPort,
 ) {
     fun getCurrentUserOrThrow(): UserId {
-        return authorizationPort.requireAuthenticated()
+        return userAuthorizationPort.requireAuthenticated()
     }
 
     fun getCurrentUserId(): UserId? {
-        return authorizationPort.getCurrentUserId()
+        return userAuthorizationPort.getCurrentUserId()
     }
 
     fun requireUserAccess(targetUserId: UserId) {
-        if (!authorizationPort.canAccessUser(targetUserId)) {
+        if (!userAuthorizationPort.canAccessUser(targetUserId)) {
             throw UserDomainException(UserErrorCode.FORBIDDEN)
         }
     }
 
     fun requireRole(role: UserRole) {
-        if (!authorizationPort.hasRole(role)) {
+        if (!userAuthorizationPort.hasRole(role)) {
             throw UserDomainException(UserErrorCode.FORBIDDEN)
         }
     }
 
     fun isAuthenticated(): Boolean {
-        return authorizationPort.isAuthenticated()
+        return userAuthorizationPort.isAuthenticated()
     }
 }

@@ -3,7 +3,7 @@ package me.helloc.techwikiplus.service.user.application.facade
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import me.helloc.techwikiplus.service.common.infrastructure.FakeAuthorizationPort
+import me.helloc.techwikiplus.service.common.infrastructure.FakeUserAuthorizationPort
 import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
@@ -21,13 +21,13 @@ import java.time.Instant
 class MyProfileFacadeTest : DescribeSpec({
     lateinit var facade: MyProfileFacade
     lateinit var userRepository: FakeUserRepository
-    lateinit var authorizationPort: FakeAuthorizationPort
+    lateinit var authorizationPort: FakeUserAuthorizationPort
     lateinit var userReader: UserReader
     lateinit var authorizationService: UserAuthorizationService
 
     beforeEach {
         userRepository = FakeUserRepository()
-        authorizationPort = FakeAuthorizationPort()
+        authorizationPort = FakeUserAuthorizationPort()
         userReader = UserReader(userRepository)
         authorizationService = UserAuthorizationService(authorizationPort)
         facade = MyProfileFacade(userReader, authorizationService)

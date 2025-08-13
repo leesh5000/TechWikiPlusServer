@@ -3,14 +3,14 @@ package me.helloc.techwikiplus.service.document.domain.model
 import me.helloc.techwikiplus.service.document.domain.exception.DocumentDomainException
 import me.helloc.techwikiplus.service.document.domain.exception.DocumentErrorCode
 
-class Author(
+class LoginUser(
     val id: Long,
 ) {
     init {
         if (id <= 0) {
             throw DocumentDomainException(
-                documentErrorCode = DocumentErrorCode.INVALID_AUTHOR_ID_FORMAT,
-                params = arrayOf("documentId"),
+                documentErrorCode = DocumentErrorCode.INVALID_LOGIN_USER_ID_FORMAT,
+                params = arrayOf(id),
             )
         }
         // Snowflake ID는 64비트 정수이므로 Long 타입의 최대값을 넘지 않음
@@ -28,12 +28,12 @@ class Author(
     override fun toString(): String = id.toString()
 
     companion object {
-        fun from(value: String): Author {
+        fun from(value: String): LoginUser {
             try {
-                return Author(value.toLong())
+                return LoginUser(value.toLong())
             } catch (e: NumberFormatException) {
                 throw DocumentDomainException(
-                    documentErrorCode = DocumentErrorCode.INVALID_AUTHOR_ID_FORMAT,
+                    documentErrorCode = DocumentErrorCode.INVALID_LOGIN_USER_ID_FORMAT,
                     params = arrayOf(value),
                     cause = e,
                 )
