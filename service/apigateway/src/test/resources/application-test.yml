@@ -1,0 +1,42 @@
+server:
+  port: 0 # 랜덤 포트 사용
+
+spring:
+  application:
+    name: api-gateway-test
+    
+  cloud:
+    gateway:
+      routes:
+        # 테스트용 간단한 라우팅 설정
+        - id: test-user-service
+          uri: http://httpbin.org
+          predicates:
+            - Path=/api/v1/users/**
+        
+        - id: test-document-service
+          uri: http://httpbin.org
+          predicates:
+            - Path=/api/v1/documents/**
+
+  # 테스트에서는 Redis 사용하지 않음
+  data:
+    redis:
+      enabled: false
+
+# 테스트용 로깅 설정
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web.reactive: INFO
+    me.helloc.techwikiplus.service.apigateway: DEBUG
+
+# Actuator 테스트 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: when-authorized

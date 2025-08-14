@@ -1,0 +1,122 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  
+  # ANSI 색상 출력 활성화
+  output:
+    ansi:
+      enabled: always
+    
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            # User Service 라우팅
+            - id: user-service
+              uri: http://localhost:9000
+              predicates:
+                - Path=/api/v1/users/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+                    redis-rate-limiter.requestedTokens: 1
+            
+            # Document Service 라우팅  
+            - id: document-service
+              uri: http://localhost:9001
+              predicates:
+                - Path=/api/v1/documents/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+                    redis-rate-limiter.requestedTokens: 1
+          
+          # 공통 필터 설정
+          default-filters:
+            - name: DedupeResponseHeader
+              args:
+                name: Access-Control-Allow-Origin Access-Control-Allow-Credentials
+                strategy: RETAIN_UNIQUE
+          
+          # CORS 설정
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOriginPatterns: "*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                allowedHeaders: "*"
+                allowCredentials: true
+                maxAge: 3600
+
+  # Redis 설정 (Rate Limiting용)
+  data:
+    redis:
+      host: localhost
+      port: 16379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# Actuator 설정 (헬스체크 및 메트릭)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 
+          - health
+          - info
+          - metrics
+          - prometheus
+          - gateway
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    info:
+      access: unrestricted
+    gateway:
+      access: unrestricted
+  info:
+    env:
+      enabled: true
+    build:
+      enabled: true
+    git:
+      enabled: true
+      mode: full
+
+# 로깅 설정
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.netty: INFO
+    me.helloc.techwikiplus.service.apigateway: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr([%-5level]){spring} %clr([%logger{36}]){cyan} - %clr(%msg){faint}%n"
+
+# 서비스 정보
+info:
+  app:
+    name: TechWikiPlus API Gateway
+    description: Central API Gateway for TechWikiPlus services
+    version: '@project.version@'
+    profiles: ${spring.profiles.active:default}
