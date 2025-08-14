@@ -1,16 +1,16 @@
 package me.helloc.techwikiplus.service.user.infrastructure.security.context
 
+import me.helloc.techwikiplus.service.user.domain.model.UserId
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 
 @Service
 class SecurityContextService {
-    fun getCurrentUserId(): Long? {
+    fun getCurrentUserId(): UserId? {
         val authentication = SecurityContextHolder.getContext().authentication
 
         return when (val principal = authentication?.principal) {
-            is Long -> principal
-            is String -> principal.toLong()
+            is UserId -> principal
             else -> null
         }
     }

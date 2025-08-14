@@ -1,11 +1,11 @@
 package me.helloc.techwikiplus.service.user.infrastructure.security.adapter
 
-import me.helloc.techwikiplus.service.user.infrastructure.security.context.SecurityContextService
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserRole
 import me.helloc.techwikiplus.service.user.domain.service.port.UserAuthorizationPort
+import me.helloc.techwikiplus.service.user.infrastructure.security.context.SecurityContextService
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,8 +13,7 @@ class SpringSecurityUserAuthorizationAdapter(
     private val securityContextService: SecurityContextService,
 ) : UserAuthorizationPort {
     override fun getCurrentUserId(): UserId? {
-        val currentUserId: Long = securityContextService.getCurrentUserId() ?: return null
-        return UserId(currentUserId)
+        return securityContextService.getCurrentUserId()
     }
 
     override fun requireAuthenticated(): UserId {

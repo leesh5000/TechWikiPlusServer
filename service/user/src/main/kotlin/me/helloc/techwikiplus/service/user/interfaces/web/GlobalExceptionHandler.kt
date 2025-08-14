@@ -29,7 +29,6 @@ class GlobalExceptionHandler(
             .body(ErrorResponse.Companion.of(e.userErrorCode.name, message))
     }
 
-
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadable(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
         logger.warn("Failed to read HTTP message")
