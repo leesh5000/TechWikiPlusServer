@@ -1,1 +1,6 @@
-spring.application.name=document
+server:
+  port: ${SERVER_PORT:9001}
+spring:
+  application:
+    name: techwikiplus-document
+    version: ${IMAGE_TAG:LOCAL_VERSION}
