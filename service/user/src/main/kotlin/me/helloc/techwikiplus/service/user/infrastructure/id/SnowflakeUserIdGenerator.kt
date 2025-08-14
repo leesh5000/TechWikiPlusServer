@@ -7,9 +7,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class SnowflakeUserIdGenerator(
-    private val snowflake: Snowflake
+    private val snowflake: Snowflake,
 ) : UserIdGenerator {
-
     override fun next(): UserId {
         return UserId(snowflake.nextId())
     }

@@ -6,7 +6,7 @@ package me.helloc.common.snowflake
  * 구조: [41비트 타임스탬프][10비트 노드ID][12비트 시퀀스]
  */
 class Snowflake(
-    private val configuration: SnowflakeConfiguration = SnowflakeConfiguration.fromEnvironment()
+    private val configuration: SnowflakeConfiguration = SnowflakeConfiguration.fromEnvironment(),
 ) {
     companion object {
         private const val UNUSED_BITS = 1
