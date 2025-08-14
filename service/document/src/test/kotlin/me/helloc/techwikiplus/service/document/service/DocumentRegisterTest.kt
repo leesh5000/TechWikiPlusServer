@@ -4,9 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.document.infrastructure.FakeClockHolder
-import me.helloc.techwikiplus.service.document.infrastructure.FakeDocumentIdGenerator
-import me.helloc.techwikiplus.service.document.infrastructure.FakeDocumentRepository
 import me.helloc.techwikiplus.service.document.domain.exception.DocumentDomainException
 import me.helloc.techwikiplus.service.document.domain.exception.DocumentErrorCode
 import me.helloc.techwikiplus.service.document.domain.model.Author
@@ -14,7 +11,11 @@ import me.helloc.techwikiplus.service.document.domain.model.Content
 import me.helloc.techwikiplus.service.document.domain.model.DocumentId
 import me.helloc.techwikiplus.service.document.domain.model.DocumentStatus
 import me.helloc.techwikiplus.service.document.domain.model.Title
+import me.helloc.techwikiplus.service.document.infrastructure.FakeClockHolder
+import me.helloc.techwikiplus.service.document.infrastructure.FakeDocumentIdGenerator
+import me.helloc.techwikiplus.service.document.infrastructure.FakeDocumentRepository
 import java.time.Instant
+import kotlin.collections.get
 
 class DocumentRegisterTest : FunSpec({
 

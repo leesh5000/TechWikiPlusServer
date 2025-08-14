@@ -23,7 +23,7 @@ enum class DocumentErrorCode {
 
     // Domain Service
     NOT_AUTHOR_OF_DOCUMENT,
-    
+
     // Security
     UNAUTHORIZED,
 }

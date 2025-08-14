@@ -5,4 +5,5 @@ include(
     "common:snowflake",
     "service",
     "service:user",
+    "service:document",
 )
