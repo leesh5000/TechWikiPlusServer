@@ -1,7 +1,6 @@
 -- Flyway Migration: Create Document Schema
 -- Version: 1.1.0
--- Description: Create documents table with indexes for Document domain
-
+-- Description: Create a document table with indexes for Document domain
 CREATE TABLE IF NOT EXISTS documents (
     id BIGINT PRIMARY KEY NOT NULL COMMENT 'ID(PK): Snowflake ID',
     title VARCHAR(200) NOT NULL COMMENT '문서 제목 (최대 200자)',
