@@ -1,6 +1,6 @@
 package me.helloc.techwikiplus.service.user.config
 
-import me.helloc.techwikiplus.service.config.config.MySqlTestContainer
+import me.helloc.techwikiplus.service.user.config.testcontainers.MySqlTestContainer
 import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext

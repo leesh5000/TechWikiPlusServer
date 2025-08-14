@@ -2,10 +2,9 @@ package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
-import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtTokenManager
-import me.helloc.techwikiplus.service.config.BaseE2eTest
-import me.helloc.techwikiplus.service.config.annotations.E2eTest
-import me.helloc.techwikiplus.service.config.documentation.withStandardErrorResponse
+import me.helloc.techwikiplus.service.user.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
 import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.RawPassword
@@ -15,6 +14,7 @@ import me.helloc.techwikiplus.service.user.domain.model.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
+import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtTokenManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

@@ -3,6 +3,7 @@ package me.helloc.techwikiplus.service.user.infrastructure
 import me.helloc.techwikiplus.service.user.domain.service.port.CacheStore
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 open class FakeCacheStore : CacheStore {
     data class CacheEntry(
@@ -10,7 +11,7 @@ open class FakeCacheStore : CacheStore {
         val expiresAt: Instant?,
     )
 
-    protected val cache = mutableMapOf<String, CacheEntry>()
+    protected val cache = ConcurrentHashMap<String, CacheEntry>()
     private var currentTime = Instant.now()
 
     override fun get(key: String): String? {

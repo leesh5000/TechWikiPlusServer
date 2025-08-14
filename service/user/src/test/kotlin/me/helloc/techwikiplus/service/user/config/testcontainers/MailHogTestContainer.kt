@@ -1,4 +1,4 @@
-package me.helloc.techwikiplus.service.user.config.config
+package me.helloc.techwikiplus.service.user.config.testcontainers
 
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName

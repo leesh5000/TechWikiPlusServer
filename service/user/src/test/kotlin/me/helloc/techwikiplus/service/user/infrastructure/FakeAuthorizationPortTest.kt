@@ -9,11 +9,11 @@ import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserRole
 
 class FakeAuthorizationPortTest : DescribeSpec({
-    lateinit var authorizationPort: me.helloc.techwikiplus.service.user.infrastructure.FakeUserAuthorizationPort
+    lateinit var authorizationPort: FakeUserAuthorizationPort
 
     beforeEach {
         authorizationPort =
-            _root_ide_package_.me.helloc.techwikiplus.service.user.infrastructure.FakeUserAuthorizationPort()
+            FakeUserAuthorizationPort()
     }
 
     describe("getCurrentUserId") {

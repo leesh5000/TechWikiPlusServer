@@ -2,9 +2,9 @@ package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters.Companion.builder
 import com.epages.restdocs.apispec.Schema.Companion.schema
-import me.helloc.techwikiplus.service.config.BaseE2eTest
-import me.helloc.techwikiplus.service.config.annotations.E2eTest
-import me.helloc.techwikiplus.service.config.documentation.withStandardErrorResponse
+import me.helloc.techwikiplus.service.user.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.restdocs.payload.JsonFieldType

@@ -5,9 +5,10 @@ import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
+import java.util.concurrent.ConcurrentHashMap
 
 open class FakeUserRepository : UserRepository {
-    private val users = mutableMapOf<UserId, User>()
+    private val users = ConcurrentHashMap<UserId, User>()
 
     override fun findBy(userId: UserId): User? {
         return users[userId]

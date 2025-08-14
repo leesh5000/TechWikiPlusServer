@@ -2,9 +2,8 @@ package me.helloc.techwikiplus.service.user.infrastructure.security.config
 
 import io.mockk.every
 import io.mockk.mockk
-import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtTokenManager
-import me.helloc.techwikiplus.service.config.BaseE2eTest
-import me.helloc.techwikiplus.service.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
 import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.EncodedPassword
 import me.helloc.techwikiplus.service.user.domain.model.Nickname
@@ -13,6 +12,7 @@ import me.helloc.techwikiplus.service.user.domain.model.UserId
 import me.helloc.techwikiplus.service.user.domain.model.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
+import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtTokenManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

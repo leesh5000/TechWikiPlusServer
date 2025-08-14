@@ -1,11 +1,11 @@
 package me.helloc.techwikiplus.service.user.infrastructure
 
+import me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder
 import java.time.Instant
 
 class FakeClockHolder(
     private var fixedInstant: Instant = Instant.parse("2025-01-01T00:00:00Z"),
-) : me.helloc.techwikiplus.service.user.domain.service.port.ClockHolder,
-    me.helloc.techwikiplus.service.document.domain.service.port.ClockHolder {
+) : ClockHolder {
     override fun now(): Instant {
         return fixedInstant
     }

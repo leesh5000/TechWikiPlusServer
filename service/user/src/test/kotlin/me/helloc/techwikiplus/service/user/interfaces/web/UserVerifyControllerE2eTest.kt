@@ -3,10 +3,9 @@ package me.helloc.techwikiplus.service.user.interfaces.web
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema
 import io.kotest.matchers.shouldBe
-import me.helloc.techwikiplus.service.common.infrastructure.cache.RedisCacheStore
-import me.helloc.techwikiplus.service.config.BaseE2eTest
-import me.helloc.techwikiplus.service.config.annotations.E2eTest
-import me.helloc.techwikiplus.service.config.documentation.withStandardErrorResponse
+import me.helloc.techwikiplus.service.user.config.BaseE2eTest
+import me.helloc.techwikiplus.service.user.config.annotations.E2eTest
+import me.helloc.techwikiplus.service.user.config.documentation.withStandardErrorResponse
 import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.RawPassword
@@ -16,6 +15,7 @@ import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
 import me.helloc.techwikiplus.service.user.domain.service.port.UserIdGenerator
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
+import me.helloc.techwikiplus.service.user.infrastructure.cache.RedisCacheStore
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType

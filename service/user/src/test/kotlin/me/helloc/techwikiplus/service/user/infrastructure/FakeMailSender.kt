@@ -3,6 +3,7 @@ package me.helloc.techwikiplus.service.user.infrastructure
 import me.helloc.techwikiplus.service.user.domain.model.Email
 import me.helloc.techwikiplus.service.user.domain.model.MailContent
 import me.helloc.techwikiplus.service.user.domain.service.port.MailSender
+import java.util.concurrent.ConcurrentLinkedQueue
 
 open class FakeMailSender : MailSender {
     data class SentMail(
@@ -10,7 +11,7 @@ open class FakeMailSender : MailSender {
         val content: MailContent,
     )
 
-    private val sentMails = mutableListOf<SentMail>()
+    private val sentMails = ConcurrentLinkedQueue<SentMail>()
 
     override fun send(
         to: Email,
@@ -24,7 +25,7 @@ open class FakeMailSender : MailSender {
     }
 
     fun getLastSentMail(): SentMail? {
-        return sentMails.lastOrNull()
+        return sentMails.toList().lastOrNull()
     }
 
     fun getSentMailCount(): Int {

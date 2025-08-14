@@ -23,78 +23,6 @@ class ArchitectureTest {
     }
 
     @Nested
-    @DisplayName("패키지 의존성 규칙")
-    inner class PackageDependencyRules {
-        @Test
-        @DisplayName("common 패키지는 다른 모든 패키지를 참조할 수 있다")
-        fun commonPackageCanAccessAllPackages() {
-            val rule =
-                classes()
-                    .that().resideInAPackage("..service.common..")
-                    .should().accessClassesThat()
-                    .resideInAnyPackage(
-                        "..service.common..",
-                        "..service.user..",
-                        "..service.document..",
-                        "..service..",
-                        "java..",
-                        "kotlin..",
-                        "org.springframework..",
-                        "com.fasterxml..",
-                        "org.slf4j..",
-                        "javax..",
-                        "jakarta..",
-                    )
-
-            rule.check(importedClasses)
-        }
-
-        @Test
-        @DisplayName("user 패키지는 document 패키지를 참조할 수 없다")
-        fun userPackageCannotAccessDocumentPackage() {
-            val rule =
-                noClasses()
-                    .that().resideInAPackage("..service.user..")
-                    .should().accessClassesThat()
-                    .resideInAPackage("..service.document..")
-
-            rule.check(importedClasses)
-        }
-
-        @Test
-        @DisplayName("document 패키지는 user 패키지를 참조할 수 없다")
-        fun documentPackageCannotAccessUserPackage() {
-            val rule =
-                noClasses()
-                    .that().resideInAPackage("..service.document..")
-                    .should().accessClassesThat()
-                    .resideInAPackage("..service.user..")
-
-            rule.check(importedClasses)
-        }
-
-        @Test
-        @DisplayName("도메인 패키지는 자기 자신과 common 패키지만 참조할 수 있다")
-        fun domainPackagesCanOnlyAccessSelfAndCommon() {
-            val domainPackages = listOf("user", "document")
-
-            domainPackages.forEach { domainPackage ->
-                val otherDomains = domainPackages.filter { it != domainPackage }
-
-                otherDomains.forEach { otherDomain ->
-                    val rule =
-                        noClasses()
-                            .that().resideInAPackage("..service.$domainPackage..")
-                            .should().accessClassesThat()
-                            .resideInAPackage("..service.$otherDomain..")
-
-                    rule.check(importedClasses)
-                }
-            }
-        }
-    }
-
-    @Nested
     @DisplayName("의존 방향 규칙")
     inner class LayeredArchitectureRules {
         @Test
@@ -271,20 +199,6 @@ class ArchitectureTest {
                     .or().haveSimpleNameEndingWith("UseCase")
                     .and().areInterfaces()
                     .should().resideInAPackage("..port..")
-
-            rule.check(importedClasses)
-        }
-
-        @Test
-        @DisplayName("인프라스트럭처 구현체는 infrastructure 패키지에 있어야 한다")
-        fun infrastructureImplementationsShouldBeInInfrastructurePackage() {
-            val rule =
-                classes()
-                    .that().haveSimpleNameEndingWith("Impl")
-                    .or().haveSimpleNameEndingWith("Adapter")
-                    .and().areNotInterfaces()
-                    .and().resideInAPackage("..common..")
-                    .should().resideInAPackage("..infrastructure..")
 
             rule.check(importedClasses)
         }

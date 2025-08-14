@@ -4,10 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import me.helloc.techwikiplus.service.common.infrastructure.FakeCacheStore
-import me.helloc.techwikiplus.service.common.infrastructure.FakeClockHolder
-import me.helloc.techwikiplus.service.common.infrastructure.FakeMailSender
-import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.Email
@@ -19,6 +15,10 @@ import me.helloc.techwikiplus.service.user.domain.model.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.UserStatus
 import me.helloc.techwikiplus.service.user.domain.service.EmailVerifyService
 import me.helloc.techwikiplus.service.user.domain.service.UserReader
+import me.helloc.techwikiplus.service.user.infrastructure.FakeCacheStore
+import me.helloc.techwikiplus.service.user.infrastructure.FakeClockHolder
+import me.helloc.techwikiplus.service.user.infrastructure.FakeMailSender
+import me.helloc.techwikiplus.service.user.infrastructure.FakeUserRepository
 import java.time.Instant
 
 class UserVerifyResendFacadeTest : FunSpec({
