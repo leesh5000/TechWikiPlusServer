@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters
 import com.epages.restdocs.apispec.Schema.Companion.schema
-import me.helloc.techwikiplus.service.common.infrastructure.id.SnowflakeIdGenerator
+import me.helloc.techwikiplus.service.common.infrastructure.id.SnowflakeUserIdGenerator
 import me.helloc.techwikiplus.service.config.BaseE2eTest
 import me.helloc.techwikiplus.service.config.annotations.E2eTest
 import me.helloc.techwikiplus.service.config.documentation.withStandardErrorResponse
@@ -45,7 +45,7 @@ class UserLoginControllerE2eTest : BaseE2eTest() {
     private lateinit var userRepository: UserRepository
 
     @Autowired
-    private lateinit var snowflakeIdGenerator: SnowflakeIdGenerator
+    private lateinit var snowflakeIdGenerator: SnowflakeUserIdGenerator
 
     // BCrypt로 암호화된 "Password123!" 문자열 (대문자 P 포함)
     // DelegatingPasswordEncoder를 위해 {bcrypt} 접두사 추가

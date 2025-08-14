@@ -14,8 +14,8 @@ import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 import me.helloc.techwikiplus.service.user.domain.model.User
 import me.helloc.techwikiplus.service.user.domain.model.UserRole
 import me.helloc.techwikiplus.service.user.domain.model.UserStatus
-import me.helloc.techwikiplus.service.user.domain.service.port.IdGenerator
 import me.helloc.techwikiplus.service.user.domain.service.port.PasswordEncryptor
+import me.helloc.techwikiplus.service.user.domain.service.port.UserIdGenerator
 import me.helloc.techwikiplus.service.user.domain.service.port.UserRepository
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,7 +53,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
     private lateinit var cacheStore: RedisCacheStore
 
     @Autowired
-    private lateinit var idGenerator: IdGenerator
+    private lateinit var userIdGenerator: UserIdGenerator
 
     @Autowired
     private lateinit var passwordEncryptor: PasswordEncryptor
@@ -507,7 +507,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
     // Helper Methods
     private fun createPendingUser(email: String): User {
         return User.create(
-            id = idGenerator.next(),
+            id = userIdGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("pendinguser"),
@@ -520,7 +520,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
 
     private fun createActiveUser(email: String): User {
         return User.create(
-            id = idGenerator.next(),
+            id = userIdGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("activeuser"),
@@ -533,7 +533,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
 
     private fun createBannedUser(email: String): User {
         return User.create(
-            id = idGenerator.next(),
+            id = userIdGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("banneduser"),
@@ -546,7 +546,7 @@ class UserVerifyResendControllerE2eTest : BaseE2eTest() {
 
     private fun createDeletedUser(email: String): User {
         return User.create(
-            id = idGenerator.next(),
+            id = userIdGenerator.next(),
             email = Email(email),
             encodedPassword = passwordEncryptor.encode(RawPassword("Test1234!")),
             nickname = Nickname("deleteduser"),

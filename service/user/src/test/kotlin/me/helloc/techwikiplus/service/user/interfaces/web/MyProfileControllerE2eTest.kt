@@ -2,7 +2,7 @@ package me.helloc.techwikiplus.service.user.interfaces.web
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters.Companion.builder
 import com.epages.restdocs.apispec.Schema.Companion.schema
-import me.helloc.techwikiplus.service.common.infrastructure.security.jwt.JwtTokenManager
+import me.helloc.techwikiplus.service.user.infrastructure.security.jwt.JwtTokenManager
 import me.helloc.techwikiplus.service.config.BaseE2eTest
 import me.helloc.techwikiplus.service.config.annotations.E2eTest
 import me.helloc.techwikiplus.service.config.documentation.withStandardErrorResponse

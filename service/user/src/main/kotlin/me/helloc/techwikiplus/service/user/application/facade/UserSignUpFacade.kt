@@ -15,7 +15,7 @@ class UserSignUpFacade(
     private val userRegister: UserRegister,
     private val emailVerifyService: EmailVerifyService,
 ) : UserSignUpUseCase {
-    override fun execute(
+    override fun handle(
         email: Email,
         nickname: Nickname,
         password: RawPassword,

@@ -5,7 +5,7 @@ import me.helloc.techwikiplus.service.user.domain.model.Nickname
 import me.helloc.techwikiplus.service.user.domain.model.RawPassword
 
 interface UserSignUpUseCase {
-    fun execute(
+    fun handle(
         email: Email,
         nickname: Nickname,
         password: RawPassword,

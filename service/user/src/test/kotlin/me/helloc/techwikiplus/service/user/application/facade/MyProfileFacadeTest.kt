@@ -3,8 +3,8 @@ package me.helloc.techwikiplus.service.user.application.facade
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import me.helloc.techwikiplus.service.common.infrastructure.FakeUserAuthorizationPort
-import me.helloc.techwikiplus.service.common.infrastructure.FakeUserRepository
+import me.helloc.techwikiplus.service.user.infrastructure.FakeUserAuthorizationPort
+import me.helloc.techwikiplus.service.user.infrastructure.FakeUserRepository
 import me.helloc.techwikiplus.service.user.domain.exception.UserDomainException
 import me.helloc.techwikiplus.service.user.domain.exception.UserErrorCode
 import me.helloc.techwikiplus.service.user.domain.model.Email

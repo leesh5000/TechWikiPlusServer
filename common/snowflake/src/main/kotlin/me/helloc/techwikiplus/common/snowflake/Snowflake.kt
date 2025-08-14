@@ -1,13 +1,13 @@
 package me.helloc.common.snowflake
 
-import kotlin.random.Random
-
 /**
  * 분산 환경에서 고유한 64비트 ID를 생성하는 Snowflake 구현체
  *
  * 구조: [41비트 타임스탬프][10비트 노드ID][12비트 시퀀스]
  */
-class Snowflake {
+class Snowflake(
+    private val configuration: SnowflakeConfiguration = SnowflakeConfiguration.fromEnvironment()
+) {
     companion object {
         private const val UNUSED_BITS = 1
         private const val EPOCH_BITS = 41
@@ -18,8 +18,8 @@ class Snowflake {
         private const val MAX_SEQUENCE = (1L shl SEQUENCE_BITS) - 1
     }
 
-    // 임의로 할당된 노드 ID (0..maxNodeId)
-    private val nodeId: Long = Random.nextLong(MAX_NODE_ID + 1)
+    // 설정에서 제공된 노드 ID 사용
+    private val nodeId: Long = configuration.nodeId
 
     // 기준 시작 시점 (UTC 2024-01-01T00:00:00Z)
     private val startTimeMillis: Long = 1704067200000L

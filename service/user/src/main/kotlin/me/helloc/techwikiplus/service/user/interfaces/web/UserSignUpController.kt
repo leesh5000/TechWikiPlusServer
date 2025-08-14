@@ -19,7 +19,7 @@ class UserSignUpController(
     fun signup(
         @RequestBody request: Request,
     ): ResponseEntity<Void> {
-        useCase.execute(
+        useCase.handle(
             email = Email(request.email),
             nickname = Nickname(request.nickname),
             password = RawPassword(request.password),
