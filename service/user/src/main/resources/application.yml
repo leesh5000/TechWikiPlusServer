@@ -1,14 +1,15 @@
 server:
-  port: ${SERVER_PORT:9000}
+  port: 9001
+
 spring:
   application:
-    name: techwikiplus-user
-    version: ${IMAGE_TAG:LOCAL_VERSION}
+    name: user
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:13306}/${MYSQL_DATABASE:techwikiplus-user}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
-    username: ${MYSQL_USER:techwikiplus}
-    password: ${MYSQL_PASSWORD:techwikiplus}
+    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
     hikari:
       maximum-pool-size: 30 # 최대 커넥션 풀 크기
       minimum-idle: 10 # 최소 유휴 커넥션 수
@@ -21,9 +22,9 @@ spring:
     clean-disabled: true
   jpa:
     open-in-view: false
-    show-sql: ${JPA_SHOW_SQL:false}  # 성능 최적화를 위해 비활성화
+    show-sql: false  # 성능 최적화를 위해 비활성화
     hibernate:
-      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:validate}
+      ddl-auto: validate
     properties:
       hibernate:
         # 배치 처리 설정
@@ -44,25 +45,25 @@ spring:
         # JDBC 메타데이터 접근 허용 (자동 dialect 감지를 위해 필요)
         boot:
           allow_jdbc_metadata_access: true
-        # MySQL 8.x에 최적화된 Dialect 사용
-        dialect: org.hibernate.dialect.MySQL8Dialect
+
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:16379}
-      password: ${REDIS_PASSWORD:techwikiplus}
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
   # Mail configuration
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:11025}
-    username: ${MAIL_USERNAME:noreply@techwikiplus.com}
-    password: ${MAIL_PASSWORD:techwikiplus}
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
-          auth: ${MAIL_SMTP_AUTH:false}
+          auth: ${MAIL_SMTP_AUTH}
           starttls:
-            enable: ${MAIL_SMTP_STARTTLS:false}
+            enable: ${MAIL_SMTP_STARTTLS}
           connection-timeout: 5000
           timeout: 5000
           write-timeout: 5000
@@ -80,6 +81,61 @@ springdoc:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:your-256-bit-secret-key-for-development-environment-only}
-  access-token-validity-in-seconds: ${JWT_ACCESS_TOKEN_VALIDITY:3600}  # 1 hour
-  refresh-token-validity-in-seconds: ${JWT_REFRESH_TOKEN_VALIDITY:2592000}  # 30 days
+  secret: ${JWT_SECRET}
+  access-token-validity-in-seconds: 3600  # 1 hour
+  refresh-token-validity-in-seconds: 2592000  # 30 days
+
+# Actuator 설정 (헬스체크 및 메트릭) - 보안 강화 적용
+# 관리 포트 분리로 외부 노출 차단
+management:
+  server:
+    port: 9091  # 관리 전용 포트 (외부 노출 안함, 모니터링/헬스체크 전용)
+  endpoints:
+    web:
+      exposure:
+        include: 
+          - health      # 서비스 헬스체크 (필수)
+          - metrics     # 메트릭 수집 (모니터링용)
+          - prometheus  # Prometheus 메트릭 (모니터링용)
+          # info 엔드포인트 제거 - 버전 정보 노출 방지
+          # flyway 엔드포인트 제거 - DB 스키마 정보 노출 방지
+          # datasource 엔드포인트 제거 - DB 연결 정보 노출 방지
+  endpoint:
+    health:
+      show-details: never  # 상세 정보 완전 차단 (보안 강화)
+      probes:
+        enabled: true
+      show-components: never  # 컴포넌트 상태 완전 차단 (보안 강화)
+  # info 엔드포인트 설정 제거 - 모든 빌드/Git 정보 노출 방지
+  health:
+    # 데이터베이스 헬스체크 (내부 상태만, 세부 정보는 인증 필요)
+    db:
+      enabled: true
+    # Redis 헬스체크 (내부 상태만, 세부 정보는 인증 필요)
+    redis:
+      enabled: true
+    # 디스크 공간 헬스체크 (내부 상태만, 세부 정보는 인증 필요)
+    diskspace:
+      enabled: true
+    # Mail 헬스체크 (내부 상태만, 세부 정보는 인증 필요)
+    mail:
+      enabled: true
+
+# 로깅 설정
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.data.jpa: INFO
+    org.flywaydb: INFO
+    me.helloc.techwikiplus.service.user: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr([%-5level]){spring} %clr([%logger{36}]){cyan} - %clr(%msg){faint}%n"
+
+# 서비스 정보
+info:
+  app:
+    name: TechWikiPlus User Service
+    description: User management service for TechWikiPlus platform
+    version: '@project.version@'
+    profiles: ${spring.profiles.active:default}

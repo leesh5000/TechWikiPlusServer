@@ -1,0 +1,55 @@
+services:
+  api-gateway:
+    image: techwikiplus/server/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "9000:9000"
+      - "5000:5005"
+    environment:
+      - DEBUG_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - JAVA_OPTS=-Xmx1g -Xms512m
+    networks:
+      - api-gateway
+      - user-service
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis-data:/data
+    command: >
+      sh -c 'redis-server --appendonly yes
+             --requirepass "$${REDIS_PASSWORD}"
+             --maxmemory 256mb
+             --maxmemory-policy allkeys-lru'
+    networks:
+      - redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  api-gateway:
+    driver: bridge
+  user-service:
+    driver: bridge
+  redis:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local

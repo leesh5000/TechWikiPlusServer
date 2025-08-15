@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 9000
 
 spring:
   application:
@@ -65,8 +65,8 @@ spring:
   # Redis 설정 (Rate Limiting용)
   data:
     redis:
-      host: localhost
-      port: 16379
+      host: redis
+      port: 6379
       timeout: 2000ms
       lettuce:
         pool:
@@ -74,34 +74,26 @@ spring:
           max-idle: 8
           min-idle: 0
 
-# Actuator 설정 (헬스체크 및 메트릭)
+# Actuator 설정 (헬스체크 및 메트릭) - 보안 강화 적용
+# 관리 포트 분리로 외부 노출 차단
 management:
+  server:
+    port: 9090  # 관리 전용 포트 (외부 노출 안함, 모니터링/헬스체크 전용)
   endpoints:
     web:
       exposure:
         include: 
-          - health
-          - info
-          - metrics
-          - prometheus
-          - gateway
+          - health      # 서비스 헬스체크 (필수)
+          - metrics     # 메트릭 수집 (모니터링용)
+          - prometheus  # Prometheus 메트릭 (모니터링용)
+          # info 엔드포인트 제거 - 버전 정보 노출 방지
+          # gateway 엔드포인트 제거 - 라우팅 정보 노출 방지
   endpoint:
     health:
-      show-details: always
+      show-details: never  # 상세 정보 완전 차단 (보안 강화)
       probes:
         enabled: true
-    info:
-      access: unrestricted
-    gateway:
-      access: unrestricted
-  info:
-    env:
-      enabled: true
-    build:
-      enabled: true
-    git:
-      enabled: true
-      mode: full
+  # info 엔드포인트 설정 제거 - 모든 빌드/Git 정보 노출 방지
 
 # 로깅 설정
 logging:
