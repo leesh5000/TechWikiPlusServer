@@ -6,5 +6,5 @@ include(
     "service",
     "service:user",
     "service:document",
-    "service:apigateway",
+    "service:api-gateway",
 )

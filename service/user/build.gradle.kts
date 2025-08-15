@@ -71,6 +71,12 @@ dependencies {
 
     // MockK - Kotlin mocking library for testing
     testImplementation("io.mockk:mockk:1.13.8")
+
+    // Spring Boot Actuator (헬스체크, 메트릭)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    
+    // Micrometer Prometheus - 프로메테우스 메트릭 노출
+    implementation("io.micrometer:micrometer-registry-prometheus")
 }
 
 // OpenAPI 3.0.1 문서 생성 설정

@@ -46,9 +46,9 @@ class SecurityConfiguration(
                         "/api/v1/users/verify/resend",
                         "/api/v1/users/refresh",
                     ).permitAll()
-                    // Actuator 엔드포인트
+                    // Actuator 엔드포인트 (헬스체크 및 모니터링)
                     .requestMatchers(
-                        "/health",
+                        "/actuator/**",
                     ).permitAll()
                     // Swagger/OpenAPI 문서
                     .requestMatchers(
