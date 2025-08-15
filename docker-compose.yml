@@ -1,23 +1,94 @@
+# 로컬 개발용: docker compose -f docker-compose.yml up -d --build (강제 빌드)
+# 운영 환경: docker compose -f docker-compose.yml up -d --pull always (외부 이미지 우선 사용)
+
+# 전역 기본 설정
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+    compress: "true"
+
+x-healthcheck: &default-healthcheck
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
+
 services:
+  ###############################
+  ###     DOMAIN SERVICES     ###
+  ###############################
   api-gateway:
+    build:
+      context: .
+      dockerfile: service/api-gateway/Dockerfile
     image: techwikiplus/server/api-gateway:latest
     container_name: api-gateway
     ports:
-      - "9000:9000"
-      - "5000:5005"
+      - "9000:9000"  # 애플리케이션 전용 포트
+      - "5000:5005"   # 디버그 포트
+    expose:
+      - "9090"        # 관리 포트 (내부 통신만)
     environment:
       - DEBUG_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - JAVA_OPTS=-Xmx1g -Xms512m
     networks:
-      - api-gateway
-      - user-service
+      - backend
+      - infrastructure
+      - monitoring
+    depends_on:
       - redis
+    logging: *default-logging
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      <<: *default-healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]  # 관리 포트로 변경
+
+  user-service:
+    build:
+      context: .
+      dockerfile: service/user/Dockerfile
+    image: techwikiplus/server/user-service:latest
+    container_name: user-service
+    ports:
+      - "9001:9001"  # 애플리케이션 전용 포트
+      - "5001:5005"   # 디버그 포트
+    expose:
+      - "9091"        # 관리 포트 (내부 통신만)
+    environment:
+      - DEBUG_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - JAVA_OPTS=-Xmx1g -Xms512m
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_SMTP_AUTH=${MAIL_SMTP_AUTH}
+      - MAIL_SMTP_STARTTLS=${MAIL_SMTP_STARTTLS}
+      - JWT_SECRET=${JWT_SECRET}
+      - MAILHOG_SMTP_PORT=${MAILHOG_SMTP_PORT}
+    networks:
+      - backend
+      - infrastructure
+      - monitoring
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      mailhog:
+        condition: service_healthy
+    logging: *default-logging
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:9091/actuator/health"]  # 관리 포트로 변경
+
+  ###############################
+  ### INFRASTRUCTURE SERVICES ###
+  ###############################
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -28,28 +99,134 @@ services:
       - "${REDIS_PORT}:6379"
     volumes:
       - redis-data:/data
-    command: >
-      sh -c 'redis-server --appendonly yes
-             --requirepass "$${REDIS_PASSWORD}"
-             --maxmemory 256mb
-             --maxmemory-policy allkeys-lru'
+    command:
+      - sh
+      - -c
+      - |                                                                                                                                                
+        redis-server \                                                                                                                                   
+          --appendonly yes \                                                                                                                             
+          --requirepass "${REDIS_PASSWORD}" \                                                                                                            
+          --maxmemory 256mb \                                                                                                                            
+          --maxmemory-policy allkeys-lru
     networks:
-      - redis
+      - infrastructure
+    logging: *default-logging
     healthcheck:
+      <<: *default-healthcheck
       test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+  mysql:
+    image: mysql:8.0.32
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=200
+      - --innodb_buffer_pool_size=256M
+    networks:
+      - infrastructure
+    logging: *default-logging
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_SMTP_PORT}:1025"  # SMTP port
+      - "${MAILHOG_WEB_PORT}:8025"   # Web UI port
+    networks:
+      - infrastructure
+    logging: *default-logging
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
 
+  ###############################
+  ###   MONITORING SERVICES   ###
+  ###############################
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "19090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - monitoring
+    logging: *default-logging
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "13000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_ALLOW_ORG_CREATE=false
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+    logging: *default-logging
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+
 networks:
-  api-gateway:
+  web:
+  backend:
     driver: bridge
-  user-service:
+  infrastructure:
     driver: bridge
-  redis:
+  monitoring:
     driver: bridge
 
 volumes:
   redis-data:
+    driver: local
+  mysql-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
     driver: local

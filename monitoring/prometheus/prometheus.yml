@@ -1,0 +1,66 @@
+# Prometheus 설정 파일
+# TechWikiPlus 마이크로서비스 모니터링
+
+global:
+  scrape_interval: 15s          # 기본 메트릭 수집 간격
+  evaluation_interval: 15s      # 규칙 평가 간격
+  external_labels:
+    monitor: 'techwikiplus-monitor'
+    environment: 'development'
+
+# 알람 규칙 파일들
+rule_files:
+  - "rules/*.yml"
+
+# 메트릭 수집 대상 설정
+scrape_configs:
+  # API Gateway 모니터링
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:9090']  # 관리 포트로 변경
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # User Service 모니터링
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:9091']  # 관리 포트로 변경
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # Redis 모니터링 (별도 Redis Exporter 필요)
+  # - job_name: 'redis-exporter'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+
+  # MySQL 모니터링 (별도 MySQL Exporter 필요)  
+  # - job_name: 'mysql-exporter'
+  #   static_configs:
+  #     - targets: ['mysql-exporter:9104']
+
+  # Prometheus 자체 모니터링
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+
+# 알람 매니저 설정 (향후 확장 가능)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# 스토리지 설정은 command 라인에서 처리
+# --storage.tsdb.path=/prometheus
+# --storage.tsdb.retention.time=15d
+# --storage.tsdb.retention.size=10GB

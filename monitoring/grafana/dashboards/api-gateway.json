@@ -1,0 +1,83 @@
+{
+  "id": null,
+  "title": "TechWikiPlus - API Gateway",
+  "tags": ["techwikiplus", "api-gateway"],
+  "style": "dark",
+  "timezone": "Asia/Seoul",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Gateway Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"api-gateway\"}",
+            "legendFormat": "Gateway Status"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}}, "type": "value"},
+              {"options": {"1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Gateway Requests by Route",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(spring_cloud_gateway_requests_total[5m])",
+            "legendFormat": "{{route_id}} - {{status}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 3,
+        "title": "Rate Limiting",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(spring_cloud_gateway_requests_total{status=\"429\"}[5m])",
+            "legendFormat": "Rate Limited Requests"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      },
+      {
+        "id": 4,
+        "title": "Gateway Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(spring_cloud_gateway_requests_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(spring_cloud_gateway_requests_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+      },
+      {
+        "id": 5,
+        "title": "CORS Requests",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_server_requests_total{job=\"api-gateway\",method=\"OPTIONS\"}[5m])",
+            "legendFormat": "CORS Preflight Requests"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"},
+    "refresh": "10s"
+}

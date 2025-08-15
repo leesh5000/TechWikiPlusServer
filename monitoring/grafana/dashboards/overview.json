@@ -1,0 +1,59 @@
+{
+  "id": null,
+  "title": "TechWikiPlus - Overview",
+  "tags": ["techwikiplus", "overview"],
+  "style": "dark",
+  "timezone": "Asia/Seoul",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"api-gateway\"}",
+            "legendFormat": "API Gateway"
+          },
+          {
+            "expr": "up{job=\"user-service\"}",
+            "legendFormat": "User Service"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}}, "type": "value"},
+              {"options": {"1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Total Requests per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(http_server_requests_total[5m]))",
+            "legendFormat": "Total RPS"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(http_server_requests_total{status=~\"4..|5..\"}[5m])) / sum(rate(http_server_requests_total[5m])) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"},
+    "refresh": "5s"
+}

@@ -1,0 +1,58 @@
+# Infrastructure 알람 규칙
+
+groups:
+  - name: infrastructure
+    rules:
+      # Redis 다운
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 2 minutes."
+
+      # MySQL 다운
+      - alert: MySQLDown
+        expr: up{job="mysql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: mysql
+        annotations:
+          summary: "MySQL is down"
+          description: "MySQL has been down for more than 2 minutes."
+
+      # Redis 메모리 사용량 높음
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes{job="redis"} / redis_memory_max_bytes{job="redis"} > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is above 80%."
+
+      # MySQL 연결 수 높음
+      - alert: MySQLHighConnections
+        expr: mysql_global_status_threads_connected{job="mysql"} / mysql_global_variables_max_connections{job="mysql"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: mysql
+        annotations:
+          summary: "High MySQL connection usage"
+          description: "MySQL connection usage is above 80%."
+
+      # JVM 높은 GC 시간
+      - alert: HighGCTime
+        expr: rate(jvm_gc_pause_seconds_sum{job=~"api-gateway|user-service"}[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High GC time detected"
+          description: "{{$labels.job}} is spending more than 10% of time in garbage collection."

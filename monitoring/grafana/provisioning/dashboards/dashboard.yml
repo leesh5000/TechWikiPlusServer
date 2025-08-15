@@ -1,0 +1,13 @@
+# Grafana 대시보드 자동 프로비저닝 설정
+# 시작 시 대시보드 자동 로드
+
+apiVersion: 1
+
+providers:
+  - name: 'TechWikiPlus Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

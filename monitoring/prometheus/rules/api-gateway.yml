@@ -1,0 +1,48 @@
+# API Gateway 알람 규칙
+
+groups:
+  - name: api-gateway
+    rules:
+      # API Gateway 서비스 다운
+      - alert: APIGatewayDown
+        expr: up{job="api-gateway"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: "API Gateway is down"
+          description: "API Gateway has been down for more than 5 minutes."
+
+      # 높은 에러율
+      - alert: APIGatewayHighErrorRate
+        expr: sum(rate(http_server_requests_total{job="api-gateway",status=~"5.."}[5m])) / sum(rate(http_server_requests_total{job="api-gateway"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High error rate in API Gateway"
+          description: "API Gateway error rate is above 5% for 5 minutes."
+
+      # 높은 응답 시간
+      - alert: APIGatewayHighLatency
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job="api-gateway"}[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High latency in API Gateway"
+          description: "API Gateway 95th percentile latency is above 2 seconds."
+
+      # Rate Limiting 임계치
+      - alert: APIGatewayHighRateLimiting
+        expr: rate(http_server_requests_total{job="api-gateway",status="429"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High rate limiting in API Gateway"
+          description: "API Gateway is rate limiting more than 10 requests per second."

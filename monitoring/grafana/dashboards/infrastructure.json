@@ -1,0 +1,75 @@
+{
+  "id": null,
+  "title": "TechWikiPlus - Infrastructure",
+  "tags": ["techwikiplus", "infrastructure"],
+  "style": "dark",
+  "timezone": "Asia/Seoul",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Redis Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "redis_memory_used_bytes{job=\"redis\"} / redis_memory_max_bytes{job=\"redis\"} * 100",
+            "legendFormat": "Memory Usage %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Redis Commands per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(redis_commands_total{job=\"redis\"}[5m])",
+            "legendFormat": "{{cmd}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "MySQL Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "mysql_global_status_threads_connected{job=\"mysql\"}",
+            "legendFormat": "Connected"
+          },
+          {
+            "expr": "mysql_global_variables_max_connections{job=\"mysql\"}",
+            "legendFormat": "Max Connections"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "MySQL Query Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(mysql_global_status_queries{job=\"mysql\"}[5m])",
+            "legendFormat": "Queries per second"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "JVM Garbage Collection",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(jvm_gc_pause_seconds_sum{job=~\"api-gateway|user-service\"}[5m])",
+            "legendFormat": "{{job}} - GC Time"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"},
+    "refresh": "10s"
+}
