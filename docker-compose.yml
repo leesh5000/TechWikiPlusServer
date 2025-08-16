@@ -33,6 +33,7 @@ services:
     environment:
       - DEBUG_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - JAVA_OPTS=-Xmx1g -Xms512m
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
     networks:
       - backend
       - infrastructure
@@ -196,8 +197,8 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_USERS_ALLOW_ORG_CREATE=false
       - GF_SECURITY_ALLOW_EMBEDDING=true
