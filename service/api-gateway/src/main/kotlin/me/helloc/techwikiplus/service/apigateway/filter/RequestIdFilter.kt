@@ -42,8 +42,9 @@ class RequestIdFilter : GlobalFilter, Ordered {
             logger.debug("Using Request ID as Correlation ID: {}", correlationId)
         }
 
-        // Gateway에서 생성하는 고유 ID (내부 추적용)
-        val gatewayRequestId = generateRequestId()
+        // Gateway에서 생성하는 고유 ID (내부 추적용) - 기존에 있으면 재사용
+        val existingGatewayRequestId = request.headers.getFirst(GATEWAY_REQUEST_ID_HEADER)
+        val gatewayRequestId = existingGatewayRequestId ?: generateRequestId()
 
         // 헤더에 추가하여 다운스트림 서비스로 전달
         val mutatedRequest =
@@ -53,11 +54,7 @@ class RequestIdFilter : GlobalFilter, Ordered {
                 .header(GATEWAY_REQUEST_ID_HEADER, gatewayRequestId)
                 .build()
 
-        // 응답 헤더에도 Request ID 추가
-        val response = exchange.response
-        response.headers.add(REQUEST_ID_HEADER, requestId)
-        response.headers.add(CORRELATION_ID_HEADER, correlationId)
-        response.headers.add(GATEWAY_REQUEST_ID_HEADER, gatewayRequestId)
+        // 응답 헤더는 필터 체인의 마지막에서만 추가 (중복 방지)
 
         logger.debug(
             "Request ID tracking - RequestId: {}, CorrelationId: {}, GatewayRequestId: {}, Path: {}",
@@ -66,6 +63,12 @@ class RequestIdFilter : GlobalFilter, Ordered {
             gatewayRequestId,
             request.uri.path,
         )
+
+        // 응답 헤더 미리 설정 (ReadOnly 상태가 되기 전에)
+        val response = exchange.response
+        response.headers.add(REQUEST_ID_HEADER, requestId)
+        response.headers.add(CORRELATION_ID_HEADER, correlationId)
+        response.headers.add(GATEWAY_REQUEST_ID_HEADER, gatewayRequestId)
 
         // 수정된 요청으로 필터 체인 계속 실행
         val mutatedExchange = exchange.mutate().request(mutatedRequest).build()
