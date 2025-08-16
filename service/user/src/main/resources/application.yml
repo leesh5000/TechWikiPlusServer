@@ -5,6 +5,11 @@ spring:
   application:
     name: user
 
+  # ANSI 색상 출력 활성화
+  output:
+    ansi:
+      enabled: always
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true
